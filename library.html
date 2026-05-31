@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free Learning Library — BrainByte</title>
+  <meta name="description" content="Access BrainByte's 100% free developer learning library. Download coding PDFs, watch curated tech videos, and master software engineering at zero cost.">
+  
+  <!-- Preload and load Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Premium Theme CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-body">
+
+  <!-- Ambient background glow elements -->
+  <div class="bg-blob-teal" style="top: -100px; left: -100px; fixed: true; opacity: 0.15;"></div>
+  <div class="bg-blob-violet" style="top: 300px; right: -100px; fixed: true; opacity: 0.08;"></div>
+  <div class="bg-blob-teal" style="bottom: 10%; left: 5%; fixed: true; opacity: 0.12;"></div>
+
+  <!-- ================================================================
+    HEADER & NAVIGATION
+  ================================================================ -->
+  <nav class="navbar navbar-expand-lg bb-navbar scrolled">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="index.html" id="bb-logo">
+        <span>Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
+      </a>
+      
+      <button class="navbar-toggler border-0 shadow-none text-white" type="button" data-bs-toggle="collapse" data-bs-target="#bbNavbar" aria-controls="bbNavbar" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="bi bi-list fs-2" style="color: var(--text-primary);"></i>
+      </button>
+      
+      <div class="collapse navbar-collapse" id="bbNavbar">
+        <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1 mt-3 mt-lg-0">
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="courses.html" id="nav-home">Explore</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link library-link active" href="library.html" id="nav-library">
+              Library <i class="bi bi-lock-fill ms-1" id="navbar-library-lock-icon" style="font-size: 0.85rem; color: var(--teal-primary);"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="teach.html" id="nav-teach">Teach</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="pricing.html" id="nav-pricing">Pricing</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="about.html" id="nav-about">About</a>
+          </li>
+        </ul>
+        <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">
+          <a href="login.html" class="btn btn-bb-ghost" id="btn-signin">Sign In</a>
+          <a href="signup.html" class="btn btn-bb-primary" id="btn-getstarted">Get Started</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ================================================================
+    GUEST STATE LOCK BANNER OVERLAY (Sticky top below navbar, visible by default)
+  ================================================================ -->
+  <div class="guest-lock-overlay-banner sticky-top" id="guest-lock-banner" style="top: 4.85rem; z-index: 1020;">
+    <div class="container d-flex flex-sm-row flex-column justify-content-between align-items-center py-2.5 px-4 gap-2">
+      <span class="fw-bold text-white" style="font-size: 0.88rem; font-family: var(--font-display);">
+        <i class="bi bi-lock-fill text-warning me-1.5" style="color: var(--teal-primary) !important;"></i> Login to access all free resource videos and PDFs
+      </span>
+      <a href="login.html" class="btn btn-bb-teal py-1.5 px-4" style="font-size: 0.8rem; height: auto; box-shadow: var(--shadow-glow-teal);">
+        Login Now
+      </a>
+    </div>
+  </div>
+
+  <!-- ================================================================
+    HERO BAND (Top full width, Cyan Gradient Theme)
+  ================================================================ -->
+  <header class="library-hero-band" style="padding: 7.5rem 0 3.5rem 0; position: relative;">
+    <div class="container text-center">
+      
+      <!-- Interactive Session Status Toggle (Top Right inside hero banner) -->
+      <div class="d-flex justify-content-end mb-4">
+        <div class="session-toggle-pill d-flex align-items-center gap-1.5 p-1 rounded-pill" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+          <span style="font-size: 0.68rem; font-family: var(--font-display); font-weight: 800; color: #94A3B8; padding-left: 0.75rem;">SESSION MODE</span>
+          <button type="button" class="btn btn-session-toggle active" id="toggle-session-guest">Locked</button>
+          <button type="button" class="btn btn-session-toggle" id="toggle-session-member">Member</button>
+        </div>
+      </div>
+
+      <!-- Tag pill -->
+      <div class="hero-tag mb-3" style="background: rgba(6, 182, 212, 0.10); border-color: rgba(6, 182, 212, 0.30); color: #06B6D4;">
+        <i class="bi bi-gift-fill me-1"></i> 100% Free — Login Required
+      </div>
+      
+      <!-- Heading H1 -->
+      <h1 class="text-white fw-bold mb-3" style="font-size: 2.8rem; font-family: var(--font-display); line-height: 1.2;">
+        Free Learning Library 📚
+      </h1>
+      
+      <!-- Subtext -->
+      <p class="text-muted mx-auto mb-4" style="max-width: 580px; font-size: 1.05rem; line-height: 1.6;">
+        Curated high-quality video tutorials and downloadable study guide PDFs compiled by the BrainByte engineering team — completely free for all registered members.
+      </p>
+      
+      <!-- Large Centered Search Box -->
+      <div class="mx-auto" style="max-width: 560px; position: relative;">
+        <div class="glass-input-wrapper mb-0" id="library-search-wrapper">
+          <span class="search-icon-inside"><i class="bi bi-search" style="color: #06B6D4;"></i></span>
+          <input type="text" class="glass-input ps-5" id="library-search-input" placeholder="Search videos, PDFs, topics..." style="border-radius: 99px; height: 52px; background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);">
+        </div>
+      </div>
+      
+    </div>
+  </header>
+
+  <!-- ================================================================
+    FILTER ROW (Scrollable categories)
+  ================================================================ -->
+  <section class="library-filter-pills-section border-top border-bottom py-3 mb-5" style="background: rgba(13, 14, 26, 0.30); border-color: rgba(255, 255, 255, 0.05) !important;">
+    <div class="container">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        
+        <!-- Horizontal Scrollable Container -->
+        <div class="library-filters-scroll-container">
+          <div class="library-scroll-wrapper" id="library-tag-filters">
+            <button type="button" class="btn btn-library-pill active" data-filter="all">All</button>
+            <button type="button" class="btn btn-library-pill" data-filter="video">Videos</button>
+            <button type="button" class="btn btn-library-pill" data-filter="pdf">PDFs</button>
+            <button type="button" class="btn btn-library-pill" data-filter="web-dev">Web Dev</button>
+            <button type="button" class="btn btn-library-pill" data-filter="design">Design</button>
+            <button type="button" class="btn btn-library-pill" data-filter="data-science">Data Science</button>
+            <button type="button" class="btn btn-library-pill" data-filter="ai-ml">AI &amp; ML</button>
+            <button type="button" class="btn btn-library-pill" data-filter="beginner">Beginner</button>
+            <button type="button" class="btn btn-library-pill" data-filter="advanced">Advanced</button>
+          </div>
+        </div>
+        
+        <!-- Sort drop down (Right) -->
+        <div class="d-flex align-items-center gap-2 glass-sort-wrapper flex-shrink-0" style="height: 38px; padding: 0 0.75rem;">
+          <span class="text-muted" style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Sort:</span>
+          <select class="glass-sort-dropdown" id="library-sort-select" style="font-size: 0.75rem;">
+            <option value="views" selected>Most Viewed</option>
+            <option value="newest">Newest</option>
+            <option value="title">A-Z</option>
+          </select>
+        </div>
+        
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+    RESOURCE GRID AREA
+  ================================================================ -->
+  <section class="container mb-5">
+    
+    <!-- Dynamic Cards Grid (Blurred in guest state) -->
+    <div class="row g-4 transition-all duration-300" id="library-grid-container">
+      <!-- Populated Dynamically via js/main.js -->
+    </div>
+    
+    <!-- Empty State (Hidden by default) -->
+    <div class="text-center py-5 d-none" id="library-empty-state">
+      <div class="display-1 text-muted mb-3" style="font-size: 4rem;">📚</div>
+      <h3 class="text-white fw-bold mb-2">No resources found</h3>
+      <p class="text-muted mb-4 mx-auto" style="max-width: 380px;">Try adjusting your categories tags, search filters, or reset query parameters.</p>
+      <button type="button" class="btn btn-bb-teal px-4 py-2" id="btn-library-empty-clear" style="width: auto; box-shadow: var(--shadow-glow-teal);">
+        <i class="bi bi-x-circle me-1"></i> Clear Filters
+      </button>
+    </div>
+    
+    <!-- Load More Button (Centered below grid) -->
+    <div class="text-center mt-5" id="library-loadmore-container">
+      <button type="button" class="btn-bb-loadmore" id="btn-library-loadmore">
+        Load More Resources <i class="bi bi-arrow-down-short fs-5"></i>
+      </button>
+    </div>
+    
+  </section>
+
+  <!-- Bootstrap 5 JS Bundle CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase Config -->
+<script src="js/supabase-config.js"></script>
+<!-- Main JS -->
+<script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Supabase CDN Client & Protected Page Session Check -->
+  <script>
+    (async () => {
+      const savedUserStr = localStorage.getItem('brainbyte_user');
+      let localSessionActive = false;
+      if (savedUserStr) {
+        try {
+          const user = JSON.parse(savedUserStr);
+          if (user && user.isLoggedIn) {
+            localSessionActive = true;
+          }
+        } catch (e) {}
+      }
+      if (localSessionActive || localStorage.getItem('bb_admin_session') === 'active') {
+        return;
+      }
+      const SUPABASE_URL = "YOUR_SUPABASE_URL";
+      const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+      if (SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_URL !== "") {
+        const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        if (supabase) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) return;
+        }
+      }
+      window.location.href = 'login.html';
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free Library Manager — BrainByte Admin</title>
+  <meta name="description" content="Manage free videos and PDFs resources for BrainByte members. Filter items, toggle published states, and review assets.">
+  
+  <!-- Preload and load Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Premium Theme CSS -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    /* Force volcanic dark theme and remove light bleeding on main content wrapper */
+    body.login-body, .dashboard-main-content {
+      background-color: #0D0E1A !important;
+      background: #0D0E1A !important;
+      color: #FFFFFF !important;
+    }
+
+    /* Force glass transparent card container */
+    .floating-glass-card {
+      background: rgba(255, 255, 255, 0.03) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      color: #FFFFFF !important;
+    }
+
+    /* Force dark theme transparent backgrounds and borders on tables */
+    .table {
+      background-color: rgba(255, 255, 255, 0.04) !important;
+      color: #FFFFFF !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      border-collapse: collapse !important;
+    }
+    
+    .table th, .table td {
+      background-color: transparent !important;
+      background: transparent !important;
+      color: #FFFFFF !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .table tbody, .table tr {
+      background-color: transparent !important;
+      background: transparent !important;
+    }
+    
+    .table thead th {
+      color: #94A3B8 !important;
+      font-weight: 700 !important;
+      font-size: 0.8rem !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.05em !important;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.08) !important;
+      background-color: transparent !important;
+      background: transparent !important;
+    }
+    
+    .admin-verify-table-row {
+      background-color: transparent !important;
+      transition: background-color 0.2s ease;
+    }
+    
+    .admin-verify-table-row:hover {
+      background-color: rgba(255, 255, 255, 0.02) !important;
+    }
+    
+    .table-responsive {
+      background: transparent !important;
+      background-color: transparent !important;
+    }
+
+    /* Text-muted and secondaries force contrast */
+    .text-muted, small, .text-secondary {
+      color: #94A3B8 !important;
+    }
+
+    /* Thumbnail Box Premium Sizing and styling */
+    .resource-thumbnail-box {
+      width: 60px !important;
+      height: 60px !important;
+      min-width: 60px !important;
+      border-radius: 12px !important;
+      background: rgba(255, 255, 255, 0.03) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 1.5rem !important;
+      flex-shrink: 0 !important;
+    }
+  </style>
+</head>
+<body class="login-body">
+
+  <!-- Floating Success Redirection Toast -->
+  <div class="glass-toast" id="library-success-toast">
+    <i class="bi bi-patch-check-fill fs-5 text-white"></i>
+    <span id="toast-message-text">Resource published! 🎉</span>
+  </div>
+
+  <!-- Ambient background glow elements -->
+  <div class="bg-blob-teal" style="top: -100px; left: -100px; fixed: true; opacity: 0.12; pointer-events: none;"></div>
+  <div class="bg-blob-violet" style="top: 300px; right: -100px; fixed: true; opacity: 0.08; pointer-events: none;"></div>
+  <div class="bg-blob-pink" style="bottom: 10%; left: 5%; fixed: true; opacity: 0.10; pointer-events: none;"></div>
+
+  <!-- ================================================================
+    MOBILE HEADER NAVIGATION BAR (Shown only on small width viewports)
+  ================================================================ -->
+  <div class="mobile-dashboard-header py-2.5 px-3 align-items-center justify-content-between">
+    <button type="button" class="btn text-white p-0 border-0" id="btn-mobile-sidebar-toggle" style="background: transparent;">
+      <i class="bi bi-list fs-2"></i>
+    </button>
+    <span class="text-white fw-bold" style="font-family: var(--font-display); font-size: 1rem;">
+      Free Library Manager
+    </span>
+    <a class="navbar-brand d-flex align-items-center m-0" href="index.html" style="font-size: 1.15rem;">
+      <span>Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill" style="text-shadow: none;"></i></span>Byte</span>
+    </a>
+  </div>
+
+  <!-- ================================================================
+    ADMIN DASHBOARD GRID CONTAINER
+  ================================================================ -->
+  <div class="dashboard-layout-container">
+    
+    <!-- ==============================================================
+      LEFT SIDEBAR NAVIGATION (Width: 240px, Sticky)
+      Matches admin sidebar overrides in verifications page
+    ============================================================== -->
+    <aside class="dashboard-sidebar admin-sidebar-override" id="dashboard-sidebar">
+      
+      <!-- Close button visible only on mobile inside side panel -->
+      <div class="d-lg-none d-flex justify-content-end mb-3">
+        <button type="button" class="btn-close-drawer" id="btn-close-sidebar-trigger" style="outline: none;">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- 1. Profile Metadata Box -->
+      <div class="sidebar-profile-box" style="margin-bottom: 1.5rem;">
+        <div class="sidebar-avatar-circle mx-auto mb-3" style="background: linear-gradient(135deg, #EF4444 0%, #F59E0B 100%); width: 72px; height: 72px; border-radius: 50%; font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);">
+          AD
+        </div>
+        <h3 class="sidebar-name text-white fw-bold mb-1" style="font-size: 0.95rem; font-family: var(--font-display);">Super Admin</h3>
+        <div class="mb-2">
+          <span class="admin-badge-red">ADMIN</span>
+        </div>
+        <span style="color: #94A3B8; font-size: 0.76rem; font-weight: 600;">System Administrator</span>
+      </div>
+
+      <!-- 2. Navigation links -->
+      <nav class="sidebar-nav-list flex-grow-1">
+        <a href="admin-dashboard.html" class="admin-sidebar-nav-link">
+          <i class="bi bi-grid-1x2-fill"></i> Dashboard
+        </a>
+        <a href="admin-verify.html" class="admin-sidebar-nav-link">
+          <i class="bi bi-shield-check"></i> Verifications
+        </a>
+        <a href="admin-library.html" class="admin-sidebar-nav-link active">
+          <i class="bi bi-journal-bookmark-fill"></i> Free Library
+        </a>
+        <a href="#" class="admin-sidebar-nav-link" onclick="alert('Admin settings are pre-configured by secure environment variables.');">
+          <i class="bi bi-gear-fill"></i> Settings
+        </a>
+      </nav>
+
+      <!-- 3. Bottom triggers -->
+      <div class="d-flex flex-column gap-2 border-top pt-3" style="border-color: rgba(255,255,255,0.06) !important;">
+        <a href="index.html" class="btn btn-bb-ghost py-2 text-center text-white d-flex align-items-center justify-content-center gap-1.5" style="border-radius: 50px; font-size: 0.78rem; text-decoration: none; font-weight: 600;">
+          <i class="bi bi-arrow-left"></i> Back to Site
+        </a>
+        <a href="admin.html" class="btn btn-bb-ghost py-2 text-center text-danger d-flex align-items-center justify-content-center gap-1.5" id="btn-admin-logout" style="border-radius: 50px; font-size: 0.78rem; text-decoration: none; font-weight: 700; background: transparent; color: #EF4444 !important; border-color: rgba(239, 68, 68, 0.15) !important;">
+          <i class="bi bi-power"></i> Logout
+        </a>
+      </div>
+
+    </aside>
+
+    <!-- ==============================================================
+      RIGHT PANEL: MAIN CONTENT VIEWPORT
+    ============================================================== -->
+    <main class="dashboard-main-content py-4.5 px-sm-4 px-3">
+      
+      <!-- TOP STATUS BAR -->
+      <div class="d-flex flex-sm-row flex-column justify-content-between align-items-sm-start gap-3 mb-4">
+        <div>
+          <a href="admin-dashboard.html" class="text-decoration-none text-muted mb-2 d-inline-flex align-items-center gap-1.5" style="font-size: 0.8rem; font-weight: 600; transition: color 0.2s;" onmouseover="this.style.color='#FFFFFF';" onmouseout="this.style.color='#94A3B8';">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+          </a>
+          <h1 class="text-white fw-bold mb-1" style="font-size: 1.8rem; font-family: var(--font-display); letter-spacing: -0.02em;">Free Library Manager</h1>
+          <p style="color: #94A3B8; font-size: 0.9rem; margin: 0; font-weight: 500;">Manage free videos and PDFs for members</p>
+        </div>
+        <div class="align-self-sm-center align-self-start">
+          <a href="admin-upload.html" class="btn py-2.5 px-4 text-white d-inline-flex align-items-center justify-content-center gap-2" style="background: #7C3AED; box-shadow: 0 0 15px rgba(124, 58, 237, 0.35); font-weight: bold; border-radius: 50px; font-size: 0.82rem; border: none; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 0 25px rgba(124, 58, 237, 0.65)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 0 15px rgba(124, 58, 237, 0.35)';">
+            <i class="bi bi-plus-circle-fill"></i> Upload New Resource
+          </a>
+        </div>
+      </div>
+
+      <!-- STATS ROW (4 cards) -->
+      <div class="row g-3.5 mb-4" id="stats-cards-row">
+        <!-- Total Resources -->
+        <div class="col-xl-3 col-sm-6 col-12">
+          <div class="floating-glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+              <span class="text-muted d-block font-semibold mb-1" style="font-size: 0.78rem;">Total Resources</span>
+              <h4 class="fw-bold m-0 kpi-number-cyan" style="font-size: 1.65rem; font-family: var(--font-display);" id="stats-resources-count">48</h4>
+            </div>
+            <div class="admin-kpi-icon-circle kpi-cyan" style="width:40px; height:40px; font-size:1rem;">
+              <i class="bi bi-journal-bookmark-fill"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Views -->
+        <div class="col-xl-3 col-sm-6 col-12">
+          <div class="floating-glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+              <span class="text-muted d-block font-semibold mb-1" style="font-size: 0.78rem;">Total Views</span>
+              <h4 class="fw-bold m-0 kpi-number-purple" style="font-size: 1.65rem; font-family: var(--font-display);" id="stats-views-count">284K</h4>
+            </div>
+            <div class="admin-kpi-icon-circle kpi-purple" style="width:40px; height:40px; font-size:1rem;">
+              <i class="bi bi-eye-fill"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Downloads -->
+        <div class="col-xl-3 col-sm-6 col-12">
+          <div class="floating-glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+              <span class="text-muted d-block font-semibold mb-1" style="font-size: 0.78rem;">Total Downloads</span>
+              <h4 class="fw-bold m-0 kpi-number-cyan" style="font-size: 1.65rem; font-family: var(--font-display);" id="stats-downloads-count">156K</h4>
+            </div>
+            <div class="admin-kpi-icon-circle kpi-cyan" style="width:40px; height:40px; font-size:1rem;">
+              <i class="bi bi-cloud-arrow-down-fill"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Category -->
+        <div class="col-xl-3 col-sm-6 col-12">
+          <div class="floating-glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+              <span class="text-muted d-block font-semibold mb-1" style="font-size: 0.78rem;">Top Category</span>
+              <h4 class="fw-bold m-0 kpi-number-gold" style="font-size: 1.45rem; font-family: var(--font-display);" id="stats-category-count">Web Dev 🏆</h4>
+            </div>
+            <div class="admin-kpi-icon-circle kpi-amber" style="width:40px; height:40px; font-size:1rem; background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.25); color:#F59E0B;">
+              <i class="bi bi-award-fill"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTER + SEARCH BAR -->
+      <div class="floating-glass-card p-3 mb-4 text-start">
+        <div class="row g-3 align-items-center justify-content-between">
+          <!-- Left Search Input -->
+          <div class="col-lg-4 col-md-5 col-12">
+            <div class="validation-input-container">
+              <span style="position: absolute; left: 14px; top: 12px; color: #94A3B8; font-size: 1.1rem;"><i class="bi bi-search"></i></span>
+              <input type="text" class="glass-input ps-5" id="library-search-input" placeholder="Search resources by title...">
+            </div>
+          </div>
+
+          <!-- Middle Type filter tabs -->
+          <div class="col-lg-4 col-md-4 col-12 d-flex justify-content-md-center justify-content-start overflow-x-auto">
+            <div class="admin-filter-tabs pb-1">
+              <button class="admin-filter-tab-cyan active" data-type-filter="all" id="btn-filter-all">
+                All <span class="badge" style="background: rgba(255,255,255,0.08); color: white;" id="badge-count-all">0</span>
+              </button>
+              <button class="admin-filter-tab-cyan" data-type-filter="video" id="btn-filter-videos">
+                Videos <span class="badge text-white" style="background: rgba(6,182,212,0.15);" id="badge-count-videos">0</span>
+              </button>
+              <button class="admin-filter-tab-cyan" data-type-filter="pdf" id="btn-filter-pdfs">
+                PDFs <span class="badge text-white" style="background: rgba(168,85,247,0.15);" id="badge-count-pdfs">0</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right Status select filter -->
+          <div class="col-lg-3 col-md-3 col-12">
+            <select class="glass-input" id="library-status-select" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); font-size: 0.8rem; font-weight: 600;">
+              <option value="all">All Statuses</option>
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+              <option value="unpublished">Unpublished</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESOURCES TABLE (glass card) -->
+      <div class="floating-glass-card p-0 mb-4 overflow-hidden" id="table-container-card">
+        <div class="table-responsive">
+          <table class="table text-start m-0 align-middle" style="background: transparent;">
+            <thead>
+              <tr style="border-bottom: 2px solid rgba(255, 255, 255, 0.08); background: rgba(255,255,255,0.01);">
+                <th class="py-3 px-3 text-center" style="width: 50px; border-bottom: none;">
+                  <input type="checkbox" class="admin-table-checkbox" id="bulk-toggle-select-all" aria-label="Select all rows">
+                </th>
+                <th class="py-3 px-2 text-white font-semibold" style="font-size: 0.82rem; border-bottom: none;">Resource</th>
+                <th class="py-3 px-2 text-white font-semibold text-center" style="font-size: 0.82rem; border-bottom: none; width: 100px;">Type</th>
+                <th class="py-3 px-2 text-white font-semibold text-center" style="font-size: 0.82rem; border-bottom: none; width: 110px;">Category</th>
+                <th class="py-3 px-2 text-white font-semibold text-center" style="font-size: 0.82rem; border-bottom: none; width: 120px;">Views / DLs</th>
+                <th class="py-3 px-2 text-white font-semibold text-center" style="font-size: 0.82rem; border-bottom: none; width: 120px;">Status</th>
+                <th class="py-3 px-3 text-white font-semibold text-center" style="font-size: 0.82rem; border-bottom: none; width: 160px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-library-tbody">
+              <!-- Dynamically rendered resource row rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- EMPTY STATE LAYOUT (hidden by default) -->
+      <div class="floating-glass-card py-5 px-4 text-center d-none" id="library-empty-state">
+        <div class="mx-auto mb-4 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.2); color: #06B6D4; font-size: 2.2rem; box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);">
+          <i class="bi bi-book-half"></i>
+        </div>
+        <h3 class="text-white fw-bold mb-2" style="font-family: var(--font-display); font-size: 1.3rem;">No resources yet</h3>
+        <p style="color: #94A3B8; font-size: 0.88rem; max-width: 320px;" class="mx-auto mb-4">Upload your first free video tutorials or PDFs study guides for BrainByte members!</p>
+        <a href="admin-upload.html" class="btn py-2.5 px-4 text-white d-inline-flex align-items-center justify-content-center gap-2" style="background: #06B6D4; box-shadow: 0 0 15px rgba(6, 182, 212, 0.35); font-weight: bold; border-radius: 50px; font-size: 0.82rem; border: none; color: #0D0E1A !important; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 0 25px rgba(6, 182, 212, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 0 15px rgba(6, 182, 212, 0.35)';">
+          <i class="bi bi-plus-circle-fill"></i> Upload Now
+        </a>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ================================================================
+    BULK ACTIONS FLOATING BAR (Hidden by default)
+  ================================================================ -->
+  <div class="bulk-actions-bar" id="library-bulk-bar">
+    <div style="font-size: 0.82rem; font-weight: 700; color: #FFFFFF; font-family: var(--font-display);">
+      <span id="bulk-count-label">0</span> selected
+    </div>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn py-2 px-3 text-white" id="btn-bulk-publish" style="font-size: 0.78rem; font-weight: bold; background: #06B6D4; color:#0D0E1A !important; border: none; box-shadow: 0 0 10px rgba(6, 182, 212, 0.35); border-radius: 50px;">
+        Publish Selected
+      </button>
+      <button type="button" class="btn btn-bb-ghost py-2 px-3" id="btn-bulk-unpublish" style="font-size: 0.78rem; font-weight: bold; border-radius: 50px;">
+        Unpublish Selected
+      </button>
+      <button type="button" class="btn py-2 px-3 text-white" id="btn-bulk-delete" style="font-size: 0.78rem; font-weight: bold; background: #EF4444; border: none; box-shadow: 0 0 10px rgba(239, 68, 68, 0.35); border-radius: 50px;">
+        Delete Selected
+      </button>
+    </div>
+  </div>
+
+  <!-- ================================================================
+    PREVIEW RESOURCE MODAL (Center Glass Popup)
+  ================================================================ -->
+  <div class="center-popup-overlay" id="preview-modal-overlay"></div>
+  <div class="center-popup-card text-start" id="preview-modal-card" style="max-width: 540px;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 class="text-white fw-bold m-0" style="font-family: var(--font-display); font-size: 1.15rem;" id="preview-modal-title">Resource Preview</h3>
+      <button type="button" class="btn p-0 border-0 text-muted fs-5" id="btn-close-preview" style="background: transparent;"><i class="bi bi-x-lg"></i></button>
+    </div>
+    
+    <div class="mb-4" id="preview-media-container">
+      <!-- Media content injected dynamically (HTML5 player or PDF cover sheet) -->
+    </div>
+
+    <div class="p-3 rounded-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); font-size: 0.8rem;">
+      <div class="row g-2">
+        <div class="col-6">
+          <strong class="text-white d-block">Category:</strong>
+          <span style="color: #94A3B8;" id="preview-modal-category">Web Dev</span>
+        </div>
+        <div class="col-6">
+          <strong class="text-white d-block">Type:</strong>
+          <span style="color: #94A3B8;" id="preview-modal-type">Video Lesson</span>
+        </div>
+        <div class="col-6 mt-2">
+          <strong class="text-white d-block">Metrics:</strong>
+          <span style="color: #94A3B8;" id="preview-modal-metrics">12.5K views</span>
+        </div>
+        <div class="col-6 mt-2">
+          <strong class="text-white d-block">Status:</strong>
+          <span class="admin-verify-badge badge-approved" id="preview-modal-status">Published</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================
+    EDIT RESOURCE PROPERTIES MODAL (Center Glass Popup)
+  ================================================================ -->
+  <div class="center-popup-overlay" id="edit-modal-overlay"></div>
+  <div class="center-popup-card text-start" id="edit-modal-card">
+    <h3 class="text-white fw-bold mb-3" style="font-family: var(--font-display); font-size: 1.15rem; color: #A855F7 !important;">
+      <i class="bi bi-pencil-square"></i> Edit Resource Properties
+    </h3>
+    
+    <div class="glass-input-wrapper mb-3">
+      <label class="glass-input-label" for="edit-input-title">Resource Title</label>
+      <input type="text" class="glass-input" id="edit-input-title" placeholder="Resource Title">
+      <span class="text-danger mt-1 d-none" style="font-size: 0.7rem; font-weight: 600;" id="edit-title-error"><i class="bi bi-exclamation-circle-fill"></i> Title cannot be empty.</span>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-6">
+        <div class="glass-input-wrapper mb-0">
+          <label class="glass-input-label" for="edit-select-type">Type</label>
+          <select class="glass-input" id="edit-select-type" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">
+            <option value="video">Video</option>
+            <option value="pdf">PDF</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="glass-input-wrapper mb-0">
+          <label class="glass-input-label" for="edit-select-category">Category</label>
+          <select class="glass-input" id="edit-select-category" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">
+            <option value="Web Dev">Web Dev</option>
+            <option value="Design">Design</option>
+            <option value="Mobile">Mobile</option>
+            <option value="AI & ML">AI & ML</option>
+            <option value="General">General</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-6">
+        <div class="glass-input-wrapper mb-0">
+          <label class="glass-input-label" for="edit-select-status">Status</label>
+          <select class="glass-input" id="edit-select-status" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+            <option value="unpublished">Unpublished</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="glass-input-wrapper mb-0">
+          <label class="glass-input-label" for="edit-input-views">Views Count</label>
+          <input type="text" class="glass-input" id="edit-input-views" placeholder="e.g. 12.5K">
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-3">
+      <button class="btn btn-bb-ghost py-2.5 w-50" id="btn-edit-cancel" style="border-radius: 50px; font-size: 0.8rem; font-weight: bold;">Cancel</button>
+      <button class="btn py-2.5 w-50 text-white" id="btn-edit-save" style="border-radius: 50px; font-size: 0.8rem; background: #7C3AED; box-shadow: 0 0 10px rgba(124,58,237,0.3); border: none; font-weight: bold;">Save Changes</button>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6Rz5YN5757o+HRvnDJz9O+5G5FkEB83c11SLzmlc9PE9gmgwsnggC+GB53mI3U" crossorigin="anonymous"></script>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase Config -->
+<script src="js/supabase-config.js"></script>
+<!-- Main JS -->
+<script src="js/main.js"></script>
+
+  <!-- State Controllers & Operation Scripts -->
+  <script>
+    // 1. Initial Mock Resources Array
+    let resources = [
+      {
+        id: "res-nextjs-route",
+        title: "Next.js Advanced App Routing Structures",
+        type: "video",
+        category: "Web Dev",
+        views: "12.5K",
+        downloads: "8.2K",
+        status: "published"
+      },
+      {
+        id: "res-grid-cheat",
+        title: "CSS Grid & Flexbox Ultimate Cheat Sheet",
+        type: "pdf",
+        category: "Design",
+        views: "8.4K",
+        downloads: "6.2K",
+        status: "published"
+      },
+      {
+        id: "res-swiftui-state",
+        title: "SwiftUI Architectures, Core Data, and Global State",
+        type: "video",
+        category: "Mobile",
+        views: "4.3K",
+        downloads: "1.1K",
+        status: "draft"
+      },
+      {
+        id: "res-ai-llm-guide",
+        title: "Generative AI & LLMs Developers Guide Manual",
+        type: "pdf",
+        category: "AI & ML",
+        views: "2.1K",
+        downloads: "1.8K",
+        status: "unpublished"
+      },
+      {
+        id: "res-supabase-setup",
+        title: "Supabase Relational Database Schemas & Row Controls",
+        type: "video",
+        category: "Web Dev",
+        views: "9.2K",
+        downloads: "5.4K",
+        status: "published"
+      },
+      {
+        id: "res-figma-micro",
+        title: "Figma Micro-interactions & Prototyping Masterclass",
+        type: "video",
+        category: "Design",
+        views: "6.7K",
+        downloads: "4.1K",
+        status: "published"
+      }
+    ];
+
+    let activeResource = null;
+    let selectedTypeFilter = 'all';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // ── SESSION STORAGE TOAST ALERT CONTROLLERS ──
+      const toastMsg = sessionStorage.getItem('bb_toast_message');
+      if (toastMsg) {
+        const toastNode = document.getElementById('library-success-toast');
+        const toastText = document.getElementById('toast-message-text');
+        if (toastNode && toastText) {
+          toastText.innerText = toastMsg;
+          toastNode.classList.add('active');
+          setTimeout(() => {
+            toastNode.classList.remove('active');
+          }, 4000);
+        }
+        sessionStorage.removeItem('bb_toast_message');
+      }
+
+      // ── SIDEBAR DRAWER INTERACTIVITY ──
+      const sidebar = document.getElementById('dashboard-sidebar');
+      const toggleBtn = document.getElementById('btn-mobile-sidebar-toggle');
+      const closeBtn = document.getElementById('btn-close-sidebar-trigger');
+
+      if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => sidebar.classList.add('mobile-open'));
+      }
+      if (closeBtn && sidebar) {
+        closeBtn.addEventListener('click', () => sidebar.classList.remove('mobile-open'));
+      }
+
+      // Close sidebar if clicking outside of it on mobile
+      document.addEventListener('click', (e) => {
+        if (sidebar && sidebar.classList.contains('mobile-open')) {
+          if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+            sidebar.classList.remove('mobile-open');
+          }
+        }
+      });
+
+      // ── LOGOUT SPINNER EFFECT ──
+      const logoutBtn = document.getElementById('btn-admin-logout');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          logoutBtn.disabled = true;
+          logoutBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 0.4rem;"></span> <span>Exiting...</span>`;
+          setTimeout(() => {
+            localStorage.removeItem('bb_admin_session');
+            window.location.href = 'admin.html';
+          }, 1200);
+        });
+      }
+
+      // ── SYSTEM COMPONENT BINDINGS ──
+      const tbody = document.getElementById('admin-library-tbody');
+      const searchInput = document.getElementById('library-search-input');
+      const filterTabs = document.querySelectorAll('[data-type-filter]');
+      const statusSelect = document.getElementById('library-status-select');
+      const bulkSelectAll = document.getElementById('bulk-toggle-select-all');
+
+      // Empty State elements
+      const tableContainerCard = document.getElementById('table-container-card');
+      const emptyState = document.getElementById('library-empty-state');
+
+      // Modals
+      const previewOverlay = document.getElementById('preview-modal-overlay');
+      const previewCard = document.getElementById('preview-modal-card');
+      const btnClosePreview = document.getElementById('btn-close-preview');
+
+      const editOverlay = document.getElementById('edit-modal-overlay');
+      const editCard = document.getElementById('edit-modal-card');
+      const btnEditCancel = document.getElementById('btn-edit-cancel');
+      const btnEditSave = document.getElementById('btn-edit-save');
+
+      // ── RESOURCES TABLE RENDER ENGINE ──
+      function renderTable() {
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        const searchQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        const statusFilter = statusSelect ? statusSelect.value : 'all';
+
+        // Filter mock items
+        const filtered = resources.filter(item => {
+          // Search matching title
+          const matchesSearch = item.title.toLowerCase().includes(searchQuery);
+
+          // Type Tab matching
+          let matchesType = true;
+          if (selectedTypeFilter !== 'all') {
+            matchesType = item.type === selectedTypeFilter;
+          }
+
+          // Status Select matching
+          let matchesStatus = true;
+          if (statusFilter !== 'all') {
+            matchesStatus = item.status === statusFilter;
+          }
+
+          return matchesSearch && matchesType && matchesStatus;
+        });
+
+        // Toggle Empty state visual panels
+        if (resources.length === 0) {
+          if (tableContainerCard) tableContainerCard.classList.add('d-none');
+          if (emptyState) emptyState.classList.remove('d-none');
+          return;
+        } else {
+          if (tableContainerCard) tableContainerCard.classList.remove('d-none');
+          if (emptyState) emptyState.classList.add('d-none');
+        }
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="text-center text-muted py-5 font-semibold" style="font-size:0.88rem;">
+                <i class="bi bi-inbox-fill fs-2 mb-2 d-block text-cyan" style="color:#06B6D4;"></i> No resources match your query
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        filtered.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.className = 'admin-verify-table-row';
+          tr.id = `row-${item.id}`;
+
+          // Gradient square thumbnail
+          const thumbIcon = item.type === 'video' ? 'bi-play-fill text-cyan' : 'bi-file-earmark-pdf-fill text-purple';
+          const thumbStyle = item.type === 'video' ? 'color:#06B6D4;' : 'color:#A855F7;';
+          const thumbnailHtml = `
+            <div class="resource-thumbnail-box">
+              <i class="bi ${thumbIcon}" style="${thumbStyle}"></i>
+            </div>
+          `;
+
+          // Type Badge
+          const typeBadgeHtml = item.type === 'video'
+            ? `<span class="badge" style="background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.25); color: #06B6D4; font-weight: bold; font-size: 0.72rem; font-family: var(--font-display); padding: 0.35rem 0.75rem; border-radius: 50px;">Video</span>`
+            : `<span class="badge" style="background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.25); color: #A855F7; font-weight: bold; font-size: 0.72rem; font-family: var(--font-display); padding: 0.35rem 0.75rem; border-radius: 50px;">PDF</span>`;
+
+          // Category Badge
+          const categoryHtml = `<span class="badge" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: white; font-size: 0.72rem; font-weight: 600; padding: 0.35rem 0.7rem; border-radius: 50px;">${item.category}</span>`;
+
+          // Status Badges
+          let statusBadgeClass = 'badge-pending'; // Draft -> gray
+          let statusLabel = 'Draft';
+          if (item.status === 'published') {
+            statusBadgeClass = 'badge-approved'; // Published -> green
+            statusLabel = 'Published';
+          } else if (item.status === 'unpublished') {
+            statusBadgeClass = 'badge-rejected'; // Unpublished -> red
+            statusLabel = 'Unpublished';
+          }
+
+          // Custom Translucent Checked switch inline state
+          const switchChecked = item.status === 'published' ? 'checked' : '';
+
+          tr.innerHTML = `
+            <td class="py-3 px-3 text-center">
+              <input type="checkbox" class="admin-table-checkbox row-select-checkbox" data-id="${item.id}">
+            </td>
+            <td class="py-3 px-2">
+              <div class="d-flex align-items-center gap-3">
+                ${thumbnailHtml}
+                <div class="flex-grow-1 min-width-0">
+                  <span class="text-white d-block" style="font-size: 14px; font-weight: 500; line-height: 1.35; max-width: 280px; word-break: break-word;">${item.title}</span>
+                  <span class="text-muted d-block mt-1" style="font-size: 0.76rem; font-weight: 500;">${item.category}</span>
+                </div>
+              </div>
+            </td>
+            <td class="py-3 px-2 text-center">${typeBadgeHtml}</td>
+            <td class="py-3 px-2 text-center">${categoryHtml}</td>
+            <td class="py-3 px-2 text-center">
+              <span class="text-muted" style="font-size: 0.78rem; font-weight: 600; white-space: nowrap;">
+                <i class="bi bi-eye me-1" title="Views"></i>${item.views}
+                <span class="mx-1 text-muted" style="opacity: 0.4;">/</span>
+                <i class="bi bi-cloud-arrow-down me-1" title="Downloads"></i>${item.downloads}
+              </span>
+            </td>
+            <td class="py-3 px-2 text-center">
+              <span class="admin-verify-badge ${statusBadgeClass}" id="badge-${item.id}">${statusLabel}</span>
+            </td>
+            <td class="py-3 px-3 text-center">
+              <div class="d-flex align-items-center justify-content-center gap-1.5">
+                <!-- Toggle switch publish -->
+                <label class="glass-switch-container me-1" title="Toggle publication status">
+                  <input type="checkbox" class="glass-switch-input toggle-publish-switch" data-id="${item.id}" ${switchChecked}>
+                  <div class="glass-switch-track">
+                    <div class="glass-switch-thumb"></div>
+                  </div>
+                </label>
+
+                <!-- Action glass icon buttons -->
+                <button type="button" class="btn btn-bb-ghost p-1.5 btn-preview-trigger text-info border-0" style="background: transparent;" data-id="${item.id}" title="Preview Media Resource">
+                  <i class="bi bi-eye-fill"></i>
+                </button>
+                
+                <button type="button" class="btn btn-bb-ghost p-1.5 btn-edit-trigger text-purple border-0" style="background: transparent; color:#A855F7 !important;" data-id="${item.id}" title="Edit Properties">
+                  <i class="bi bi-pencil-fill"></i>
+                </button>
+
+                <button type="button" class="btn btn-bb-ghost p-1.5 btn-delete-trigger text-danger border-0" style="background: transparent; color:#EF4444 !important;" data-id="${item.id}" title="Delete Resource">
+                  <i class="bi bi-trash-fill"></i>
+                </button>
+              </div>
+            </td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+
+        attachRowEvents();
+        syncBulkActionsBar();
+      }
+
+      // ── SYNC TAB COUNTS & KPI METRICS ──
+      function updateMetrics() {
+        const counts = {
+          all: resources.length,
+          videos: resources.filter(i => i.type === 'video').length,
+          pdfs: resources.filter(i => i.type === 'pdf').length
+        };
+
+        const badgeAll = document.getElementById('badge-count-all');
+        const badgeVideos = document.getElementById('badge-count-videos');
+        const badgePdfs = document.getElementById('badge-count-pdfs');
+
+        if (badgeAll) badgeAll.innerText = counts.all;
+        if (badgeVideos) badgeVideos.innerText = counts.videos;
+        if (badgePdfs) badgePdfs.innerText = counts.pdfs;
+
+        // KPI card aggregates
+        const statsResources = document.getElementById('stats-resources-count');
+        const statsViews = document.getElementById('stats-views-count');
+        const statsDownloads = document.getElementById('stats-downloads-count');
+        const statsCategory = document.getElementById('stats-category-count');
+
+        if (statsResources) statsResources.innerText = resources.length;
+
+        // Dynamic views accumulation from mock dataset
+        let totalViewsNum = 0;
+        let totalDownloadsNum = 0;
+        let categoryCounts = {};
+
+        resources.forEach(item => {
+          // parse numerical strings like "12.5K" or "8.4K"
+          let viewsVal = parseFloat(item.views) || 0;
+          let dlVal = parseFloat(item.downloads) || 0;
+          
+          totalViewsNum += viewsVal;
+          totalDownloadsNum += dlVal;
+
+          categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1;
+        });
+
+        // Dynamic Top Category finder
+        let topCat = 'Web Dev';
+        let topVal = 0;
+        for (let key in categoryCounts) {
+          if (categoryCounts[key] > topVal) {
+            topVal = categoryCounts[key];
+            topCat = key;
+          }
+        }
+
+        if (statsViews) statsViews.innerText = totalViewsNum.toFixed(1) + 'K';
+        if (statsDownloads) statsDownloads.innerText = totalDownloadsNum.toFixed(1) + 'K';
+        if (statsCategory) statsCategory.innerHTML = `${topCat} 🏆`;
+      }
+
+      // ── BULK ACTIONS CONTROLLER ──
+      const bulkBar = document.getElementById('library-bulk-bar');
+      const bulkCountLabel = document.getElementById('bulk-count-label');
+
+      function syncBulkActionsBar() {
+        if (!bulkSelectAll || !tbody) return;
+        const checkboxes = tbody.querySelectorAll('.row-select-checkbox');
+        const checked = tbody.querySelectorAll('.row-select-checkbox:checked');
+
+        // Toggle bulk check select all state
+        if (checkboxes.length > 0 && checked.length === checkboxes.length) {
+          bulkSelectAll.checked = true;
+          bulkSelectAll.indeterminate = false;
+        } else if (checked.length > 0) {
+          bulkSelectAll.checked = false;
+          bulkSelectAll.indeterminate = true;
+        } else {
+          bulkSelectAll.checked = false;
+          bulkSelectAll.indeterminate = false;
+        }
+
+        // Toggle bulk actions bar
+        if (bulkBar && bulkCountLabel) {
+          if (checked.length > 0) {
+            bulkCountLabel.innerText = `${checked.length} selected`;
+            bulkBar.classList.add('active');
+          } else {
+            bulkBar.classList.remove('active');
+          }
+        }
+      }
+
+      if (bulkSelectAll) {
+        bulkSelectAll.addEventListener('change', () => {
+          if (!tbody) return;
+          const checkboxes = tbody.querySelectorAll('.row-select-checkbox');
+          checkboxes.forEach(cb => cb.checked = bulkSelectAll.checked);
+          syncBulkActionsBar();
+        });
+      }
+
+      // ── DYNAMIC TABLE ACTION ROW EVENTS ──
+      function attachRowEvents() {
+        if (!tbody) return;
+
+        // Checkbox changes
+        tbody.querySelectorAll('.row-select-checkbox').forEach(cb => {
+          cb.addEventListener('change', syncBulkActionsBar);
+        });
+
+        // Inline switch toggles
+        tbody.querySelectorAll('.toggle-publish-switch').forEach(toggle => {
+          toggle.addEventListener('change', (e) => {
+            const id = toggle.getAttribute('data-id');
+            const item = resources.find(r => r.id === id);
+            if (!item) return;
+
+            // Toggle state Published vs Unpublished
+            const badge = document.getElementById(`badge-${item.id}`);
+            if (toggle.checked) {
+              item.status = 'published';
+              if (badge) {
+                badge.className = 'admin-verify-badge badge-approved';
+                badge.innerText = 'Published';
+              }
+              console.log(`%c[BrainByte Library] Resource Published: ID=${item.id}`, "color:#06B6D4; font-weight:bold;");
+            } else {
+              item.status = 'unpublished';
+              if (badge) {
+                badge.className = 'admin-verify-badge badge-rejected';
+                badge.innerText = 'Unpublished';
+              }
+              console.log(`%c[BrainByte Library] Resource Unpublished: ID=${item.id}`, "color:#EF4444; font-weight:bold;");
+            }
+            updateMetrics();
+          });
+        });
+
+        // Preview trigger
+        tbody.querySelectorAll('.btn-preview-trigger').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const item = resources.find(r => r.id === id);
+            if (!item) return;
+            openPreviewModal(item);
+          });
+        });
+
+        // Edit trigger
+        tbody.querySelectorAll('.btn-edit-trigger').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const item = resources.find(r => r.id === id);
+            if (!item) return;
+
+            activeResource = item;
+            openEditModal(item);
+          });
+        });
+
+        // Delete trigger
+        tbody.querySelectorAll('.btn-delete-trigger').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const item = resources.find(r => r.id === id);
+            if (!item) return;
+
+            const confirmDel = confirm(`Are you sure you want to permanently delete this resource?\n\n"${item.title}"`);
+            if (confirmDel) {
+              resources = resources.filter(r => r.id !== id);
+              console.log(`%c[BrainByte Library] Deleted Resource: ID=${id}`, "color:#EF4444; font-weight:bold;");
+              renderTable();
+              updateMetrics();
+            }
+          });
+        });
+      }
+
+      // ── INTERACTIVE PREVIEW MODAL ──
+      function openPreviewModal(item) {
+        const titleNode = document.getElementById('preview-modal-title');
+        const mediaContainer = document.getElementById('preview-media-container');
+        const catNode = document.getElementById('preview-modal-category');
+        const typeNode = document.getElementById('preview-modal-type');
+        const metricsNode = document.getElementById('preview-modal-metrics');
+        const statusNode = document.getElementById('preview-modal-status');
+
+        if (titleNode) titleNode.innerText = item.title;
+        if (catNode) catNode.innerText = item.category;
+        if (typeNode) typeNode.innerText = item.type === 'video' ? 'Video Lesson' : 'PDF Study Guide';
+        if (metricsNode) metricsNode.innerHTML = `<i class="bi bi-eye me-1"></i>${item.views} views • <i class="bi bi-cloud-arrow-down me-1"></i>${item.downloads} downloads`;
+
+        if (statusNode) {
+          if (item.status === 'published') {
+            statusNode.className = 'admin-verify-badge badge-approved';
+            statusNode.innerText = 'Published';
+          } else if (item.status === 'draft') {
+            statusNode.className = 'admin-verify-badge badge-pending';
+            statusNode.innerText = 'Draft';
+          } else {
+            statusNode.className = 'admin-verify-badge badge-rejected';
+            statusNode.innerText = 'Unpublished';
+          }
+        }
+
+        // Generate media player or document mocks
+        if (mediaContainer) {
+          if (item.type === 'video') {
+            mediaContainer.innerHTML = `
+              <div class="preview-mock-player">
+                <div class="preview-mock-player-overlay">
+                  <div class="sidebar-avatar-circle mb-2" style="width: 50px; height: 50px; border-radius: 50%; font-size:1.4rem; background: linear-gradient(135deg, #06B6D4 0%, #7C3AED 100%); cursor:pointer; display:flex; align-items:center; justify-content:center; color:white; box-shadow: 0 0 15px rgba(6,182,212,0.6);" onclick="alert('Starting interactive video stream...');">
+                    <i class="bi bi-play-fill text-white ms-0.5"></i>
+                  </div>
+                  <span class="text-white fw-bold" style="font-size:0.78rem; text-shadow:0 2px 4px rgba(0,0,0,0.5);">Click to Play Video Lesson Stream</span>
+                </div>
+              </div>
+            `;
+          } else {
+            mediaContainer.innerHTML = `
+              <div class="preview-mock-pdf-viewer">
+                <i class="bi bi-file-pdf-fill text-danger mb-3" style="font-size: 3.5rem;"></i>
+                <h4 class="text-white fw-bold" style="font-size: 0.88rem; font-family: var(--font-display);">${item.title}</h4>
+                <span class="text-muted d-block mb-3" style="font-size: 0.72rem;">File: ${item.title.toLowerCase().replace(/ /g, '_')}.pdf (14 Pages)</span>
+                <button type="button" class="btn py-2 px-4" style="background:#06B6D4; color:#0D0E1A; border:none; font-weight:bold; border-radius:50px; font-size:0.75rem;" onclick="alert('Downloading document...');"><i class="bi bi-cloud-arrow-down-fill me-1"></i> Download PDF Document</button>
+              </div>
+            `;
+          }
+        }
+
+        if (previewOverlay) previewOverlay.classList.add('active');
+        if (previewCard) previewCard.classList.add('active');
+      }
+
+      function closePreviewModal() {
+        if (previewOverlay) previewOverlay.classList.remove('active');
+        if (previewCard) previewCard.classList.remove('active');
+      }
+
+      if (btnClosePreview) btnClosePreview.addEventListener('click', closePreviewModal);
+      if (previewOverlay) previewOverlay.addEventListener('click', closePreviewModal);
+
+      // ── INTERACTIVE EDIT PROPERTIES MODAL ──
+      function openEditModal(item) {
+        const titleInput = document.getElementById('edit-input-title');
+        const typeSelect = document.getElementById('edit-select-type');
+        const catSelect = document.getElementById('edit-select-category');
+        const statusSelectMod = document.getElementById('edit-select-status');
+        const viewsInput = document.getElementById('edit-input-views');
+        const titleError = document.getElementById('edit-title-error');
+
+        if (titleInput) {
+          titleInput.value = item.title;
+          titleInput.classList.remove('is-invalid');
+        }
+        if (titleError) titleError.classList.add('d-none');
+
+        if (typeSelect) typeSelect.value = item.type;
+        if (catSelect) catSelect.value = item.category;
+        if (statusSelectMod) statusSelectMod.value = item.status;
+        if (viewsInput) viewsInput.value = item.views;
+
+        if (editOverlay) editOverlay.classList.add('active');
+        if (editCard) editCard.classList.add('active');
+      }
+
+      function closeEditModal() {
+        if (editOverlay) editOverlay.classList.remove('active');
+        if (editCard) editCard.classList.remove('active');
+        activeResource = null;
+      }
+
+      if (btnEditCancel) btnEditCancel.addEventListener('click', closeEditModal);
+      if (editOverlay) editOverlay.addEventListener('click', closeEditModal);
+
+      if (btnEditSave) {
+        btnEditSave.addEventListener('click', () => {
+          if (!activeResource) return;
+
+          const titleInput = document.getElementById('edit-input-title');
+          const typeSelect = document.getElementById('edit-select-type');
+          const catSelect = document.getElementById('edit-select-category');
+          const statusSelectMod = document.getElementById('edit-select-status');
+          const viewsInput = document.getElementById('edit-input-views');
+          const titleError = document.getElementById('edit-title-error');
+
+          const newTitle = titleInput ? titleInput.value.trim() : '';
+          if (newTitle === '') {
+            if (titleInput) titleInput.classList.add('is-invalid');
+            if (titleError) titleError.classList.remove('d-none');
+            return;
+          }
+
+          btnEditSave.disabled = true;
+          btnEditSave.innerText = 'Saving...';
+
+          setTimeout(() => {
+            // Apply edit changes dynamically
+            activeResource.title = newTitle;
+            if (typeSelect) activeResource.type = typeSelect.value;
+            if (catSelect) activeResource.category = catSelect.value;
+            if (statusSelectMod) activeResource.status = statusSelectMod.value;
+            if (viewsInput) activeResource.views = viewsInput.value;
+
+            btnEditSave.disabled = false;
+            btnEditSave.innerText = 'Save Changes';
+
+            console.log(`%c[BrainByte Library] Resource Properties Saved: ID=${activeResource.id}`, "color:#A855F7; font-weight:bold;");
+
+            closeEditModal();
+            renderTable();
+            updateMetrics();
+          }, 1000);
+        });
+      }
+
+      // ── BULK OPERATIONS COMMAND HANDLERS ──
+      const btnBulkPublish = document.getElementById('btn-bulk-publish');
+      const btnBulkUnpublish = document.getElementById('btn-bulk-unpublish');
+      const btnBulkDelete = document.getElementById('btn-bulk-delete');
+
+      if (btnBulkPublish) {
+        btnBulkPublish.addEventListener('click', () => {
+          if (!tbody) return;
+          const checked = tbody.querySelectorAll('.row-select-checkbox:checked');
+          if (checked.length === 0) return;
+
+          btnBulkPublish.disabled = true;
+          btnBulkPublish.innerText = 'Publishing...';
+
+          setTimeout(() => {
+            checked.forEach(cb => {
+              const id = cb.getAttribute('data-id');
+              const item = resources.find(r => r.id === id);
+              if (item && item.status !== 'published') {
+                item.status = 'published';
+                console.log(`%c[BrainByte Bulk Publish] Published: ID=${id}`, "color:#06B6D4; font-weight:bold;");
+              }
+            });
+
+            btnBulkPublish.disabled = false;
+            btnBulkPublish.innerText = 'Publish Selected';
+            bulkSelectAll.checked = false;
+
+            renderTable();
+            updateMetrics();
+          }, 1200);
+        });
+      }
+
+      if (btnBulkUnpublish) {
+        btnBulkUnpublish.addEventListener('click', () => {
+          if (!tbody) return;
+          const checked = tbody.querySelectorAll('.row-select-checkbox:checked');
+          if (checked.length === 0) return;
+
+          btnBulkUnpublish.disabled = true;
+          btnBulkUnpublish.innerText = 'Unpublishing...';
+
+          setTimeout(() => {
+            checked.forEach(cb => {
+              const id = cb.getAttribute('data-id');
+              const item = resources.find(r => r.id === id);
+              if (item && item.status !== 'unpublished') {
+                item.status = 'unpublished';
+                console.log(`%c[BrainByte Bulk Unpublish] Unpublished: ID=${id}`, "color:#EF4444; font-weight:bold;");
+              }
+            });
+
+            btnBulkUnpublish.disabled = false;
+            btnBulkUnpublish.innerText = 'Unpublish Selected';
+            bulkSelectAll.checked = false;
+
+            renderTable();
+            updateMetrics();
+          }, 1200);
+        });
+      }
+
+      if (btnBulkDelete) {
+        btnBulkDelete.addEventListener('click', () => {
+          if (!tbody) return;
+          const checked = tbody.querySelectorAll('.row-select-checkbox:checked');
+          if (checked.length === 0) return;
+
+          const confirmBulkDel = confirm(`Are you sure you want to permanently delete all ${checked.length} selected resources?`);
+          if (!confirmBulkDel) return;
+
+          btnBulkDelete.disabled = true;
+          btnBulkDelete.innerText = 'Deleting...';
+
+          setTimeout(() => {
+            checked.forEach(cb => {
+              const id = cb.getAttribute('data-id');
+              resources = resources.filter(r => r.id !== id);
+              console.log(`%c[BrainByte Bulk Delete] Deleted: ID=${id}`, "color:#EF4444; font-weight:bold;");
+            });
+
+            btnBulkDelete.disabled = false;
+            btnBulkDelete.innerText = 'Delete Selected';
+            bulkSelectAll.checked = false;
+
+            renderTable();
+            updateMetrics();
+          }, 1500);
+        });
+      }
+
+      // ── REAL-TIME EVENT FILTERS ──
+      if (searchInput) {
+        searchInput.addEventListener('input', renderTable);
+      }
+
+      if (statusSelect) {
+        statusSelect.addEventListener('change', renderTable);
+      }
+
+      filterTabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterTabs.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          selectedTypeFilter = btn.getAttribute('data-type-filter');
+          renderTable();
+        });
+      });
+
+      // Mount Render Initialization
+      renderTable();
+      updateMetrics();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Supabase CDN Client & Protected Page Session Check -->
+  <script>
+    (async () => {
+      const savedUserStr = localStorage.getItem('brainbyte_user');
+      let localSessionActive = false;
+      if (savedUserStr) {
+        try {
+          const user = JSON.parse(savedUserStr);
+          if (user && user.isLoggedIn) {
+            localSessionActive = true;
+          }
+        } catch (e) {}
+      }
+      if (localSessionActive || localStorage.getItem('bb_admin_session') === 'active') {
+        return;
+      }
+      const SUPABASE_URL = "https://xtbznjtwppchjsprnylt.supabase.co";
+      const SUPABASE_ANON_KEY = "sb_publishable_sjJvee1lOEPjm5kOkejIEg_8IVc-KQD";
+      if (SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_URL !== "") {
+        const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        if (supabase) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) return;
+        }
+      }
+      window.location.href = 'login.html';
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard — BrainByte</title>
+  <meta name="description" content="Access your developer portal at BrainByte. Log in to continue your full-stack, design, and AI coding courses.">
+  
+  <!-- Preload and load Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Premium Theme CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-body">
+
+  <!-- Ambient background glow elements -->
+  <div class="bg-blob-violet" style="top: -100px; left: -100px; fixed: true; opacity: 0.1;"></div>
+  <div class="bg-blob-teal" style="top: 300px; right: -100px; fixed: true; opacity: 0.08;"></div>
+  <div class="bg-blob-pink" style="bottom: 10%; left: 5%; fixed: true; opacity: 0.12;"></div>
+
+  <!-- ================================================================
+    MOBILE HEADER NAVIGATION BAR (Shown only on small width viewports)
+  ================================================================ -->
+  <div class="mobile-dashboard-header py-2.5 px-3 align-items-center justify-content-between">
+    <button type="button" class="btn text-white p-0 border-0" id="btn-mobile-sidebar-toggle" style="background: transparent;">
+      <i class="bi bi-list fs-2"></i>
+    </button>
+    
+    <span class="text-white fw-bold" style="font-family: var(--font-display); font-size: 1rem;" id="mobile-dashboard-tab-title">
+      Overview
+    </span>
+    
+    <a class="navbar-brand d-flex align-items-center m-0" href="index.html" style="font-size: 1.15rem;">
+      <span>Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill" style="text-shadow: none;"></i></span>Byte</span>
+    </a>
+  </div>
+
+  <!-- ================================================================
+    DASHBOARD GRID CONTAINER
+  ================================================================ -->
+  <div class="dashboard-layout-container">
+    
+    <!-- ==============================================================
+      LEFT SIDEBAR NAVIGATION (Width: 260px, Sticky)
+    ============================================================== -->
+    <aside class="dashboard-sidebar" id="dashboard-sidebar">
+      
+      <!-- Close button visible only on mobile inside side panel -->
+      <div class="d-lg-none d-flex justify-content-end mb-3">
+        <button type="button" class="btn-close-drawer" id="btn-close-sidebar-trigger" style="outline: none;">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- 1. Profile Metadata Box -->
+      <div class="sidebar-profile-box">
+        <div class="sidebar-avatar-circle" id="sidebar-profile-avatar">
+          RA
+        </div>
+        <h3 class="sidebar-name">Rahul</h3>
+        <span class="sidebar-badge">Student</span>
+      </div>
+
+      <!-- 2. Navigations tab buttons links -->
+      <nav class="sidebar-nav-list">
+        <button type="button" class="sidebar-nav-link active" data-tab="overview">
+          <i class="bi bi-house-door-fill text-muted"></i> Overview
+        </button>
+        <button type="button" class="sidebar-nav-link" data-tab="courses">
+          <i class="bi bi-journal-bookmark-fill text-muted"></i> My Courses
+        </button>
+        <button type="button" class="sidebar-nav-link" data-tab="certificates">
+          <i class="bi bi-trophy-fill text-muted"></i> Certificates
+        </button>
+        <button type="button" class="sidebar-nav-link" data-tab="wishlist">
+          <i class="bi bi-heart-fill text-muted"></i> Wishlist
+        </button>
+        <button type="button" class="sidebar-nav-link" data-tab="settings">
+          <i class="bi bi-gear-fill text-muted"></i> Settings
+        </button>
+      </nav>
+
+      <!-- 3. Neon upgrade box cards -->
+      <div class="pro-upgrade-card">
+        <h4>⚡ Go Pro</h4>
+        <p style="color: #94A3B8; font-size: 0.72rem; line-height: 1.4; margin-bottom: 0.85rem;">Unlock complete libraries and verified certifications grids.</p>
+        <a href="pricing.html" class="btn btn-bb-primary py-1.5 px-3 text-white text-decoration-none w-100" style="font-size: 0.75rem; border-radius: 50px;">
+          Upgrade Now
+        </a>
+      </div>
+
+      <!-- 4. Logout trigger button -->
+      <button type="button" class="sidebar-logout-btn" id="btn-sidebar-logout">
+        <i class="bi bi-door-open-fill"></i> Logout
+      </button>
+
+    </aside>
+
+    <!-- ==============================================================
+      RIGHT PANEL: DYNAMIC MAIN CONTENT VIEWPORTS
+    ============================================================== -->
+    <main class="dashboard-main-content">
+      
+      <!-- ============================================================
+        TAB PANEL 1: OVERVIEW TAB (Active by default)
+      ============================================================ -->
+      <div class="dashboard-tab-panel active" id="panel-overview">
+        <!-- Top Salutation header -->
+        <div class="mb-4">
+          <h1 class="text-white fw-bold mb-1" style="font-size: 1.8rem; font-family: var(--font-display);" id="dashboard-greeting-title">
+            Good morning, Rahul 👋
+          </h1>
+          <p style="color: #94A3B8; font-size: 0.9rem; margin: 0;">Continue your learning journey</p>
+        </div>
+
+        <!-- 3 glowing glass KPI cards -->
+        <div class="row g-3 mb-5">
+          <!-- Card 1 -->
+          <div class="col-md-4 col-12">
+            <div class="floating-glass-card p-4 h-100 d-flex flex-column justify-content-between">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="fs-5" style="display: inline-flex; width: 36px; height: 36px; border-radius: 50%; background: rgba(139, 92, 246, 0.15); color: #A78BFA; align-items: center; justify-content: center;"><i class="bi bi-journal-text"></i></span>
+                <span style="color: #10B981; font-size: 0.72rem; font-weight: 700; font-family: var(--font-display);"><i class="bi bi-arrow-up-right me-0.5"></i> +1 this month</span>
+              </div>
+              <div>
+                <h4 style="font-size: 2.2rem; font-weight: 800; font-family: var(--font-display); margin-bottom: 0.15rem;" class="text-white">4</h4>
+                <span style="color: #94A3B8; font-size: 0.85rem; font-weight: 600;">Courses Enrolled</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Card 2 -->
+          <div class="col-md-4 col-12">
+            <div class="floating-glass-card p-4 h-100 d-flex flex-column justify-content-between">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="fs-5" style="display: inline-flex; width: 36px; height: 36px; border-radius: 50%; background: rgba(6, 182, 212, 0.15); color: #06B6D4; align-items: center; justify-content: center;"><i class="bi bi-clock"></i></span>
+                <span style="color: #10B981; font-size: 0.72rem; font-weight: 700; font-family: var(--font-display);"><i class="bi bi-arrow-up-right me-0.5"></i> +3.5 this week</span>
+              </div>
+              <div>
+                <h4 style="font-size: 2.2rem; font-weight: 800; font-family: var(--font-display); margin-bottom: 0.15rem;" class="text-white">18.5</h4>
+                <span style="color: #94A3B8; font-size: 0.85rem; font-weight: 600;">Hours Learned</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="col-md-4 col-12">
+            <div class="floating-glass-card p-4 h-100 d-flex flex-column justify-content-between">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="fs-5" style="display: inline-flex; width: 36px; height: 36px; border-radius: 50%; background: rgba(251, 191, 36, 0.15); color: #FBBF24; align-items: center; justify-content: center;"><i class="bi bi-trophy"></i></span>
+                <span style="color: #FBBF24; font-size: 0.72rem; font-weight: 700; font-family: var(--font-display);">1 in progress</span>
+              </div>
+              <div>
+                <h4 style="font-size: 2.2rem; font-weight: 800; font-family: var(--font-display); margin-bottom: 0.15rem;" class="text-white">2</h4>
+                <span style="color: #94A3B8; font-size: 0.85rem; font-weight: 600;">Certificates Earned</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Continue Learning layout headers -->
+        <div class="mb-4">
+          <h2 class="text-white fw-bold mb-3" style="font-size: 1.25rem; font-family: var(--font-display);">Continue Learning</h2>
+          
+          <div class="d-flex flex-column gap-3">
+            <!-- Row 1 -->
+            <div class="floating-glass-card p-3 d-flex flex-md-row flex-column align-items-center justify-content-between gap-3">
+              <div class="d-flex align-items-center gap-3 w-100 flex-grow-1">
+                <!-- Thumbnail placeholder -->
+                <div style="width: 70px; height: 70px; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800;" class="text-white font-semibold">
+                  SJ
+                </div>
+                
+                <div class="flex-grow-1" style="min-width: 0;">
+                  <h4 class="text-white fw-bold mb-1 text-truncate" style="font-size: 0.92rem;">Next.js 14 &amp; Supabase: The Full-Stack SaaS Blueprint</h4>
+                  <span class="text-muted d-block mb-2" style="font-size: 0.75rem;">Sarah Jenkins • 72% complete</span>
+                  <!-- Progress bar track -->
+                  <div class="progress-bar-container" style="height: 6px; background-color: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; max-width: 320px;">
+                    <div style="width: 72%; height: 100%; background: linear-gradient(90deg, #7C3AED, #A855F7); box-shadow: var(--shadow-glow-violet); border-radius: 3px;"></div>
+                  </div>
+                </div>
+              </div>
+              <a href="course-detail.html?title=Next.js%2014%20%26%20Supabase%3A%20The%20Full-Stack%20SaaS%20Blueprint&instructor=Sarah%20Jenkins&level=advanced&price=499" class="btn btn-bb-outline-violet py-2 px-3 flex-shrink-0" style="font-size: 0.75rem; border-radius: 50px; width: auto; height: auto;">
+                Continue <i class="bi bi-arrow-right ms-1"></i>
+              </a>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="floating-glass-card p-3 d-flex flex-md-row flex-column align-items-center justify-content-between gap-3">
+              <div class="d-flex align-items-center gap-3 w-100 flex-grow-1">
+                <!-- Thumbnail placeholder -->
+                <div style="width: 70px; height: 70px; border-radius: 8px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800;" class="text-white font-semibold">
+                  AY
+                </div>
+                
+                <div class="flex-grow-1" style="min-width: 0;">
+                  <h4 class="text-white fw-bold mb-1 text-truncate" style="font-size: 0.92rem;">Python for Data Science, Pandas &amp; Visualization</h4>
+                  <span class="text-muted d-block mb-2" style="font-size: 0.75rem;">Dr. Angela Yu • 45% complete</span>
+                  <!-- Progress bar track -->
+                  <div class="progress-bar-container" style="height: 6px; background-color: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; max-width: 320px;">
+                    <div style="width: 45%; height: 100%; background: linear-gradient(90deg, #7C3AED, #A855F7); box-shadow: var(--shadow-glow-violet); border-radius: 3px;"></div>
+                  </div>
+                </div>
+              </div>
+              <a href="course-detail.html?title=Python%20for%20Data%20Science%2C%20Pandas%20%26%20Visualization&instructor=Dr.%20Angela%20Yu&level=intermediate&price=799" class="btn btn-bb-outline-violet py-2 px-3 flex-shrink-0" style="font-size: 0.75rem; border-radius: 50px; width: auto; height: auto;">
+                Continue <i class="bi bi-arrow-right ms-1"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recently viewed dynamic tiles list -->
+        <div class="mt-5">
+          <h2 class="text-white fw-bold mb-3" style="font-size: 1.25rem; font-family: var(--font-display);">Recently Viewed</h2>
+          
+          <div class="scroll-horizontal-tiles">
+            <!-- Tile 1 -->
+            <div class="scroll-tile-card">
+              <div class="scroll-tile-thumb" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">ER</div>
+              <div class="scroll-tile-body">
+                <h5 class="scroll-tile-title">UI/UX Advanced Figma Design Systems</h5>
+              </div>
+            </div>
+            
+            <!-- Tile 2 -->
+            <div class="scroll-tile-card">
+              <div class="scroll-tile-thumb" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">AN</div>
+              <div class="scroll-tile-body">
+                <h5 class="scroll-tile-title">Deep Learning &amp; Neural Networks</h5>
+              </div>
+            </div>
+
+            <!-- Tile 3 -->
+            <div class="scroll-tile-card">
+              <div class="scroll-tile-thumb" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">MS</div>
+              <div class="scroll-tile-body">
+                <h5 class="scroll-tile-title">Flutter Declarative iOS &amp; Android Apps</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================================
+        TAB PANEL 2: MY COURSES FILTER LIST TAB
+      ============================================================ -->
+      <div class="dashboard-tab-panel" id="panel-courses">
+        <div class="d-flex flex-sm-row flex-column justify-content-between align-items-sm-center gap-3 mb-4">
+          <h1 class="text-white fw-bold m-0" style="font-size: 1.8rem; font-family: var(--font-display);">My Courses</h1>
+          
+          <!-- Category Filters -->
+          <div class="course-tabs-bar p-1.5" style="border-radius: 50px;">
+            <button type="button" class="course-filter-btn active py-1 px-3" data-filter="all" style="font-size: 0.78rem; border-radius: 50px;">All</button>
+            <button type="button" class="course-filter-btn py-1 px-3" data-filter="progress" style="font-size: 0.78rem; border-radius: 50px;">In Progress</button>
+            <button type="button" class="course-filter-btn py-1 px-3" data-filter="completed" style="font-size: 0.78rem; border-radius: 50px;">Completed</button>
+          </div>
+        </div>
+
+        <div class="d-flex flex-column gap-3.5">
+          <!-- Row Item 1 (In Progress) -->
+          <div class="floating-glass-card p-3 d-flex flex-md-row flex-column align-items-center justify-content-between gap-3 course-row-item" data-status="progress">
+            <div class="d-flex align-items-center gap-3 w-100 flex-grow-1">
+              <div style="width: 80px; height: 80px; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.35rem;" class="text-white">
+                SJ
+              </div>
+              <div class="flex-grow-1" style="min-width: 0;">
+                <h4 class="text-white fw-bold mb-1 text-truncate" style="font-size: 0.95rem;">Next.js 14 &amp; Supabase: The Full-Stack SaaS Blueprint</h4>
+                <span class="text-muted d-block mb-2" style="font-size: 0.78rem;">Sarah Jenkins &bull; Last accessed 2 days ago</span>
+                
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress-bar-container flex-grow-1" style="height: 6px; background-color: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; max-width: 260px;">
+                    <div style="width: 72%; height: 100%; background: linear-gradient(90deg, #7C3AED, #A855F7); border-radius: 3px;"></div>
+                  </div>
+                  <span style="font-size: 0.72rem; color: var(--violet-mid); font-weight: 700;">72%</span>
+                </div>
+              </div>
+            </div>
+            <a href="course-detail.html?title=Next.js%2014%20%26%20Supabase%3A%20The%20Full-Stack%20SaaS%20Blueprint&instructor=Sarah%20Jenkins&level=advanced&price=499" class="btn btn-bb-primary py-2.5 px-4 flex-shrink-0" style="font-size: 0.78rem; border-radius: 50px; width: auto; height: auto;">
+              Continue
+            </a>
+          </div>
+
+          <!-- Row Item 2 (In Progress) -->
+          <div class="floating-glass-card p-3 d-flex flex-md-row flex-column align-items-center justify-content-between gap-3 course-row-item" data-status="progress">
+            <div class="d-flex align-items-center gap-3 w-100 flex-grow-1">
+              <div style="width: 80px; height: 80px; border-radius: 8px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.35rem;" class="text-white">
+                AY
+              </div>
+              <div class="flex-grow-1" style="min-width: 0;">
+                <h4 class="text-white fw-bold mb-1 text-truncate" style="font-size: 0.95rem;">Python for Data Science, Pandas &amp; Visualization</h4>
+                <span class="text-muted d-block mb-2" style="font-size: 0.78rem;">Dr. Angela Yu &bull; Last accessed 4 days ago</span>
+                
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress-bar-container flex-grow-1" style="height: 6px; background-color: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; max-width: 260px;">
+                    <div style="width: 45%; height: 100%; background: linear-gradient(90deg, #7C3AED, #A855F7); border-radius: 3px;"></div>
+                  </div>
+                  <span style="font-size: 0.72rem; color: var(--violet-mid); font-weight: 700;">45%</span>
+                </div>
+              </div>
+            </div>
+            <a href="course-detail.html?title=Python%20for%20Data%20Science%2C%20Pandas%20%26%20Visualization&instructor=Dr.%20Angela%20Yu&level=intermediate&price=799" class="btn btn-bb-primary py-2.5 px-4 flex-shrink-0" style="font-size: 0.78rem; border-radius: 50px; width: auto; height: auto;">
+              Continue
+            </a>
+          </div>
+
+          <!-- Row Item 3 (Completed) -->
+          <div class="floating-glass-card completed-card p-3 d-flex flex-md-row flex-column align-items-center justify-content-between gap-3 course-row-item" data-status="completed" style="border-color: rgba(16, 185, 129, 0.15);">
+            <div class="d-flex align-items-center gap-3 w-100 flex-grow-1">
+              <div style="width: 80px; height: 80px; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.35rem;" class="text-white">
+                SJ
+              </div>
+              <div class="flex-grow-1" style="min-width: 0;">
+                <h4 class="text-white fw-bold mb-1 text-truncate" style="font-size: 0.95rem;">TypeScript Deep Dive: Type Safety &amp; Architecture</h4>
+                <span class="text-muted d-block mb-2" style="font-size: 0.78rem;">Sarah Jenkins &bull; Completed May 28, 2026</span>
+                
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress-bar-container flex-grow-1" style="height: 6px; background-color: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; max-width: 260px;">
+                    <div style="width: 100%; height: 100%; background: #10B981; border-radius: 3px;"></div>
+                  </div>
+                  <span class="badge" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); color: #34D399; font-size: 0.65rem; font-weight: bold; text-transform: capitalize;"><i class="bi bi-check-circle-fill me-0.5"></i> Completed</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="d-flex gap-2 flex-shrink-0 flex-md-row flex-column w-md-auto w-100">
+              <button type="button" class="btn btn-bb-outline-teal py-2.5 px-3" onclick="document.querySelector('[data-tab=\'certificates\']').click();" style="font-size: 0.75rem; border-radius: 50px; height: auto;">
+                View Certificate
+              </button>
+              <a href="course-detail.html?title=TypeScript%20Deep%20Dive%3A%20Type%20Safety%20%26%20Architecture&instructor=Sarah%20Jenkins&level=advanced&price=399" class="btn btn-bb-primary py-2.5 px-4" style="font-size: 0.78rem; border-radius: 50px; height: auto;">
+                Review
+              </a>
+            </div>
+          </div>
+
+          <!-- Row Item 4 (Completed) -->
+          <div class="floating-glass-card completed-card p-3 d-flex flex-md-row flex-column align-items-center justify-content-between gap-3 course-row-item" data-status="completed" style="border-color: rgba(16, 185, 129, 0.15);">
+            <div class="d-flex align-items-center gap-3 w-100 flex-grow-1">
+              <div style="width: 80px; height: 80px; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.35rem;" class="text-white">
+                DM
+              </div>
+              <div class="flex-grow-1" style="min-width: 0;">
+                <h4 class="text-white fw-bold mb-1 text-truncate" style="font-size: 0.95rem;">Modern HTML5, CSS3 &amp; Responsive Architecture</h4>
+                <span class="text-muted d-block mb-2" style="font-size: 0.78rem;">Dave Miller &bull; Completed May 24, 2026</span>
+                
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress-bar-container flex-grow-1" style="height: 6px; background-color: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; max-width: 260px;">
+                    <div style="width: 100%; height: 100%; background: #10B981; border-radius: 3px;"></div>
+                  </div>
+                  <span class="badge" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); color: #34D399; font-size: 0.65rem; font-weight: bold; text-transform: capitalize;"><i class="bi bi-check-circle-fill me-0.5"></i> Completed</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="d-flex gap-2 flex-shrink-0 flex-md-row flex-column w-md-auto w-100">
+              <button type="button" class="btn btn-bb-outline-teal py-2.5 px-3" onclick="document.querySelector('[data-tab=\'certificates\']').click();" style="font-size: 0.75rem; border-radius: 50px; height: auto;">
+                View Certificate
+              </button>
+              <a href="course-detail.html?title=Modern%20HTML5%2C%20CSS3%20%26%20Responsive%20Architecture&instructor=Dave%20Miller&level=beginner&price=0" class="btn btn-bb-primary py-2.5 px-4" style="font-size: 0.78rem; border-radius: 50px; height: auto;">
+                Review
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================================
+        TAB PANEL 3: CERTIFICATES TAB
+      ============================================================ -->
+      <div class="dashboard-tab-panel" id="panel-certificates">
+        <h1 class="text-white fw-bold mb-4" style="font-size: 1.8rem; font-family: var(--font-display);">Certificates</h1>
+
+        <div class="row g-4">
+          <!-- Cert 1 -->
+          <div class="col-md-6 col-12">
+            <div class="floating-glass-card overflow-hidden h-100 d-flex flex-column justify-content-between p-0">
+              <!-- top header gradient banner -->
+              <div class="py-3 px-4 text-center border-bottom" style="background: linear-gradient(135deg, #A855F7 0%, #EC4899 100%); border-color: rgba(255,255,255,0.06) !important;">
+                <h4 class="text-white fw-bold m-0" style="font-size: 0.85rem; font-family: var(--font-display); letter-spacing: 0.05em;"><i class="bi bi-patch-check-fill me-1"></i> CERTIFICATE OF COMPLETION</h4>
+              </div>
+              
+              <!-- Card body -->
+              <div class="p-4 flex-grow-1 d-flex flex-column justify-content-between">
+                <div>
+                  <h3 class="text-white fw-bold mb-2" style="font-size: 1.05rem; line-height: 1.45;">TypeScript Deep Dive: Type Safety &amp; Architecture</h3>
+                  <span class="text-muted d-block mb-3" style="font-size: 0.78rem;">Issued: May 2026</span>
+                </div>
+                
+                <!-- BrainByte seal -->
+                <div class="d-flex align-items-center justify-content-between py-2.5 px-3 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                  <div class="d-flex align-items-center gap-1.5" style="font-family: var(--font-display); font-weight: 800; font-size: 0.78rem;">
+                    <span class="text-white">Brain⚡Byte</span>
+                  </div>
+                  <span style="color: #34D399; font-size: 0.72rem; font-weight: 700;"><i class="bi bi-shield-fill-check"></i> On-Chain Verified</span>
+                </div>
+              </div>
+
+              <!-- Action buttons footer -->
+              <div class="d-flex border-top" style="border-color: rgba(255,255,255,0.06) !important;">
+                <a href="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" download class="btn btn-bb-ghost py-3 px-2 flex-grow-1 text-center font-bold text-info" style="font-size: 0.75rem; border-radius: 0; color: #06B6D4 !important; border-right: 1px solid rgba(255,255,255,0.06);">
+                  <i class="bi bi-arrow-down-circle-fill me-1"></i> Download PDF
+                </a>
+                <a href="https://www.linkedin.com/sharing/share-offsite/" target="_blank" class="btn btn-bb-ghost py-3 px-2 flex-grow-1 text-center font-bold text-primary" style="font-size: 0.75rem; border-radius: 0; color: var(--violet-mid) !important;">
+                  <i class="bi bi-linkedin me-1"></i> Share LinkedIn
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cert 2 -->
+          <div class="col-md-6 col-12">
+            <div class="floating-glass-card overflow-hidden h-100 d-flex flex-column justify-content-between p-0">
+              <!-- top header gradient banner -->
+              <div class="py-3 px-4 text-center border-bottom" style="background: linear-gradient(135deg, #A855F7 0%, #EC4899 100%); border-color: rgba(255,255,255,0.06) !important;">
+                <h4 class="text-white fw-bold m-0" style="font-size: 0.85rem; font-family: var(--font-display); letter-spacing: 0.05em;"><i class="bi bi-patch-check-fill me-1"></i> CERTIFICATE OF COMPLETION</h4>
+              </div>
+              
+              <!-- Card body -->
+              <div class="p-4 flex-grow-1 d-flex flex-column justify-content-between">
+                <div>
+                  <h3 class="text-white fw-bold mb-2" style="font-size: 1.05rem; line-height: 1.45;">Modern HTML5, CSS3 &amp; Responsive Architecture</h3>
+                  <span class="text-muted d-block mb-3" style="font-size: 0.78rem;">Issued: May 2026</span>
+                </div>
+                
+                <!-- BrainByte seal -->
+                <div class="d-flex align-items-center justify-content-between py-2.5 px-3 rounded-3" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);">
+                  <div class="d-flex align-items-center gap-1.5" style="font-family: var(--font-display); font-weight: 800; font-size: 0.78rem;">
+                    <span class="text-white">Brain⚡Byte</span>
+                  </div>
+                  <span style="color: #34D399; font-size: 0.72rem; font-weight: 700;"><i class="bi bi-shield-fill-check"></i> On-Chain Verified</span>
+                </div>
+              </div>
+
+              <!-- Action buttons footer -->
+              <div class="d-flex border-top" style="border-color: rgba(255,255,255,0.06) !important;">
+                <a href="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" download class="btn btn-bb-ghost py-3 px-2 flex-grow-1 text-center font-bold text-info" style="font-size: 0.75rem; border-radius: 0; color: #06B6D4 !important; border-right: 1px solid rgba(255,255,255,0.06);">
+                  <i class="bi bi-arrow-down-circle-fill me-1"></i> Download PDF
+                </a>
+                <a href="https://www.linkedin.com/sharing/share-offsite/" target="_blank" class="btn btn-bb-ghost py-3 px-2 flex-grow-1 text-center font-bold text-primary" style="font-size: 0.75rem; border-radius: 0; color: var(--violet-mid) !important;">
+                  <i class="bi bi-linkedin me-1"></i> Share LinkedIn
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================================
+        TAB PANEL 4: WISHLIST GRIDS TAB
+      ============================================================ -->
+      <div class="dashboard-tab-panel" id="panel-wishlist">
+        <h1 class="text-white fw-bold mb-4" style="font-size: 1.8rem; font-family: var(--font-display);">My Wishlist</h1>
+
+        <!-- Wishlist Grid Cards -->
+        <div class="row g-4" id="wishlist-grid-container">
+          <!-- Card 1 -->
+          <div class="col-md-6 col-12">
+            <div class="course-card position-relative" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; overflow: hidden;">
+              <!-- Heart icon absolute right top -->
+              <button type="button" class="btn p-0 border-0 btn-wishlist-heart" style="position: absolute; top: 12px; right: 12px; z-index: 10; color: #EF4444; background: rgba(0,0,0,0.5); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.05rem;" aria-label="Remove from wishlist">
+                <i class="bi bi-heart-fill"></i>
+              </button>
+              
+              <!-- Card thumbnail -->
+              <div class="course-thumb-wrapper">
+                <div class="course-thumb-placeholder" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                  AI
+                </div>
+              </div>
+              
+              <!-- Card body -->
+              <div class="course-card-body">
+                <div class="course-instructor mb-2">
+                  <div class="instructor-avatar" style="background: rgba(168,85,247,0.15); color: #C084FC; width: 20px; height: 20px; font-size: 0.65rem; font-weight: bold; border-radius: 50%;">AN</div>
+                  <span class="instructor-name-label" style="font-size: 0.78rem;">Dr. Andrew Ng</span>
+                </div>
+                <h4 class="course-title text-white fw-bold mb-2" style="font-size: 0.95rem; line-height: 1.45; height: auto;">Deep Learning, PyTorch &amp; Neural Networks Masterclass</h4>
+                
+                <div class="d-flex align-items-center justify-content-between mt-3 pt-3 border-top" style="border-color: rgba(255,255,255,0.06) !important;">
+                  <span class="fw-bold" style="color: #EC4899; font-size: 1.15rem; font-family: var(--font-display);">₹999</span>
+                  <a href="course-detail.html?title=Deep%20Learning%2C%20PyTorch%20%26%20Neural%20Networks%20Masterclass&instructor=Dr.%20Andrew%20Ng&level=advanced&price=999" class="btn btn-bb-primary py-2 px-3 text-white text-decoration-none" style="font-size: 0.75rem; border-radius: 50px;">
+                    Enroll Now
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="col-md-6 col-12">
+            <div class="course-card position-relative" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; overflow: hidden;">
+              <!-- Heart icon absolute right top -->
+              <button type="button" class="btn p-0 border-0 btn-wishlist-heart" style="position: absolute; top: 12px; right: 12px; z-index: 10; color: #EF4444; background: rgba(0,0,0,0.5); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.05rem;" aria-label="Remove from wishlist">
+                <i class="bi bi-heart-fill"></i>
+              </button>
+              
+              <!-- Card thumbnail -->
+              <div class="course-thumb-wrapper">
+                <div class="course-thumb-placeholder" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                  ER
+                </div>
+              </div>
+              
+              <!-- Card body -->
+              <div class="course-card-body">
+                <div class="course-instructor mb-2">
+                  <div class="instructor-avatar" style="background: rgba(168,85,247,0.15); color: #C084FC; width: 20px; height: 20px; font-size: 0.65rem; font-weight: bold; border-radius: 50%;">ER</div>
+                  <span class="instructor-name-label" style="font-size: 0.78rem;">Elena Rostova</span>
+                </div>
+                <h4 class="course-title text-white fw-bold mb-2" style="font-size: 0.95rem; line-height: 1.45; height: auto;">UI/UX Advanced Prototyping &amp; Figma Design Systems</h4>
+                
+                <div class="d-flex align-items-center justify-content-between mt-3 pt-3 border-top" style="border-color: rgba(255,255,255,0.06) !important;">
+                  <span class="fw-bold" style="color: #EC4899; font-size: 1.15rem; font-family: var(--font-display);">₹699</span>
+                  <a href="course-detail.html?title=UI%2FUX%20Advanced%20Prototyping%20%26%20Figma%20Design%20Systems&instructor=Elena%20Rostova&level=intermediate&price=699" class="btn btn-bb-primary py-2 px-3 text-white text-decoration-none" style="font-size: 0.75rem; border-radius: 50px;">
+                    Enroll Now
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty Wishlist State -->
+        <div class="text-center py-5 d-none" id="wishlist-empty-state">
+          <div class="display-1 text-muted mb-3" style="font-size: 4.5rem; color: #EF4444 !important; opacity: 0.7;">❤️</div>
+          <h3 class="text-white fw-bold mb-2">Your wishlist is empty</h3>
+          <p class="text-muted mb-4 mx-auto" style="max-width: 380px;">Start exploring complete verified SaaS blueprint bundles and UI prototyping series.</p>
+          <a href="courses.html" class="btn btn-bb-primary px-4 py-2" style="width: auto; background: #7C3AED; box-shadow: 0 0 20px rgba(124, 58, 237, 0.4); border-radius: 50px;">
+            Browse Courses
+          </a>
+        </div>
+
+      </div>
+
+      <!-- ============================================================
+        TAB PANEL 5: SETTINGS TAB
+      ============================================================ -->
+      <div class="dashboard-tab-panel" id="panel-settings">
+        <h1 class="text-white fw-bold mb-4" style="font-size: 1.8rem; font-family: var(--font-display);">Settings</h1>
+
+        <div class="d-flex flex-column gap-4">
+          <!-- 1. Profile section card -->
+          <div class="floating-glass-card p-4">
+            <h3 class="text-white fw-bold mb-3.5" style="font-size: 1.1rem; font-family: var(--font-display);"><i class="bi bi-person-circle me-1.5" style="color: var(--violet-mid);"></i> Profile Information</h3>
+            
+            <div class="row g-4 align-items-center mb-4">
+              <!-- Avatar uploads -->
+              <div class="col-md-3 col-12 text-center">
+                <div class="profile-avatar-upload-frame" id="avatar-upload-frame">
+                  <div class="profile-avatar-overlay-cam">
+                    <i class="bi bi-camera-fill"></i>
+                  </div>
+                  <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white font-semibold" style="font-size: 2.2rem; font-weight: 800;" id="settings-avatar-preview">
+                    RA
+                  </div>
+                </div>
+                <span class="text-muted d-block mt-2" style="font-size: 0.75rem;">Click to upload image</span>
+                <input type="file" id="settings-avatar-input" accept="image/*" class="d-none">
+              </div>
+
+              <!-- Text inputs grid -->
+              <div class="col-md-9 col-12 d-flex flex-column gap-3">
+                <div class="glass-input-wrapper mb-0">
+                  <label for="fullname" class="glass-input-label">Full Name</label>
+                  <input type="text" class="glass-input" id="fullname" value="Rahul" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">
+                </div>
+
+                <div class="glass-input-wrapper mb-0">
+                  <label for="settings-email" class="glass-input-label">Email Address</label>
+                  <input type="email" class="glass-input" id="settings-email" value="rahul@domain.com" disabled style="background-color: rgba(255,255,255,0.015); border-color: rgba(255,255,255,0.04); color: rgba(255,255,255,0.35); cursor: not-allowed;">
+                </div>
+              </div>
+            </div>
+
+            <!-- Bio text area -->
+            <div class="glass-input-wrapper mb-4">
+              <label for="settings-bio" class="glass-input-label">Bio Description</label>
+              <textarea class="glass-input" id="settings-bio" rows="3" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); border-radius: 8px;">Junior full-stack developer focused on React systems, Next.js structures, and UI/UX custom guidelines animations.</textarea>
+            </div>
+
+            <button type="button" id="btn-settings-save" class="btn btn-bb-primary py-2.5 px-4" style="font-size: 0.8rem; width: auto; border-radius: 50px;">
+              Save Changes
+            </button>
+          </div>
+
+          <!-- 2. Security password card -->
+          <div class="floating-glass-card p-4">
+            <h3 class="text-white fw-bold mb-3.5" style="font-size: 1.1rem; font-family: var(--font-display);"><i class="bi bi-shield-lock-fill me-1.5" style="color: var(--violet-mid);"></i> Change Password</h3>
+            
+            <div class="d-flex flex-column gap-3 mb-4">
+              <div class="glass-input-wrapper mb-0">
+                <label for="curr-password" class="glass-input-label">Current Password</label>
+                <input type="password" class="glass-input" id="curr-password" placeholder="••••••••" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">
+              </div>
+
+              <div class="glass-input-wrapper mb-0">
+                <label for="new-password" class="glass-input-label">New Password</label>
+                <input type="password" class="glass-input" id="new-password" placeholder="••••••••" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">
+                
+                <!-- password strength indicator -->
+                <div class="mt-2.5 d-flex align-items-center justify-content-between gap-3">
+                  <div class="progress-bar-container flex-grow-1" style="height: 5px; background-color: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+                    <div id="settings-strength-bar" class="strength-bar-fill" style="width: 0%; height: 100%;"></div>
+                  </div>
+                  <span id="settings-strength-label" class="strength-label" style="font-size: 0.72rem; font-weight: 700; color: #94A3B8; font-family: var(--font-display);">Password Strength</span>
+                </div>
+              </div>
+
+              <div class="glass-input-wrapper mb-0">
+                <label for="conf-password" class="glass-input-label">Confirm New Password</label>
+                <input type="password" class="glass-input" id="conf-password" placeholder="••••••••" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-bb-primary py-2.5 px-4" id="btn-update-password" style="font-size: 0.8rem; width: auto; border-radius: 50px;">
+              Update Password
+            </button>
+          </div>
+
+          <!-- 3. Notification switches card -->
+          <div class="floating-glass-card p-4">
+            <h3 class="text-white fw-bold mb-3" style="font-size: 1.1rem; font-family: var(--font-display);"><i class="bi bi-bell-fill me-1.5" style="color: var(--violet-mid);"></i> Notification Settings</h3>
+            
+            <div class="d-flex flex-column gap-1.5">
+              <!-- Switch 1 -->
+              <div class="toggle-switch-wrapper border-bottom" style="border-color: rgba(255,255,255,0.05) !important;">
+                <div style="padding-right: 1.5rem;">
+                  <h4 class="text-white fw-bold mb-0.5" style="font-size: 0.88rem;">Course updates</h4>
+                  <p style="color: #94A3B8; font-size: 0.75rem; margin: 0;">Receive notification updates about curriculum lectures additions and verified proposals modifications.</p>
+                </div>
+                <label class="toggle-switch-btn">
+                  <input type="checkbox" checked>
+                  <span class="toggle-switch-slider"></span>
+                </label>
+              </div>
+
+              <!-- Switch 2 -->
+              <div class="toggle-switch-wrapper border-bottom" style="border-color: rgba(255,255,255,0.05) !important;">
+                <div style="padding-right: 1.5rem;">
+                  <h4 class="text-white fw-bold mb-0.5" style="font-size: 0.88rem;">New messages</h4>
+                  <p style="color: #94A3B8; font-size: 0.75rem; margin: 0;">Receive messages alerts when instructors respond to community classroom queries or comments.</p>
+                </div>
+                <label class="toggle-switch-btn">
+                  <input type="checkbox" checked>
+                  <span class="toggle-switch-slider"></span>
+                </label>
+              </div>
+
+              <!-- Switch 3 -->
+              <div class="toggle-switch-wrapper">
+                <div style="padding-right: 1.5rem;">
+                  <h4 class="text-white fw-bold mb-0.5" style="font-size: 0.88rem;">Promotional emails</h4>
+                  <p style="color: #94A3B8; font-size: 0.75rem; margin: 0;">Receive discount alerts, coupons releases, and newsletters compiled by onboarding curation teams.</p>
+                </div>
+                <label class="toggle-switch-btn">
+                  <input type="checkbox">
+                  <span class="toggle-switch-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+    
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase Config -->
+<script src="js/supabase-config.js"></script>
+<!-- Main JS -->
+<script src="js/main.js"></script>
+</body>
+</html>

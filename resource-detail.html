@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resource Details — BrainByte</title>
+  <meta name="description" content="Unlock advanced tech tutorials and resources. Stream custom styled code videos, download guide PDFs, read transcripts, and connect with the community.">
+  
+  <!-- Preload and load Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Premium Theme CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-body">
+
+  <!-- Ambient background glow elements -->
+  <div class="bg-blob-teal" style="top: -100px; left: -100px; fixed: true; opacity: 0.12;"></div>
+  <div class="bg-blob-violet" style="top: 300px; right: -100px; fixed: true; opacity: 0.08;"></div>
+  <div class="bg-blob-pink" style="bottom: 10%; left: 5%; fixed: true; opacity: 0.10;"></div>
+
+  <!-- ================================================================
+    HEADER & NAVIGATION
+  ================================================================ -->
+  <nav class="navbar navbar-expand-lg bb-navbar scrolled">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="index.html" id="bb-logo">
+        <span>Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
+      </a>
+      
+      <button class="navbar-toggler border-0 shadow-none text-white" type="button" data-bs-toggle="collapse" data-bs-target="#bbNavbar" aria-controls="bbNavbar" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="bi bi-list fs-2" style="color: var(--text-primary);"></i>
+      </button>
+      
+      <div class="collapse navbar-collapse" id="bbNavbar">
+        <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1 mt-3 mt-lg-0">
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="courses.html" id="nav-home">Explore</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link library-link active" href="library.html" id="nav-library">
+              Library <i class="bi bi-lock-fill ms-1" id="navbar-library-lock-icon" style="font-size: 0.85rem; color: var(--teal-primary);"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="teach.html" id="nav-teach">Teach</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="pricing.html" id="nav-pricing">Pricing</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="about.html" id="nav-about">About</a>
+          </li>
+        </ul>
+        <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">
+          <a href="login.html" class="btn btn-bb-ghost" id="btn-signin">Sign In</a>
+          <a href="signup.html" class="btn btn-bb-primary" id="btn-getstarted">Get Started</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ================================================================
+    RESOURCE HEADER BANNER SECTION
+  ================================================================ -->
+  <section class="course-detail-banner-section" style="padding-top: 6.5rem; background: rgba(255,255,255,0.01); border-bottom: 1px solid rgba(255,255,255,0.04); position: relative;">
+    <div class="container py-4">
+      
+      <!-- Session Mode Switcher for testing (Top Right inside banner) -->
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb m-0" style="font-family: var(--font-display); font-size: 0.82rem; font-weight: 600;">
+            <li class="breadcrumb-item"><a href="index.html" style="color: #94A3B8;">Home</a></li>
+            <li class="breadcrumb-item"><a href="library.html" style="color: #94A3B8;">Library</a></li>
+            <li class="breadcrumb-item active text-white" aria-current="page">Resource Detail</li>
+          </ol>
+        </nav>
+        
+        <!-- Live Toggles Pill -->
+        <div class="session-toggle-pill d-flex align-items-center gap-1.5 p-1 rounded-pill" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+          <span style="font-size: 0.68rem; font-family: var(--font-display); font-weight: 800; color: #94A3B8; padding-left: 0.75rem; padding-right: 0.25rem;">SESSION MODE</span>
+          <button type="button" class="btn btn-session-toggle active" id="toggle-session-guest">Locked</button>
+          <button type="button" class="btn btn-session-toggle" id="toggle-session-member">Member</button>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col-12">
+          <!-- H1 Title -->
+          <h1 class="text-white fw-bold mb-3" style="font-size: 2.2rem; font-family: var(--font-display); line-height: 1.25;" id="detail-resource-title">
+            Mastering CSS Grid &amp; Subgrid in Production Architectures
+          </h1>
+          
+          <!-- Metadata Badges -->
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2" style="font-size: 0.82rem; font-weight: 600;">
+            <span class="badge" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); color: #06B6D4;" id="detail-badge-type">📹 Video</span>
+            <span class="badge" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #E2E8F0;" id="detail-badge-category">Web Dev</span>
+            <span class="badge" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #E2E8F0;" id="detail-badge-level">Beginner</span>
+            <span style="color: rgba(255,255,255,0.15);" class="mx-1">&bull;</span>
+            <span style="color: #94A3B8;" id="detail-badge-metrics"><i class="bi bi-eye-fill me-1"></i> 12.4K views • 4.8★</span>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </section>
+
+  <!-- ================================================================
+    GUEST LOCKED CARD OVERLAY (Displays when logged out)
+  ================================================================ -->
+  <div class="resource-guest-overlay-box" id="resource-guest-card">
+    <div class="floating-glass-card text-center p-5 position-relative" style="max-width: 520px; border-color: rgba(6,182,212,0.30); border-radius: 20px; background: rgba(13,14,26,0.90); box-shadow: var(--shadow-lg);">
+      <div class="mb-4" style="font-size: 3.2rem; color: #06B6D4; text-shadow: var(--shadow-glow-teal);">
+        <i class="bi bi-lock-fill"></i>
+      </div>
+      <h2 class="text-white fw-bold mb-2" style="font-family: var(--font-display); font-size: 1.6rem;">This resource is 100% Free</h2>
+      <p style="color: #94A3B8; font-size: 0.95rem; line-height: 1.6; margin-bottom: 2rem;">
+        Get immediate access to premium tutorial stream channels, complete project source files, and high-fidelity study guide PDFs. Just login to continue!
+      </p>
+      
+      <div class="d-flex flex-column gap-2.5">
+        <a href="login.html" class="btn-bb-login w-100 py-3 text-center d-flex align-items-center justify-content-center" style="background: #7C3AED; box-shadow: 0 0 20px rgba(124, 58, 237, 0.4); border-radius: 50px; font-weight: bold; border: none; color: white; height: 50px;">
+          Login Now <i class="bi bi-arrow-right-short fs-5 ms-1"></i>
+        </a>
+        <a href="signup.html" class="btn btn-bb-ghost w-100 text-center" style="font-weight: 700; font-size: 0.9rem;">
+          Create Free Account
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================
+    MAIN CLASSROOM CONTAINER (Blurred in guest locked state)
+  ================================================================ -->
+  <main class="container py-5 locked-blur" id="resource-unlocked-container">
+    <div class="row g-4">
+      
+      <!-- ============================================================
+        LEFT COLUMN: RESOURCE STREAMS & CONTENT (70%)
+      ============================================================ -->
+      <div class="col-lg-8 col-12">
+        
+        <!-- A. VIDEO STREAM CONTENT BLOCK -->
+        <div id="video-player-wrapper" class="d-none mb-4">
+          <div class="video-player-container-wrapper">
+            
+            <!-- Video element frame -->
+            <div class="position-relative aspect-ratio-16-9" style="background: #000000; overflow: hidden; aspect-ratio: 16/9;">
+              <video id="html5-video" class="w-100 h-100" style="object-fit: cover;">
+                <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+            </div>
+            
+            <!-- Custom controls HUD bar -->
+            <div class="video-custom-controls-bar d-flex flex-column gap-2">
+              <!-- Progress Scrubber -->
+              <div class="scrubber-track-container" id="video-scrubber-container">
+                <div class="scrubber-fill" id="video-scrubber-fill" style="width: 0%;"></div>
+                <div class="scrubber-thumb" id="video-scrubber-thumb" style="left: 0%;"></div>
+              </div>
+              
+              <!-- Buttons & Sliders row -->
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-1">
+                <!-- Left: Play button + Timestamp -->
+                <div class="d-flex align-items-center gap-3">
+                  <button type="button" class="btn-video-control" id="btn-video-play" aria-label="Play or Pause">
+                    <i class="bi bi-play-fill fs-4"></i>
+                  </button>
+                  <span class="text-muted" style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 500;" id="video-time-label">
+                    00:00 / 00:00
+                  </span>
+                </div>
+                
+                <!-- Right: Volume + Speed + Fullscreen -->
+                <div class="d-flex align-items-center gap-3.5">
+                  <!-- Volume controls -->
+                  <div class="d-flex align-items-center gap-1.5">
+                    <button type="button" class="btn-video-control" id="btn-video-volume" aria-label="Mute or Unmute">
+                      <i class="bi bi-volume-up-fill fs-6"></i>
+                    </button>
+                    <input type="range" class="volume-slider-range" id="video-volume-slider" min="0" max="1" step="0.05" value="0.8" aria-label="Volume slider">
+                  </div>
+                  
+                  <!-- Playback Rate -->
+                  <select class="speed-dropdown-btn" id="video-speed-select" aria-label="Playback speed select">
+                    <option value="0.75">0.75x</option>
+                    <option value="1.0" selected>1.0x</option>
+                    <option value="1.25">1.25x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="2.0">2.0x</option>
+                  </select>
+                  
+                  <!-- Fullscreen -->
+                  <button type="button" class="btn-video-control" id="btn-video-fullscreen" aria-label="Toggle Fullscreen">
+                    <i class="bi bi-fullscreen fs-6"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        
+        <!-- B. PDF VIEWER CONTENT BLOCK -->
+        <div id="pdf-viewer-wrapper" class="d-none mb-4">
+          <div class="pdf-viewer-container position-relative" style="height: 700px; width: 100%;">
+            <!-- Fallback text message with direct download overlay if browser blocks -->
+            <div class="pdf-fallback-box w-100 h-100 d-flex flex-column align-items-center justify-content-center text-center">
+              <div class="display-3 mb-3" style="color: #06B6D4; text-shadow: var(--shadow-glow-teal);"><i class="bi bi-file-earmark-pdf-fill"></i></div>
+              <h3 class="text-white fw-bold mb-2">Interactive PDF Study Guide Loaded</h3>
+              <p style="color: #94A3B8; font-size: 0.9rem; max-width: 420px; line-height: 1.55;" class="mb-4">
+                To explore full-resolution vector tables, print guide nodes, and bookmark pages, download the PDF guide locally.
+              </p>
+              <a href="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" download id="btn-fallback-pdf-download" class="btn btn-bb-teal px-4 py-2" style="width: auto;">
+                <i class="bi bi-arrow-down-circle-fill me-2"></i> Download Study Guide
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- C. PDF DOWNLOAD CARD (shown for PDF resources) -->
+        <div id="pdf-actions-wrapper" class="d-none mb-4">
+          <div class="floating-glass-card p-4 d-flex flex-md-row flex-column align-items-center justify-content-between gap-3">
+            <div class="text-center text-md-start">
+              <h4 class="text-white fw-bold mb-1" style="font-size: 1.05rem;" id="pdf-size-details-label">Study Guide &bull; 2.4 MB</h4>
+              <p style="color: #94A3B8; font-size: 0.82rem; margin: 0;">Full high-definition downloadable reference book containing blueprints.</p>
+            </div>
+            <a href="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" download class="btn btn-bb-teal py-3 px-4 flex-shrink-0 d-inline-flex" id="btn-pdf-download-action" style="width: auto; height: auto;">
+              <i class="bi bi-arrow-down-circle-fill me-2 fs-5"></i> Download PDF
+            </a>
+          </div>
+        </div>
+        
+        <!-- D. DYNAMIC CURATOR & DESCRIPTION PANELS -->
+        <div class="floating-glass-card p-4 mb-4">
+          <!-- Curator Team row -->
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pb-3 mb-3 border-bottom" style="border-color: rgba(255,255,255,0.06) !important;">
+            <div class="d-flex align-items-center gap-2.5">
+              <div class="instructor-circle-avatar" style="width: 32px; height: 32px; font-size: 0.85rem; background: rgba(6,182,212,0.15); color: #06B6D4;">BB</div>
+              <div>
+                <span class="text-white font-semibold d-block" style="font-size: 0.88rem; font-weight: 700;">BrainByte Team</span>
+                <span class="badge" style="background: rgba(6, 182, 212, 0.10); border: 1px solid rgba(6, 182, 212, 0.25); color: #22D3EE; font-size: 0.65rem; font-weight: 600;">Official curator</span>
+              </div>
+            </div>
+            <button type="button" class="btn btn-clear-filters p-0 border-0" id="btn-share-course" style="font-size: 0.82rem; width: auto; background: transparent; color: #94A3B8;">
+              <i class="bi bi-share-fill me-1.5"></i> Copy link
+            </button>
+          </div>
+          
+          <!-- Description text -->
+          <div class="resource-description-block position-relative">
+            <div class="description-collapse-text overflow-hidden" id="detail-description-container" style="height: 4.8em; transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+              <p style="color: #94A3B8; font-size: 0.92rem; line-height: 1.7; margin: 0;">
+                Master modern engineering standards and scalable paradigms without zero upfront tuition costs. We structure this reference resource with detailed architectural layouts, source repositories, and logical descriptions to provide immediate value for full-stack programmers. 
+                <br><br>
+                This reference block covers fundamental best practices, common gotchas, and performance optimization guides. Dive directly into coding nodes, trace database triggers, compile clean frameworks, and wire security layers perfectly!
+              </p>
+            </div>
+            <button type="button" class="btn p-0 border-0 mt-2 font-bold" id="btn-desc-toggle" style="background: transparent; color: #06B6D4; font-size: 0.85rem; font-weight: 700;">Show more</button>
+          </div>
+        </div>
+        
+        <!-- E. NOTES & TRANSCRIPTS PREMIUM TABS -->
+        <div class="course-tabs-bar mb-4">
+          <button type="button" class="course-tab-btn active" data-tab="notes">Notes</button>
+          <button type="button" class="course-tab-btn" data-tab="transcript">Transcript</button>
+        </div>
+        
+        <div class="course-tab-content-panels mb-5">
+          <!-- TAB Panel 1: Notes -->
+          <div class="tab-panel active" id="panel-notes">
+            <div class="floating-glass-card p-4">
+              <h3 class="text-white fw-bold mb-3" style="font-size: 1.15rem; font-family: var(--font-display);">Architectural Highlights &amp; Notes</h3>
+              <div class="notes-markdown-styled-text" style="color: #94A3B8; font-size: 0.9rem; line-height: 1.75;">
+                <p>Ensure that these key guidelines are strictly integrated during your application compilation loops:</p>
+                <ul class="m-0 ps-3 text-white-50 d-flex flex-column gap-2 mb-3">
+                  <li><strong>Fluid Ratios:</strong> Standardize containers with viewport percentages (vw) and padding ranges for crisp grid distributions.</li>
+                  <li><strong>Grid Alignments:</strong> Use subgrid attributes inside children components to preserve spacing variables from the parent grid layout.</li>
+                  <li><strong>Fallback Structures:</strong> Ensure image placeholders and loaders are explicitly wired to avoid blank loading windows on slower network bands.</li>
+                </ul>
+                <p class="m-0">Refer to the full repository code inside the sidebar to compile this template on your local machine.</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- TAB Panel 2: Transcript -->
+          <div class="tab-panel" id="panel-transcript">
+            <div class="floating-glass-card p-4">
+              <h3 class="text-white fw-bold mb-3" style="font-size: 1.15rem; font-family: var(--font-display);">Video Lecture Transcript</h3>
+              <div class="transcript-timeline-list d-flex flex-column gap-3.5" style="font-size: 0.88rem;">
+                
+                <!-- Line 1 -->
+                <div class="d-flex align-items-start gap-3">
+                  <span class="text-info fw-bold font-mono flex-shrink-0" style="color: #06B6D4 !important; font-variant-numeric: tabular-nums;">00:15</span>
+                  <p class="m-0" style="color: #94A3B8;">Welcome back to the BrainByte lecture hall! Today we will trace how parent grids govern responsive children sizing paradigms.</p>
+                </div>
+                
+                <!-- Line 2 -->
+                <div class="d-flex align-items-start gap-3">
+                  <span class="text-info fw-bold font-mono flex-shrink-0" style="color: #06B6D4 !important; font-variant-numeric: tabular-nums;">02:40</span>
+                  <p class="m-0" style="color: #94A3B8;">Let's draft our grid template columns. We configure these with auto-fit to enable elegant fluid rows down to phone columns.</p>
+                </div>
+                
+                <!-- Line 3 -->
+                <div class="d-flex align-items-start gap-3">
+                  <span class="text-info fw-bold font-mono flex-shrink-0" style="color: #06B6D4 !important; font-variant-numeric: tabular-nums;">06:12</span>
+                  <p class="m-0" style="color: #94A3B8;">Now, notice what happens when children use subgrid configurations. The rows synchronize beautifully with the main parent layout.</p>
+                </div>
+                
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- F. HELPFUL FEEDBACK RATINGS PANEL -->
+        <div class="floating-glass-card p-4 mb-4">
+          <div class="row g-4 align-items-center">
+            
+            <!-- Left: Thumbs up/down -->
+            <div class="col-md-6 col-12 text-center text-md-start">
+              <h4 class="text-white fw-bold mb-2" style="font-size: 1.05rem; font-family: var(--font-display);">Was this resource helpful?</h4>
+              <p style="color: #94A3B8; font-size: 0.8rem; margin-bottom: 3.5rem;">Help us curate high-quality developer resources.</p>
+              
+              <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-3">
+                <button type="button" class="btn btn-clear-filters px-3 py-2" id="btn-rate-up" style="font-size: 0.82rem;">
+                  <i class="bi bi-hand-thumbs-up me-1.5"></i> Helpful
+                </button>
+                <button type="button" class="btn btn-clear-filters px-3 py-2" id="btn-rate-down" style="font-size: 0.82rem;">
+                  <i class="bi bi-hand-thumbs-down me-1.5"></i> Not helpful
+                </button>
+              </div>
+            </div>
+            
+            <!-- Right: Stars submission -->
+            <div class="col-md-6 col-12 text-center border-start-md" style="border-color: rgba(255,255,255,0.06) !important;">
+              <h4 class="text-white fw-bold mb-2" style="font-size: 1.05rem; font-family: var(--font-display);">Submit Your Rating</h4>
+              <p style="color: #94A3B8; font-size: 0.8rem;" class="mb-3">Rate your learning experience out of 5 stars.</p>
+              
+              <!-- Stars widgets -->
+              <div class="d-flex align-items-center justify-content-center gap-1.5 mb-3" style="color: #94A3B8;">
+                <i class="bi bi-star fs-4 classroom-star" data-index="1"></i>
+                <i class="bi bi-star fs-4 classroom-star" data-index="2"></i>
+                <i class="bi bi-star fs-4 classroom-star" data-index="3"></i>
+                <i class="bi bi-star fs-4 classroom-star" data-index="4"></i>
+                <i class="bi bi-star fs-4 classroom-star" data-index="5"></i>
+              </div>
+              
+              <button type="button" class="btn btn-bb-teal py-2 px-4" id="btn-submit-rating" disabled style="font-size: 0.8rem; width: auto;">
+                Submit Rating
+              </button>
+            </div>
+            
+          </div>
+        </div>
+        
+        <!-- G. COMMUNITY COMMENTS MODULE -->
+        <div class="floating-glass-card p-4">
+          <h3 class="text-white fw-bold mb-4" style="font-size: 1.15rem; font-family: var(--font-display);"><i class="bi bi-chat-text-fill me-2" style="color: #06B6D4;"></i> Community Comments</h3>
+          
+          <!-- Post comment area -->
+          <div class="d-flex align-items-start gap-3 mb-4">
+            <div class="instructor-circle-avatar flex-shrink-0" style="width: 38px; height: 38px; font-size: 0.85rem; background: rgba(6,182,212,0.15); color: #06B6D4;">ME</div>
+            <div class="flex-grow-1">
+              <textarea class="glass-input w-100 mb-2 py-2 px-3" id="comment-textarea" rows="2" placeholder="Join the discussion..." style="border-radius: 8px; font-size: 0.88rem; background-color: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); outline: none;"></textarea>
+              <button type="button" class="btn btn-bb-teal py-1.5 px-4" id="btn-post-comment" style="font-size: 0.8rem; width: auto; box-shadow: var(--shadow-glow-teal);">
+                Post Comment
+              </button>
+            </div>
+          </div>
+          
+          <!-- Comments feeds -->
+          <div class="d-flex flex-column gap-3" id="classroom-comments-list">
+            
+            <!-- Comment 1 -->
+            <div class="p-3 border rounded-3 classroom-comment-card" style="background: rgba(255, 255, 255, 0.015); border-color: var(--border);">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="instructor-circle-avatar" style="width: 22px; height: 22px; font-size: 0.65rem; background: #6B7280; color: #FFFFFF;">AS</div>
+                  <span class="text-white font-semibold" style="font-size: 0.82rem;">Aarav Sharma</span>
+                  <span class="text-muted" style="font-size: 0.7rem;">2 hours ago</span>
+                </div>
+                <button type="button" class="btn p-0 border-0 btn-comment-like" style="background: transparent; color: #94A3B8; font-size: 0.78rem; display: flex; align-items: center; gap: 0.25rem;">
+                  <i class="bi bi-hand-thumbs-up"></i> <span class="like-count">4</span>
+                </button>
+              </div>
+              <p class="text-muted m-0" style="font-size: 0.85rem; line-height: 1.55;">
+                The explanation of Grid layouts is absolutely top-notch! Especially the subgrid explanation is a lifesaver. Keep up the good work BrainByte!
+              </p>
+            </div>
+            
+            <!-- Comment 2 -->
+            <div class="p-3 border rounded-3 classroom-comment-card" style="background: rgba(255, 255, 255, 0.015); border-color: var(--border);">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="instructor-circle-avatar" style="width: 22px; height: 22px; font-size: 0.65rem; background: #9CA3AF; color: #1F2937;">SM</div>
+                  <span class="text-white font-semibold" style="font-size: 0.82rem;">Sana Malik</span>
+                  <span class="text-muted" style="font-size: 0.7rem;">1 day ago</span>
+                </div>
+                <button type="button" class="btn p-0 border-0 btn-comment-like" style="background: transparent; color: #94A3B8; font-size: 0.78rem; display: flex; align-items: center; gap: 0.25rem;">
+                  <i class="bi bi-hand-thumbs-up"></i> <span class="like-count">12</span>
+                </button>
+              </div>
+              <p class="text-muted m-0" style="font-size: 0.85rem; line-height: 1.55;">
+                Perfect cheat sheet. Everything is condensed so beautifully. Saved me hours of documentation digging.
+              </p>
+            </div>
+            
+          </div>
+          
+        </div>
+        
+      </div>
+      
+      <!-- ============================================================
+        RIGHT COLUMN: STICKY RESOURCE SIDEBAR (30%)
+      ============================================================ -->
+      <div class="col-lg-4 col-12">
+        <div class="d-flex flex-column gap-4" style="position: sticky; top: 6.5rem;">
+          
+          <!-- Section 1: More Free Resources -->
+          <div class="floating-glass-card p-4">
+            <h3 class="text-white fw-bold mb-3" style="font-size: 1rem; font-family: var(--font-display);"><i class="bi bi-gift-fill me-2" style="color: #06B6D4;"></i> More like this</h3>
+            
+            <!-- List wrapper -->
+            <div class="d-flex flex-column gap-3" id="classroom-related-free-list">
+              <!-- Populated dynamically via js/main.js -->
+            </div>
+          </div>
+          
+          <!-- Divider -->
+          <hr style="border-color: rgba(255,255,255,0.06); margin: 0;">
+          
+          <!-- Section 2: Premium Upsell Courses -->
+          <div class="floating-glass-card p-4" style="border-color: rgba(139, 92, 246, 0.18);">
+            <span class="text-muted fw-bold text-uppercase d-block mb-1.5" style="font-size: 0.65rem; letter-spacing: 0.08em;">Want to go deeper?</span>
+            <h3 class="text-white fw-bold mb-3" style="font-size: 1rem; font-family: var(--font-display);"><i class="bi bi-award-fill me-2" style="color: #A78BFA;"></i> Premium Courses</h3>
+            
+            <!-- Upsell grids -->
+            <div class="d-flex flex-column gap-3.5">
+              <!-- Course Card 1 -->
+              <div class="course-browse-card paid p-2.5 d-flex flex-column" style="border-radius: 12px; height: auto;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="badge" style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3); color: #C084FC; font-size: 0.62rem; font-weight: 700;">WEB DEV</span>
+                  <span class="fw-bold" style="color: #EC4899; font-size: 0.8rem; font-family: var(--font-display);">₹499</span>
+                </div>
+                <h5 class="text-white fw-bold mb-3" style="font-size: 0.82rem; line-height: 1.4;">Next.js 14 &amp; Supabase: The Full-Stack SaaS Blueprint</h5>
+                
+                <a href="course-detail.html?title=Next.js%2014%20%26%20Supabase%3A%20The%20Full-Stack%20SaaS%20Blueprint&instructor=Sarah%20Jenkins&level=advanced&price=499" class="btn btn-bb-primary py-2 px-3 text-center text-white text-decoration-none" style="font-size: 0.75rem; border-radius: 50px; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);">
+                  Enroll Now <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+              </div>
+              
+              <!-- Course Card 2 -->
+              <div class="course-browse-card paid p-2.5 d-flex flex-column" style="border-radius: 12px; height: auto;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="badge" style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3); color: #C084FC; font-size: 0.62rem; font-weight: 700;">DESIGN</span>
+                  <span class="fw-bold" style="color: #EC4899; font-size: 0.8rem; font-family: var(--font-display);">₹699</span>
+                </div>
+                <h5 class="text-white fw-bold mb-3" style="font-size: 0.82rem; line-height: 1.4;">UI/UX Advanced Prototyping &amp; Figma Design Systems</h5>
+                
+                <a href="course-detail.html?title=UI%2FUX%20Advanced%20Prototyping%20%26%20Figma%20Design%20Systems&instructor=Elena%20Rostova&level=intermediate&price=699" class="btn btn-bb-primary py-2 px-3 text-center text-white text-decoration-none" style="font-size: 0.75rem; border-radius: 50px; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);">
+                  Enroll Now <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+              </div>
+            </div>
+            
+          </div>
+          
+        </div>
+      </div>
+      
+    </div>
+  </main>
+
+  <!-- Bootstrap 5 JS Bundle CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase Config -->
+<script src="js/supabase-config.js"></script>
+<!-- Main JS -->
+<script src="js/main.js"></script>
+</body>
+</html>

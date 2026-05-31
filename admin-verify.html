@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Supabase CDN Client & Protected Page Session Check -->
+  <script>
+    (async () => {
+      const savedUserStr = localStorage.getItem('brainbyte_user');
+      let localSessionActive = false;
+      if (savedUserStr) {
+        try {
+          const user = JSON.parse(savedUserStr);
+          if (user && user.isLoggedIn) {
+            localSessionActive = true;
+          }
+        } catch (e) {}
+      }
+      if (localSessionActive || localStorage.getItem('bb_admin_session') === 'active') {
+        return;
+      }
+      const SUPABASE_URL = "YOUR_SUPABASE_URL";
+      const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+      if (SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_URL !== "") {
+        const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        if (supabase) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) return;
+        }
+      }
+      window.location.href = 'login.html';
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instructor Onboarding Verifications — BrainByte Admin</title>
+  <meta name="description" content="BrainByte system operations control panel. View enrollees metrics, authorize verification queues, and manage the free resources library.">
+  
+  <!-- Preload and load Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Premium Theme CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-body">
+
+  <!-- Ambient background glow elements -->
+  <div class="bg-blob-teal" style="top: -100px; left: -100px; fixed: true; opacity: 0.12; pointer-events: none;"></div>
+  <div class="bg-blob-violet" style="top: 300px; right: -100px; fixed: true; opacity: 0.08; pointer-events: none;"></div>
+  <div class="bg-blob-pink" style="bottom: 10%; left: 5%; fixed: true; opacity: 0.10; pointer-events: none;"></div>
+
+  <!-- ================================================================
+    MOBILE HEADER NAVIGATION BAR (Shown only on small width viewports)
+  ================================================================ -->
+  <div class="mobile-dashboard-header py-2.5 px-3 align-items-center justify-content-between">
+    <button type="button" class="btn text-white p-0 border-0" id="btn-mobile-sidebar-toggle" style="background: transparent;">
+      <i class="bi bi-list fs-2"></i>
+    </button>
+    <span class="text-white fw-bold" style="font-family: var(--font-display); font-size: 1rem;">
+      Instructor Verifications
+    </span>
+    <a class="navbar-brand d-flex align-items-center m-0" href="index.html" style="font-size: 1.15rem;">
+      <span>Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill" style="text-shadow: none;"></i></span>Byte</span>
+    </a>
+  </div>
+
+  <!-- ================================================================
+    ADMIN DASHBOARD GRID CONTAINER
+  ================================================================ -->
+  <div class="dashboard-layout-container">
+    
+    <!-- ==============================================================
+      LEFT SIDEBAR NAVIGATION (Width: 240px, Sticky)
+    ============================================================== -->
+    <aside class="dashboard-sidebar admin-sidebar-override" id="dashboard-sidebar">
+      
+      <!-- Close button visible only on mobile inside side panel -->
+      <div class="d-lg-none d-flex justify-content-end mb-3">
+        <button type="button" class="btn-close-drawer" id="btn-close-sidebar-trigger" style="outline: none;">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- 1. Profile Metadata Box -->
+      <div class="sidebar-profile-box" style="margin-bottom: 1.5rem;">
+        <div class="sidebar-avatar-circle mx-auto mb-3" style="background: linear-gradient(135deg, #EF4444 0%, #F59E0B 100%); width: 72px; height: 72px; border-radius: 50%; font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);">
+          AD
+        </div>
+        <h3 class="sidebar-name text-white fw-bold mb-1" style="font-size: 0.95rem; font-family: var(--font-display);">Super Admin</h3>
+        <div class="mb-2">
+          <span class="admin-badge-red">ADMIN</span>
+        </div>
+        <span style="color: #94A3B8; font-size: 0.76rem; font-weight: 600;">System Administrator</span>
+      </div>
+
+      <!-- 2. Navigations links -->
+      <nav class="sidebar-nav-list flex-grow-1">
+        <a href="admin-dashboard.html" class="admin-sidebar-nav-link">
+          <i class="bi bi-grid-1x2-fill"></i> Dashboard
+        </a>
+        <a href="admin-verify.html" class="admin-sidebar-nav-link active">
+          <i class="bi bi-shield-check"></i> Verifications
+        </a>
+        <a href="admin-library.html" class="admin-sidebar-nav-link">
+          <i class="bi bi-journal-bookmark-fill"></i> Free Library
+        </a>
+        <a href="#" class="admin-sidebar-nav-link" onclick="alert('Admin settings are pre-configured by secure environment variables.');">
+          <i class="bi bi-gear-fill"></i> Settings
+        </a>
+      </nav>
+
+      <!-- 3. Bottom triggers -->
+      <div class="d-flex flex-column gap-2 border-top pt-3" style="border-color: rgba(255,255,255,0.06) !important;">
+        <a href="index.html" class="btn btn-bb-ghost py-2 text-center text-white d-flex align-items-center justify-content-center gap-1.5" style="border-radius: 50px; font-size: 0.78rem; text-decoration: none; font-weight: 600;">
+          <i class="bi bi-arrow-left"></i> Back to Site
+        </a>
+        <a href="admin.html" class="btn btn-bb-ghost py-2 text-center text-danger d-flex align-items-center justify-content-center gap-1.5" id="btn-admin-logout" style="border-radius: 50px; font-size: 0.78rem; text-decoration: none; font-weight: 700; background: transparent; color: #EF4444 !important; border-color: rgba(239, 68, 68, 0.15) !important;">
+          <i class="bi bi-power"></i> Logout
+        </a>
+      </div>
+
+    </aside>
+
+    <!-- ==============================================================
+      RIGHT PANEL: MAIN CONTENT VIEWPORT
+    ============================================================== -->
+    <main class="dashboard-main-content py-4.5 px-sm-4 px-3">
+      
+      <!-- TOP STATUS BAR -->
+      <div class="d-flex flex-sm-row flex-column justify-content-between align-items-sm-start gap-2 mb-4">
+        <div>
+          <a href="admin-dashboard.html" class="text-decoration-none text-muted mb-2 d-inline-flex align-items-center gap-1.5" style="font-size: 0.8rem; font-weight: 600; transition: color 0.2s;" onmouseover="this.style.color='#FFFFFF';" onmouseout="this.style.color='#94A3B8';">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+          </a>
+          <h1 class="text-white fw-bold mb-1" style="font-size: 1.8rem; font-family: var(--font-display); letter-spacing: -0.02em;">Instructor Verifications</h1>
+          <p style="color: #94A3B8; font-size: 0.9rem; margin: 0; font-weight: 500;">Review and approve instructor applications</p>
+        </div>
+      </div>
+
+      <!-- STATS ROW (4 cards) -->
+      <div class="row g-3.5 mb-4">
+        <!-- Pending Review -->
+        <div class="col-xl-3 col-sm-6 col-12">
+          <div class="floating-glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+              <span class="text-muted d-block font-semibold mb-1" style="font-size: 0.78rem;">Pending Review</span>
+              <h4 class="fw-bold m-0 kpi-number-amber" style="font-size: 1.65rem; font-family: var(--font-display);" id="stats-pending-count">23</h4>
+            </div>
+            <div class="admin-kpi-icon-circle kpi-amber" style="width:40px; height:40px; font-size:1rem;">
+              <i class="bi bi-hourglass-split"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Approved Today -->
+        <div class="col-xl-3 col-sm-6 col-12">
+          <div class="floating-glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+              <span class="text-muted d-block font-semibold mb-1" style="font-size: 0.78rem;">Approved Today</span>
+              <h4 class="fw-bold m-0 kpi-number-green" style="font-size: 1.65rem; font-family: var(--font-display);" id="stats-approved-count">5</h4>
+            </div>
+            <div class="admin-kpi-icon-circle kpi-green" style="width:40px; height:40px; font-size:1rem;">
+              <i class="bi bi-patch-check-fill"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Verified -->
+        <div class="col-xl-3 col-sm-6 col-12">
+          <div class="floating-glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+              <span class="text-muted d-block font-semibold mb-1" style="font-size: 0.78rem;">Total Verified</span>
+              <h4 class="fw-bold m-0 kpi-number-purple" style="font-size: 1.65rem; font-family: var(--font-display);" id="stats-verified-count">980</h4>
+            </div>
+            <div class="admin-kpi-icon-circle kpi-purple" style="width:40px; height:40px; font-size:1rem;">
+              <i class="bi bi-people-fill"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flagged -->
+        <div class="col-xl-3 col-sm-6 col-12">
+          <div class="floating-glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+              <span class="text-muted d-block font-semibold mb-1" style="font-size: 0.78rem;">Flagged Reports</span>
+              <h4 class="fw-bold m-0 kpi-number-red" style="font-size: 1.65rem; font-family: var(--font-display);" id="stats-flagged-count">3</h4>
+            </div>
+            <div class="admin-kpi-icon-circle kpi-amber" style="width:40px; height:40px; font-size:1rem; background:rgba(239,68,68,0.12); border-color:rgba(239,68,68,0.25); color:#EF4444;">
+              <i class="bi bi-flag-fill"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTER + SEARCH BAR -->
+      <div class="floating-glass-card p-3 mb-4 text-start">
+        <div class="row g-3 align-items-center justify-content-between">
+          <!-- Left: Search input -->
+          <div class="col-md-4 col-12">
+            <div class="validation-input-container">
+              <span style="position: absolute; left: 14px; top: 12px; color: #94A3B8; font-size: 1.1rem;"><i class="bi bi-search"></i></span>
+              <input type="text" class="glass-input ps-5" id="verify-search-input" placeholder="Search by name or email...">
+            </div>
+          </div>
+
+          <!-- Right: Filter Tab Links list -->
+          <div class="col-md-8 col-12 d-flex justify-content-md-end justify-content-start overflow-x-auto">
+            <div class="admin-filter-tabs pb-1">
+              <button class="admin-filter-tab active" data-filter="all" id="btn-filter-all">
+                All <span class="badge" style="background: rgba(255,255,255,0.08); color: white;" id="badge-count-all">5</span>
+              </button>
+              <button class="admin-filter-tab" data-filter="pending" id="btn-filter-pending">
+                Pending <span class="badge bg-warning text-dark" id="badge-count-pending">2</span>
+              </button>
+              <button class="admin-filter-tab" data-filter="approved" id="btn-filter-approved">
+                Approved <span class="badge bg-success text-white" id="badge-count-approved">1</span>
+              </button>
+              <button class="admin-filter-tab" data-filter="rejected" id="btn-filter-rejected">
+                Rejected <span class="badge bg-danger text-white" id="badge-count-rejected">1</span>
+              </button>
+              <button class="admin-filter-tab" data-filter="needs-info" id="btn-filter-needs-info">
+                Needs Info <span class="badge" style="background: #F59E0B; color: #0D0E1A;" id="badge-count-needs-info">1</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- APPLICATIONS TABLE -->
+      <div class="floating-glass-card p-0 mb-4 overflow-hidden">
+        <div class="table-responsive">
+          <table class="table text-start m-0 align-middle" style="background: transparent;">
+            <thead>
+              <tr style="border-bottom: 2px solid rgba(255, 255, 255, 0.08); background: rgba(255,255,255,0.01);">
+                <th class="py-3 px-3 text-center" style="width: 50px; border-bottom: none;">
+                  <input type="checkbox" class="admin-table-checkbox" id="bulk-toggle-select-all" aria-label="Select all rows">
+                </th>
+                <th class="py-3 px-2 text-white font-semibold" style="font-size: 0.82rem; border-bottom: none;">Photo &amp; Name</th>
+                <th class="py-3 px-2 text-white font-semibold" style="font-size: 0.82rem; border-bottom: none;">Category</th>
+                <th class="py-3 px-2 text-white font-semibold" style="font-size: 0.82rem; border-bottom: none;">Applied</th>
+                <th class="py-3 px-2 text-white font-semibold text-center" style="font-size: 0.82rem; border-bottom: none;">LinkedIn</th>
+                <th class="py-3 px-2 text-white font-semibold text-center" style="font-size: 0.82rem; border-bottom: none;">GitHub</th>
+                <th class="py-3 px-2 text-white font-semibold text-center" style="font-size: 0.82rem; border-bottom: none;">Status</th>
+                <th class="py-3 px-3 text-white font-semibold text-center" style="font-size: 0.82rem; border-bottom: none;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-verify-tbody">
+              <!-- Pre-loaded Candidates Rows dynamically built -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ================================================================
+    BULK ACTIONS FLOATING BAR (Hidden by default)
+  ================================================================ -->
+  <div class="bulk-actions-bar" id="verify-bulk-bar">
+    <div style="font-size: 0.82rem; font-weight: 700; color: #FFFFFF; font-family: var(--font-display);">
+      <span id="bulk-count-label">0</span> selected
+    </div>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-bb-primary py-2 px-3" id="btn-bulk-approve" style="font-size: 0.78rem; font-weight: bold; background: #10B981; border: none; box-shadow: 0 0 10px rgba(16, 185, 129, 0.35); border-radius: 50px;">
+        Approve Selected
+      </button>
+      <button type="button" class="btn btn-bb-primary py-2 px-3" id="btn-bulk-reject" style="font-size: 0.78rem; font-weight: bold; background: #EF4444; border: none; box-shadow: 0 0 10px rgba(239, 68, 68, 0.35); border-radius: 50px;">
+        Reject Selected
+      </button>
+    </div>
+  </div>
+
+  <!-- ================================================================
+    SLIDE-IN APPLICATION REVIEW PANEL MODAL (Width: 480px, Right align)
+  ================================================================ -->
+  <div class="slide-in-modal-overlay" id="modal-review-overlay"></div>
+  <div class="slide-in-modal-panel text-start" id="modal-review-panel">
+    
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="text-white fw-bold m-0" style="font-family: var(--font-display); font-size: 1.25rem;">Review Application</h2>
+      <button type="button" class="btn p-0 border-0 text-muted fs-5" id="btn-close-review-modal" style="background: transparent;">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Candidate Header Metadata -->
+    <div class="d-flex align-items-center gap-3 border-bottom pb-3.5 mb-4" style="border-color: rgba(255,255,255,0.06) !important;">
+      <div class="sidebar-avatar-circle" id="modal-candidate-avatar" style="width: 80px; height: 80px; font-size: 1.65rem; border-radius: 50%; font-weight: 700; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); display: flex; align-items: center; justify-content: center; color: white;">
+        PS
+      </div>
+      <div>
+        <h3 class="text-white fw-bold mb-1" style="font-size: 1.1rem; font-family: var(--font-display);" id="modal-candidate-name">Priya Sharma</h3>
+        <span class="badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: white; font-size: 0.72rem; font-weight: 600;" id="modal-candidate-category">Web Dev</span>
+        <span class="text-muted d-block mt-1" style="font-size: 0.7rem;" id="modal-candidate-applied">Applied: 2 hours ago</span>
+      </div>
+    </div>
+
+    <!-- Section Profile Channels -->
+    <div class="mb-4">
+      <h4 class="text-white fw-bold mb-2.5" style="font-family: var(--font-display); font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.05em; color: #A855F7 !important;">Profile Links</h4>
+      <div class="d-flex flex-column gap-2">
+        <a href="#" target="_blank" class="btn py-2.5 px-4 text-start d-flex align-items-center justify-content-between text-decoration-none" style="font-size: 0.82rem; border-radius: 50px; background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.2); color: #06B6D4; font-weight: 600; transition: all 0.2s ease;" id="modal-link-linkedin" onmouseover="this.style.background='rgba(6, 182, 212, 0.15)'; this.style.borderColor='rgba(6, 182, 212, 0.4)';" onmouseout="this.style.background='rgba(6, 182, 212, 0.08)'; this.style.borderColor='rgba(6, 182, 212, 0.2)';">
+          <span>🔗 Open LinkedIn ↗</span>
+          <i class="bi bi-box-arrow-up-right fs-7"></i>
+        </a>
+        <a href="#" target="_blank" class="btn py-2.5 px-4 text-start d-flex align-items-center justify-content-between text-decoration-none" style="font-size: 0.82rem; border-radius: 50px; background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.2); color: #06B6D4; font-weight: 600; transition: all 0.2s ease;" id="modal-link-github" onmouseover="this.style.background='rgba(6, 182, 212, 0.15)'; this.style.borderColor='rgba(6, 182, 212, 0.4)';" onmouseout="this.style.background='rgba(6, 182, 212, 0.08)'; this.style.borderColor='rgba(6, 182, 212, 0.2)';">
+          <span>🔗 Open GitHub ↗</span>
+          <i class="bi bi-box-arrow-up-right fs-7"></i>
+        </a>
+        <a href="#" target="_blank" class="btn py-2.5 px-4 text-start d-flex align-items-center justify-content-between text-decoration-none" style="font-size: 0.82rem; border-radius: 50px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); color: #EF4444; font-weight: 600; transition: all 0.2s ease;" id="modal-link-video" onmouseover="this.style.background='rgba(239, 68, 68, 0.15)'; this.style.borderColor='rgba(239, 68, 68, 0.4)';" onmouseout="this.style.background='rgba(239, 68, 68, 0.08)'; this.style.borderColor='rgba(239, 68, 68, 0.2)';">
+          <span>🎥 Watch Video ↗</span>
+          <i class="bi bi-box-arrow-up-right fs-7"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Section Application Details -->
+    <div class="mb-4 pt-1">
+      <h4 class="text-white fw-bold mb-2.5" style="font-family: var(--font-display); font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.05em; color: #A855F7 !important;">Application Details</h4>
+      
+      <div class="p-3.5 d-flex flex-column gap-3 rounded-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); font-size: 0.8rem;">
+        <div>
+          <strong class="text-white d-block mb-1">Bio:</strong>
+          <span style="color: #94A3B8; line-height: 1.55;" id="modal-detail-bio">Describe background...</span>
+        </div>
+        <div>
+          <strong class="text-white d-block mb-1">Teaching:</strong>
+          <span style="color: #94A3B8; line-height: 1.55;" id="modal-detail-teach">planned courses...</span>
+        </div>
+        <div>
+          <strong class="text-white d-block mb-1">Why BrainByte:</strong>
+          <span style="color: #94A3B8; line-height: 1.55;" id="modal-detail-why">Partner values...</span>
+        </div>
+        <div>
+          <strong class="text-white d-block mb-1">Experience:</strong>
+          <span class="badge mt-0.5" style="background: rgba(6, 182, 212, 0.12); border: 1px solid rgba(6, 182, 212, 0.25); color: #22D3EE; font-weight: bold;" id="modal-detail-experience">1-3 years</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons Panel Footer -->
+    <div class="d-flex flex-column gap-2.5 pt-3 border-top mt-4" style="border-color: rgba(255,255,255,0.06) !important;">
+      <button type="button" class="btn btn-bb-primary py-3 w-100" id="btn-modal-action-approve" style="background: #10B981; border: none; box-shadow: 0 0 20px rgba(16, 185, 129, 0.35); font-weight: bold; border-radius: 50px; font-size: 0.85rem;">
+        <i class="bi bi-patch-check-fill me-1"></i> Approve Onboarding Application
+      </button>
+      <button type="button" class="btn btn-bb-primary py-3 w-100" id="btn-modal-action-request" style="background: #F59E0B; border: none; box-shadow: 0 0 20px rgba(245, 158, 11, 0.35); font-weight: bold; border-radius: 50px; font-size: 0.85rem; color: #0D0E1A !important;">
+        <i class="bi bi-chat-left-quote-fill me-1"></i> Request More Information
+      </button>
+      <button type="button" class="btn btn-bb-primary py-3 w-100" id="btn-modal-action-reject" style="background: #EF4444; border: none; box-shadow: 0 0 20px rgba(239, 68, 68, 0.35); font-weight: bold; border-radius: 50px; font-size: 0.85rem;">
+        <i class="bi bi-x-circle-fill me-1"></i> Decline Application
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ================================================================
+    REJECTION POPUP MODAL (Center alignment)
+  ================================================================ -->
+  <div class="center-popup-overlay" id="verify-reject-overlay"></div>
+  <div class="center-popup-card" id="verify-reject-card">
+    <h3 class="text-danger fw-bold mb-3" style="font-family: var(--font-display); font-size: 1.15rem;"><i class="bi bi-x-circle-fill"></i> Decline Application</h3>
+    
+    <div class="glass-input-wrapper mb-3 text-start">
+      <label class="glass-input-label" for="verify-reject-reason-select">Primary Rejection Reason</label>
+      <select class="glass-input" id="verify-reject-reason-select" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">
+        <option value="Profile incomplete or unverifiable">Profile incomplete or unverifiable</option>
+        <option value="Insufficient experience">Insufficient experience</option>
+        <option value="Teaching intent unclear">Teaching intent unclear</option>
+        <option value="Suspicious or fake profile">Suspicious or fake profile</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <div class="glass-input-wrapper mb-4 text-start">
+      <label class="glass-input-label" for="verify-reject-message-area">Rejection Notes (Optional)</label>
+      <textarea class="glass-input" id="verify-reject-message-area" rows="3" placeholder="Add a note (optional)..." style="height: auto; border-radius: 8px;"></textarea>
+    </div>
+
+    <!-- popup actions footer -->
+    <div class="d-flex gap-3">
+      <button class="btn btn-bb-ghost py-2.5 w-50" id="btn-reject-modal-cancel" style="border-radius: 50px; font-size: 0.8rem; font-weight: bold;">Cancel</button>
+      <button class="btn btn-bb-primary py-2.5 w-50" id="btn-reject-modal-confirm" style="border-radius: 50px; font-size: 0.8rem; background: #EF4444; border: none; font-weight: bold;">Send Rejection</button>
+    </div>
+  </div>
+
+  <!-- ================================================================
+    REQUEST INFO POPUP MODAL (Center alignment)
+  ================================================================ -->
+  <div class="center-popup-overlay" id="verify-request-overlay"></div>
+  <div class="center-popup-card text-start" id="verify-request-card">
+    <h3 class="text-warning fw-bold mb-3" style="font-family: var(--font-display); font-size: 1.15rem; color: #F59E0B !important;"><i class="bi bi-chat-left-quote-fill"></i> Request More Information</h3>
+    
+    <!-- Quick templates -->
+    <div class="mb-3.5 text-start">
+      <span class="text-muted d-block mb-1.5" style="font-size: 0.76rem; font-weight: 600;">Quick Response Templates</span>
+      <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-bb-ghost py-1.5 px-3 badge-template-btn" style="border-radius: 50px; font-size: 0.72rem; font-weight: bold; background: rgba(255,255,255,0.03);" data-template="github">Missing GitHub</button>
+        <button type="button" class="btn btn-bb-ghost py-1.5 px-3 badge-template-btn" style="border-radius: 50px; font-size: 0.72rem; font-weight: bold; background: rgba(255,255,255,0.03);" data-template="bio">Weak Bio</button>
+        <button type="button" class="btn btn-bb-ghost py-1.5 px-3 badge-template-btn" style="border-radius: 50px; font-size: 0.72rem; font-weight: bold; background: rgba(255,255,255,0.03);" data-template="video">Add Video</button>
+      </div>
+    </div>
+
+    <!-- Message text areas -->
+    <div class="glass-input-wrapper mb-4">
+      <label class="glass-input-label" for="verify-request-message-area">Custom Inquiry Message</label>
+      <textarea class="glass-input" id="verify-request-message-area" rows="4" placeholder="Request message details..." style="height: auto; border-radius: 8px;"></textarea>
+      <span class="text-danger mt-1 d-none" style="font-size: 0.7rem; font-weight: 600;" id="verify-request-message-error"><i class="bi bi-exclamation-circle-fill"></i> Inquiry text cannot be empty.</span>
+    </div>
+
+    <!-- popup actions footer -->
+    <div class="d-flex gap-3">
+      <button class="btn btn-bb-ghost py-2.5 w-50 text-center" id="btn-request-modal-cancel" style="border-radius: 50px; font-size: 0.8rem; font-weight: bold;">Cancel</button>
+      <button class="btn btn-bb-primary py-2.5 w-50 text-center" id="btn-request-modal-confirm" style="border-radius: 50px; font-size: 0.8rem; background: #F59E0B; color: #0D0E1A !important; border: none; font-weight: bold;">Send Message</button>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6Rz5YN5757o+HRvnDJz9O+5G5FkEB83c11SLzmlc9PE9gmgwsnggC+GB53mI3U" crossorigin="anonymous"></script>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase Config -->
+<script src="js/supabase-config.js"></script>
+<!-- Main JS -->
+<script src="js/main.js"></script>
+
+  <!-- Script logics for verifications updates and modals -->
+  <script>
+    // Global preloaded candidates array
+    let candidates = [
+      {
+        id: "priya-sharma",
+        initials: "PS",
+        name: "Priya Sharma",
+        email: "priya@email.com",
+        category: "Web Dev",
+        applied: "1 hour ago",
+        linkedin: "https://linkedin.com/in/priya-sharma",
+        github: "https://github.com/priya-sharma",
+        videoUrl: "https://youtube.com/watch?v=...",
+        status: "pending",
+        bio: "I have 5 years teaching fullstack development at coding bootcamps. Specialized in React, Node ecosystem.",
+        teach: "Next.js Advanced App routing structures, database relational tables with Prisma ORMs",
+        why: "Partnering with premium glass hubs will help scale quality courses to active tech developers",
+        experience: "3-5 years"
+      },
+      {
+        id: "arjun-mehta",
+        initials: "AM",
+        name: "Arjun Mehta",
+        email: "arjun@email.com",
+        category: "Mobile",
+        applied: "2 days ago",
+        linkedin: "https://linkedin.com/in/arjun-mehta",
+        github: "https://github.com/arjun-mehta",
+        videoUrl: "",
+        status: "approved",
+        bio: "Senior iOS developer building Swift products for tech firms since 2012. Passionate lecturer.",
+        teach: "SwiftUI layouts architectures, Core Data, and AppStore provisioning pipelines.",
+        why: "To teach modern iOS curriculum inside India's fastest scaling student database community.",
+        experience: "5+ years"
+      },
+      {
+        id: "rahul-verma",
+        initials: "RV",
+        name: "Rahul Verma",
+        email: "rahul@email.com",
+        category: "Design",
+        applied: "3 days ago",
+        linkedin: "https://linkedin.com/in/rahul-verma",
+        github: "",
+        videoUrl: "",
+        status: "rejected",
+        bio: "Freelance UI designer specializing in dark cyberpunk glass interfaces.",
+        teach: "Figma grids systems, vector illustrations, and micro-interactions prototyping.",
+        why: "Sharing glass concepts requires the premium obsidian backdrop theme of BrainByte.",
+        experience: "1-3 years"
+      },
+      {
+        id: "siddharth-roy",
+        initials: "SR",
+        name: "Siddharth Roy",
+        email: "sid@email.com",
+        category: "AI & ML",
+        applied: "4 days ago",
+        linkedin: "https://linkedin.com/in/sid-roy",
+        github: "https://github.com/sid-roy",
+        videoUrl: "https://youtube.com/watch?v=...",
+        status: "needs-info",
+        bio: "Data analyst and developer lecturing neural networks at universities.",
+        teach: "TensorsFlow data classifications modeling, Pandas datasets cleaning, and Python algos.",
+        why: "The free library model matches my academic open-science curriculum philosophies.",
+        experience: "3-5 years"
+      },
+      {
+        id: "neha-gupta",
+        initials: "NG",
+        name: "Neha Gupta",
+        email: "neha@email.com",
+        category: "General",
+        applied: "5 days ago",
+        linkedin: "https://linkedin.com/in/neha-gupta",
+        github: "",
+        videoUrl: "",
+        status: "pending",
+        bio: "Professional landscape photography specialist capturing moments worldwide.",
+        teach: "Digital cameras apertures, ISO speeds controls, and Adobe Lightroom presets editing.",
+        why: "To expand photography curriculum lists to developers looking for creative hobbies.",
+        experience: "5+ years"
+      }
+    ];
+
+    let activeCandidate = null;
+    let selectedFilter = 'all';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Mobile off-canvas menu toggle drawer
+      const sidebar = document.getElementById('dashboard-sidebar');
+      const toggleBtn = document.getElementById('btn-mobile-sidebar-toggle');
+      const closeBtn = document.getElementById('btn-close-sidebar-trigger');
+
+      if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => {
+          sidebar.classList.add('mobile-open');
+        });
+      }
+
+      if (closeBtn && sidebar) {
+        closeBtn.addEventListener('click', () => {
+          sidebar.classList.remove('mobile-open');
+        });
+      }
+
+      // Close sidebar if clicking outside of it on mobile
+      document.addEventListener('click', (e) => {
+        if (sidebar && sidebar.classList.contains('mobile-open')) {
+          if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+            sidebar.classList.remove('mobile-open');
+          }
+        }
+      });
+
+      // 2. Admin Logout click spinner and clears
+      const logoutBtn = document.getElementById('btn-admin-logout');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          logoutBtn.disabled = true;
+          logoutBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 0.4rem;"></span> <span>Exiting...</span>`;
+          setTimeout(() => {
+            localStorage.removeItem('bb_admin_session');
+            window.location.href = 'admin.html';
+          }, 1200);
+        });
+      }
+
+      // ── SYSTEM COMPONENT BINDINGS ──
+      const tbody = document.getElementById('admin-verify-tbody');
+      const searchInput = document.getElementById('verify-search-input');
+      const filterButtons = document.querySelectorAll('[data-filter]');
+      const bulkSelectAll = document.getElementById('bulk-toggle-select-all');
+
+      // Modal nodes
+      const modalOverlay = document.getElementById('modal-review-overlay');
+      const modalPanel = document.getElementById('modal-review-panel');
+      const btnCloseModal = document.getElementById('btn-close-review-modal');
+
+      // Approve/Decline modal action buttons
+      const btnApprove = document.getElementById('btn-modal-action-approve');
+      const btnDecline = document.getElementById('btn-modal-action-reject');
+      const btnRequest = document.getElementById('btn-modal-action-request');
+
+      // Rejection Popup cards
+      const popupRejectOverlay = document.getElementById('verify-reject-overlay');
+      const popupRejectCard = document.getElementById('verify-reject-card');
+      const btnRejectConfirm = document.getElementById('btn-reject-modal-confirm');
+      const btnRejectCancel = document.getElementById('btn-reject-modal-cancel');
+      const rejectReasonSelect = document.getElementById('verify-reject-reason-select');
+      const rejectNoteText = document.getElementById('verify-reject-message-area');
+
+      // Request Info Popup cards
+      const popupRequestOverlay = document.getElementById('verify-request-overlay');
+      const popupRequestCard = document.getElementById('verify-request-card');
+      const btnRequestConfirm = document.getElementById('btn-request-modal-confirm');
+      const btnRequestCancel = document.getElementById('btn-request-modal-cancel');
+      const requestText = document.getElementById('verify-request-message-area');
+      const requestError = document.getElementById('verify-request-message-error');
+
+      // 3. APPLICATIONS TABLE RENDER ENGINE
+      function renderTable() {
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+        // Filter and Search logic
+        const filtered = candidates.filter(item => {
+          // Search Match
+          const matchesSearch = item.name.toLowerCase().includes(query) || item.email.toLowerCase().includes(query);
+          
+          // Tab Match
+          let matchesFilter = true;
+          if (selectedFilter !== 'all') {
+            matchesFilter = item.status === selectedFilter;
+          }
+
+          return matchesSearch && matchesFilter;
+        });
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="8" class="text-center text-muted py-5 font-semibold" style="font-size:0.88rem;">
+                <i class="bi bi-inbox-fill fs-2 mb-2 d-block"></i> No onboarding applications match these criteria
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        filtered.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.className = 'admin-verify-table-row';
+          tr.id = `row-${item.id}`;
+
+          // Status Badges
+          let statusBadgeClass = 'badge-pending';
+          let statusLabel = 'Pending';
+          if (item.status === 'approved') {
+            statusBadgeClass = 'badge-approved';
+            statusLabel = 'Approved';
+          } else if (item.status === 'rejected') {
+            statusBadgeClass = 'badge-rejected';
+            statusLabel = 'Rejected';
+          } else if (item.status === 'needs-info') {
+            statusBadgeClass = 'badge-needs-info';
+            statusLabel = 'Needs Info';
+          }
+
+          // Social channels button preview
+          const linkedinBtn = `<a href="${item.linkedin}" target="_blank" class="btn py-1 px-2.5 d-inline-flex align-items-center justify-content-center gap-1 text-decoration-none" style="background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.2); color: #06B6D4; font-size: 0.75rem; font-weight: 600; border-radius: 50px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(6, 182, 212, 0.16)'; this.style.borderColor='rgba(6, 182, 212, 0.4)';" onmouseout="this.style.background='rgba(6, 182, 212, 0.08)'; this.style.borderColor='rgba(6, 182, 212, 0.2)';">View ↗</a>`;
+          const githubBtn = item.github 
+            ? `<a href="${item.github}" target="_blank" class="btn py-1 px-2.5 d-inline-flex align-items-center justify-content-center gap-1 text-decoration-none" style="background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.2); color: #06B6D4; font-size: 0.75rem; font-weight: 600; border-radius: 50px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(6, 182, 212, 0.16)'; this.style.borderColor='rgba(6, 182, 212, 0.4)';" onmouseout="this.style.background='rgba(6, 182, 212, 0.08)'; this.style.borderColor='rgba(6, 182, 212, 0.2)';">View ↗</a>` 
+            : `<span class="text-muted">—</span>`;
+
+          tr.innerHTML = `
+            <td class="py-3 px-3 text-center">
+              <input type="checkbox" class="admin-table-checkbox row-select-checkbox" data-id="${item.id}">
+            </td>
+            <td class="py-3 px-2">
+              <div class="d-flex align-items-center gap-3">
+                <div class="sidebar-avatar-circle" style="width: 60px; height: 60px; font-size: 1.25rem; border-radius: 50%; font-weight: 700; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);">
+                  ${item.initials}
+                </div>
+                <div>
+                  <span class="text-white font-semibold d-block" style="font-size: 14px; font-weight: 600; line-height: 1.2;">${item.name}</span>
+                  <span style="color: #94A3B8; font-size: 12px; display: block; margin-top: 4px;">${item.email}</span>
+                </div>
+              </div>
+            </td>
+            <td class="py-3 px-2">
+              <span class="badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: white; font-size: 0.7rem; font-weight: 600;">${item.category}</span>
+            </td>
+            <td class="py-3 px-2">
+              <span class="text-muted" style="font-size: 0.78rem;">${item.applied}</span>
+            </td>
+            <td class="py-3 px-2 text-center">${linkedinBtn}</td>
+            <td class="py-3 px-2 text-center">${githubBtn}</td>
+            <td class="py-3 px-2 text-center">
+              <span class="admin-verify-badge ${statusBadgeClass}">${statusLabel}</span>
+            </td>
+            <td class="py-3 px-3 text-center">
+              <button type="button" class="btn btn-bb-primary py-1 px-3 btn-review-trigger" data-id="${item.id}" style="font-size: 0.72rem; border-radius: 50px; font-weight: bold; background: #7C3AED; border: none; box-shadow: 0 0 10px rgba(124, 58, 237, 0.35);">
+                Review
+              </button>
+            </td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+
+        // Re-attach Row review events and checkbox listeners
+        attachRowEvents();
+        syncBulkActionsBar();
+      }
+
+      // 4. SYNC TAB COUNTS & STATS ROWS
+      let baseApprovedToday = 5;
+      let baseTotalVerified = 980;
+      let baseFlagged = 3;
+
+      function updateBadgeCounts() {
+        const counts = {
+          all: candidates.length,
+          pending: candidates.filter(i => i.status === 'pending').length,
+          approved: candidates.filter(i => i.status === 'approved').length,
+          rejected: candidates.filter(i => i.status === 'rejected').length,
+          'needs-info': candidates.filter(i => i.status === 'needs-info').length
+        };
+
+        const badgeAll = document.getElementById('badge-count-all');
+        const badgePending = document.getElementById('badge-count-pending');
+        const badgeApproved = document.getElementById('badge-count-approved');
+        const badgeRejected = document.getElementById('badge-count-rejected');
+        const badgeNeedsInfo = document.getElementById('badge-count-needs-info');
+        
+        const statsPending = document.getElementById('stats-pending-count');
+        const statsApproved = document.getElementById('stats-approved-count');
+        const statsVerified = document.getElementById('stats-verified-count');
+        const statsFlagged = document.getElementById('stats-flagged-count');
+
+        if (badgeAll) badgeAll.innerText = counts.all;
+        if (badgePending) badgePending.innerText = counts.pending;
+        if (badgeApproved) badgeApproved.innerText = counts.approved;
+        if (badgeRejected) badgeRejected.innerText = counts.rejected;
+        if (badgeNeedsInfo) badgeNeedsInfo.innerText = counts['needs-info'];
+
+        // Dynamically compute Approved Today and Total Verified increments from initial array baseline
+        // Arjun Mehta is the only pre-approved candidate inside standard candidates baseline.
+        const approvedDiff = counts.approved - 1;
+
+        if (statsPending) statsPending.innerText = counts.pending;
+        if (statsApproved) statsApproved.innerText = baseApprovedToday + Math.max(0, approvedDiff);
+        if (statsVerified) statsVerified.innerText = baseTotalVerified + Math.max(0, approvedDiff);
+        if (statsFlagged) statsFlagged.innerText = baseFlagged;
+      }
+
+      // 5. BULK ACTIONS BAR CONTROLS
+      const bulkBar = document.getElementById('verify-bulk-bar');
+      const bulkCountLabel = document.getElementById('bulk-count-label');
+
+      function syncBulkActionsBar() {
+        if (!bulkSelectAll || !tbody) return;
+        const checkboxes = tbody.querySelectorAll('.row-select-checkbox');
+        const checked = tbody.querySelectorAll('.row-select-checkbox:checked');
+
+        // Update bulk select all checkbox checked state
+        if (checkboxes.length > 0 && checked.length === checkboxes.length) {
+          bulkSelectAll.checked = true;
+          bulkSelectAll.indeterminate = false;
+        } else if (checked.length > 0) {
+          bulkSelectAll.checked = false;
+          bulkSelectAll.indeterminate = true;
+        } else {
+          bulkSelectAll.checked = false;
+          bulkSelectAll.indeterminate = false;
+        }
+
+        // Toggle bulk operations bar
+        if (bulkBar && bulkCountLabel) {
+          if (checked.length > 0) {
+            bulkCountLabel.innerText = `${checked.length} selected`;
+            bulkBar.classList.add('active');
+          } else {
+            bulkBar.classList.remove('active');
+          }
+        }
+      }
+
+      if (bulkSelectAll) {
+        bulkSelectAll.addEventListener('change', () => {
+          if (!tbody) return;
+          const checkboxes = tbody.querySelectorAll('.row-select-checkbox');
+          checkboxes.forEach(cb => cb.checked = bulkSelectAll.checked);
+          syncBulkActionsBar();
+        });
+      }
+
+      // 6. DYNAMIC TABLE ACTION ROW EVENTS
+      function attachRowEvents() {
+        if (!tbody) return;
+
+        // Checkbox changes
+        tbody.querySelectorAll('.row-select-checkbox').forEach(cb => {
+          cb.addEventListener('change', syncBulkActionsBar);
+        });
+
+        // Review trigger clicks
+        tbody.querySelectorAll('.btn-review-trigger').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const candidate = candidates.find(c => c.id === id);
+            if (!candidate) return;
+
+            activeCandidate = candidate;
+            openReviewModal(candidate);
+          });
+        });
+      }
+
+      // 7. REVIEW SLIDE IN MODAL PANEL
+      function openReviewModal(candidate) {
+        const avatar = document.getElementById('modal-candidate-avatar');
+        const name = document.getElementById('modal-candidate-name');
+        const category = document.getElementById('modal-candidate-category');
+        const applied = document.getElementById('modal-candidate-applied');
+
+        // Links
+        const linkLinkedin = document.getElementById('modal-link-linkedin');
+        const linkGithub = document.getElementById('modal-link-github');
+        const linkVideo = document.getElementById('modal-link-video');
+
+        // Details
+        const detailBio = document.getElementById('modal-detail-bio');
+        const detailTeach = document.getElementById('modal-detail-teach');
+        const detailWhy = document.getElementById('modal-detail-why');
+        const detailExp = document.getElementById('modal-detail-experience');
+
+        // Sync fields
+        if (avatar) avatar.innerText = candidate.initials;
+        if (name) name.innerText = candidate.name;
+        if (category) category.innerText = candidate.category;
+        if (applied) applied.innerText = `Applied: ${candidate.applied}`;
+
+        if (linkLinkedin) linkLinkedin.href = candidate.linkedin;
+        
+        if (linkGithub) {
+          if (candidate.github) {
+            linkGithub.href = candidate.github;
+            linkGithub.style.display = 'flex';
+          } else {
+            linkGithub.style.display = 'none';
+          }
+        }
+
+        if (linkVideo) {
+          if (candidate.videoUrl) {
+            linkVideo.href = candidate.videoUrl;
+            linkVideo.style.display = 'flex';
+          } else {
+            linkVideo.style.display = 'none';
+          }
+        }
+
+        if (detailBio) detailBio.innerText = candidate.bio;
+        if (detailTeach) detailTeach.innerText = candidate.teach;
+        if (detailWhy) detailWhy.innerText = candidate.why;
+        if (detailExp) detailExp.innerText = candidate.experience;
+
+        // Slide in panels
+        if (modalOverlay) modalOverlay.classList.add('active');
+        if (modalPanel) modalPanel.classList.add('active');
+      }
+
+      function closeReviewModal() {
+        if (modalOverlay) modalOverlay.classList.remove('active');
+        if (modalPanel) modalPanel.classList.remove('active');
+        activeCandidate = null;
+      }
+
+      if (btnCloseModal) btnCloseModal.addEventListener('click', closeReviewModal);
+      if (modalOverlay) modalOverlay.addEventListener('click', closeReviewModal);
+
+      // 8. APPROVE APPLICATION ACTION
+      if (btnApprove) {
+        btnApprove.addEventListener('click', () => {
+          if (!activeCandidate) return;
+
+          btnApprove.disabled = true;
+          btnApprove.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 0.4rem;"></span> Approving...`;
+
+          console.log(`%c[BrainByte Review] Success: Candidate approved: ID=${activeCandidate.id}. Instructor account generated ✓.`, "color: #10B981; font-weight: bold;");
+
+          setTimeout(() => {
+            // Update status dynamically
+            activeCandidate.status = 'approved';
+            
+            btnApprove.disabled = false;
+            btnApprove.innerHTML = `<i class="bi bi-patch-check-fill me-1"></i> Approve Onboarding Application`;
+
+            closeReviewModal();
+            renderTable();
+            updateBadgeCounts();
+          }, 1200);
+        });
+      }
+
+      // 9. REJECTION POPUP CARD CONTROLS
+      function toggleRejectionPopup(open) {
+        if (popupRejectOverlay && popupRejectCard) {
+          if (open) {
+            popupRejectOverlay.classList.add('active');
+            popupRejectCard.classList.add('active');
+          } else {
+            popupRejectOverlay.classList.remove('active');
+            popupRejectCard.classList.remove('active');
+            if (rejectNoteText) rejectNoteText.value = '';
+          }
+        }
+      }
+
+      if (btnDecline) btnDecline.addEventListener('click', () => toggleRejectionPopup(true));
+      if (btnRejectCancel) btnRejectCancel.addEventListener('click', () => toggleRejectionPopup(false));
+      if (popupRejectOverlay) popupRejectOverlay.addEventListener('click', () => toggleRejectionPopup(false));
+
+      if (btnRejectConfirm) {
+        btnRejectConfirm.addEventListener('click', () => {
+          if (!activeCandidate) return;
+
+          btnRejectConfirm.disabled = true;
+          btnRejectConfirm.innerText = 'Sending Decline...';
+
+          const reason = rejectReasonSelect ? rejectReasonSelect.value : 'Insufficient experience';
+          const notes = rejectNoteText ? rejectNoteText.value.trim() : '';
+
+          console.log(`%c[BrainByte Review] Declining Candidate: ID=${activeCandidate.id}, Reason="${reason}", Notes="${notes}"`, "color: #EF4444; font-weight: bold;");
+
+          setTimeout(() => {
+            activeCandidate.status = 'rejected';
+            
+            btnRejectConfirm.disabled = false;
+            btnRejectConfirm.innerText = 'Send Rejection';
+
+            toggleRejectionPopup(false);
+            closeReviewModal();
+            renderTable();
+            updateBadgeCounts();
+          }, 1200);
+        });
+      }
+
+      // 10. REQUEST MORE INFO POPUP CONTROLS
+      function toggleRequestPopup(open) {
+        if (popupRequestOverlay && popupRequestCard) {
+          if (open) {
+            popupRequestOverlay.classList.add('active');
+            popupRequestCard.classList.add('active');
+            if (requestError) requestError.classList.add('d-none');
+            if (requestText) {
+              requestText.value = '';
+              requestText.classList.remove('is-invalid');
+            }
+          } else {
+            popupRequestOverlay.classList.remove('active');
+            popupRequestCard.classList.remove('active');
+          }
+        }
+      }
+
+      if (btnRequest) btnRequest.addEventListener('click', () => toggleRequestPopup(true));
+      if (btnRequestCancel) btnRequestCancel.addEventListener('click', () => toggleRequestPopup(false));
+      if (popupRequestOverlay) popupRequestOverlay.addEventListener('click', () => toggleRequestPopup(false));
+
+      // Templates selectors
+      document.querySelectorAll('.badge-template-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const type = btn.getAttribute('data-template');
+          if (requestText && activeCandidate) {
+            const firstName = activeCandidate.name.split(' ')[0];
+            let msg = '';
+            if (type === 'github') {
+              msg = `Hi ${firstName}, your application looks excellent! Could you please share a link to your active GitHub profile or any public code repositories? This will help us verify your technical background.`;
+            } else if (type === 'bio') {
+              msg = `Hi ${firstName}, thanks for applying! Your experience is impressive, but your professional bio is a bit brief. Could you expand on your teaching history or industry background?`;
+            } else if (type === 'video') {
+              msg = `Hi ${firstName}, your profile looks great! Could you share a short sample teaching video (2-3 minutes, e.g., Loom or YouTube) so we can see your presentation style?`;
+            }
+            requestText.value = msg;
+            requestText.classList.remove('is-invalid');
+            if (requestError) requestError.classList.add('d-none');
+          }
+        });
+      });
+
+      if (btnRequestConfirm) {
+        btnRequestConfirm.addEventListener('click', () => {
+          if (!activeCandidate || !requestText) return;
+
+          const msgVal = requestText.value.trim();
+          if (msgVal === '') {
+            if (requestError) requestError.classList.remove('d-none');
+            requestText.classList.add('is-invalid');
+            return;
+          }
+          if (requestError) requestError.classList.add('d-none');
+          requestText.classList.remove('is-invalid');
+
+          btnRequestConfirm.disabled = true;
+          btnRequestConfirm.innerText = 'Sending Inquiry...';
+
+          console.log(`%c[BrainByte Review] Requesting More Info: ID=${activeCandidate.id}, Inquiry="${msgVal}"`, "color: #F59E0B; font-weight: bold;");
+
+          setTimeout(() => {
+            activeCandidate.status = 'needs-info';
+            
+            btnRequestConfirm.disabled = false;
+            btnRequestConfirm.innerText = 'Send Message';
+
+            toggleRequestPopup(false);
+            closeReviewModal();
+            renderTable();
+            updateBadgeCounts();
+          }, 1200);
+        });
+      }
+
+      // 11. BULK ACTIONS OPERATION CODE
+      const btnBulkApprove = document.getElementById('btn-bulk-approve');
+      const btnBulkReject = document.getElementById('btn-bulk-reject');
+
+      if (btnBulkApprove) {
+        btnBulkApprove.addEventListener('click', () => {
+          if (!tbody) return;
+          const checked = tbody.querySelectorAll('.row-select-checkbox:checked');
+          if (checked.length === 0) return;
+
+          btnBulkApprove.disabled = true;
+          btnBulkApprove.innerText = 'Approving...';
+
+          setTimeout(() => {
+            checked.forEach(cb => {
+              const id = cb.getAttribute('data-id');
+              const candidate = candidates.find(c => c.id === id);
+              if (candidate && candidate.status !== 'approved') {
+                candidate.status = 'approved';
+                console.log(`%c[BrainByte Bulk Approve] Verified instructor: ID=${id}`, "color:#10B981; font-weight:bold;");
+              }
+            });
+
+            btnBulkApprove.disabled = false;
+            btnBulkApprove.innerText = 'Approve Selected';
+            bulkSelectAll.checked = false;
+
+            renderTable();
+            updateBadgeCounts();
+          }, 1500);
+        });
+      }
+
+      if (btnBulkReject) {
+        btnBulkReject.addEventListener('click', () => {
+          if (!tbody) return;
+          const checked = tbody.querySelectorAll('.row-select-checkbox:checked');
+          if (checked.length === 0) return;
+
+          btnBulkReject.disabled = true;
+          btnBulkReject.innerText = 'Rejecting...';
+
+          setTimeout(() => {
+            checked.forEach(cb => {
+              const id = cb.getAttribute('data-id');
+              const candidate = candidates.find(c => c.id === id);
+              if (candidate && candidate.status !== 'rejected') {
+                candidate.status = 'rejected';
+                console.log(`%c[BrainByte Bulk Decline] Rejected candidate: ID=${id}`, "color:#EF4444; font-weight:bold;");
+              }
+            });
+
+            btnBulkReject.disabled = false;
+            btnBulkReject.innerText = 'Reject Selected';
+            bulkSelectAll.checked = false;
+
+            renderTable();
+            updateBadgeCounts();
+          }, 1500);
+        });
+      }
+
+      // 12. RUN SEARCH & FILTER TAB LISTENERS
+      if (searchInput) {
+        searchInput.addEventListener('input', renderTable);
+      }
+
+      filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          selectedFilter = btn.getAttribute('data-filter');
+          renderTable();
+        });
+      });
+
+      // Mount Render
+      renderTable();
+      updateBadgeCounts();
+    });
+  </script>
+</body>
+</html>

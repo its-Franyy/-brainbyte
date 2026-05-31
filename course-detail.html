@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Details — BrainByte</title>
+  <meta name="description" content="Master modern software engineering. Access course syllabus, curriculum lectures, instructor bios, and enroll to unlock on-chain learning achievements.">
+  
+  <!-- Preload and load Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Premium Theme CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-body">
+
+  <!-- Ambient background glow elements -->
+  <div class="bg-blob-violet" style="top: -100px; left: -100px; fixed: true;"></div>
+  <div class="bg-blob-teal" style="top: 300px; right: -100px; fixed: true;"></div>
+  <div class="bg-blob-pink" style="bottom: 10%; left: 5%; fixed: true;"></div>
+
+  <!-- ================================================================
+    HEADER & NAVIGATION
+  ================================================================ -->
+  <nav class="navbar navbar-expand-lg bb-navbar scrolled">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="index.html" id="bb-logo">
+        <span>Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
+      </a>
+      
+      <button class="navbar-toggler border-0 shadow-none text-white" type="button" data-bs-toggle="collapse" data-bs-target="#bbNavbar" aria-controls="bbNavbar" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="bi bi-list fs-2" style="color: var(--text-primary);"></i>
+      </button>
+      
+      <div class="collapse navbar-collapse" id="bbNavbar">
+        <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1 mt-3 mt-lg-0">
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="courses.html" id="nav-home">Explore</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link library-link" href="library.html" id="nav-library">Library <i class="bi bi-lock-fill ms-1" id="navbar-library-lock-icon" style="font-size: 0.85rem; color: var(--teal-primary);"></i></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="teach.html" id="nav-teach">Teach</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="pricing.html" id="nav-pricing">Pricing</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="about.html" id="nav-about">About</a>
+          </li>
+        </ul>
+        <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">
+          <a href="login.html" class="btn btn-bb-ghost" id="btn-signin">Sign In</a>
+          <a href="signup.html" class="btn btn-bb-primary" id="btn-getstarted">Get Started</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ================================================================
+    TOP BANNER SECTION (Full Width Glass Banner)
+  ================================================================ -->
+  <section class="course-detail-banner-section" style="padding-top: 6.5rem; background: rgba(255,255,255,0.015); border-bottom: 1px solid rgba(255,255,255,0.05); position: relative;">
+    <div class="container py-4">
+      
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb m-0" style="font-family: var(--font-display); font-size: 0.82rem; font-weight: 600;">
+          <li class="breadcrumb-item"><a href="index.html" style="color: #94A3B8;">Home</a></li>
+          <li class="breadcrumb-item"><a href="courses.html" style="color: #94A3B8;" id="banner-category-link">Courses</a></li>
+          <li class="breadcrumb-item active text-white" aria-current="page" id="banner-title-breadcrumb">Course Title</li>
+        </ol>
+      </nav>
+      
+      <div class="row align-items-center">
+        <div class="col-lg-8 col-12">
+          <!-- H1 Course Title -->
+          <h1 class="text-white fw-bold mb-3" style="font-size: 2.2rem; font-family: var(--font-display); line-height: 1.25;" id="banner-course-title">
+            Next.js 14 &amp; Supabase: The Full-Stack SaaS Blueprint
+          </h1>
+          
+          <!-- Short Description -->
+          <p style="color: #94A3B8; font-size: 1.05rem; max-width: 720px; line-height: 1.6;" id="banner-course-description">
+            Build serverless high-performance SaaS applications from scratch. Wire subscription models, database Row-Level Security, real-time channels, and gorgeous Tailwind CSS glassmorphisms.
+          </p>
+          
+          <!-- Course Info Row -->
+          <div class="d-flex flex-wrap align-items-center gap-3 mb-3" style="font-size: 0.88rem; font-weight: 500;">
+            <div class="d-flex align-items-center gap-1">
+              <span class="fw-bold text-white" id="banner-rating-score">4.8</span>
+              <span id="banner-rating-stars">
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-half text-warning"></i>
+              </span>
+              <span style="color: #94A3B8;" id="banner-rating-count">(3,241 ratings)</span>
+            </div>
+            
+            <span style="color: rgba(255,255,255,0.15);">&bull;</span>
+            <span class="text-white-50"><i class="bi bi-people-fill me-1" style="color: var(--violet-mid);"></i> <span id="banner-enrolled-count">8,240</span> students</span>
+            
+            <span style="color: rgba(255,255,255,0.15);">&bull;</span>
+            <span class="text-white-50"><i class="bi bi-calendar3 me-1"></i> Last updated May 2025</span>
+            
+            <span style="color: rgba(255,255,255,0.15);">&bull;</span>
+            <span class="badge" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); font-size: 0.72rem; text-transform: uppercase; padding: 0.35rem 0.7rem;" id="banner-level-badge">Advanced</span>
+          </div>
+          
+          <!-- Instructor details banner row -->
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-2 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
+            <div class="d-flex align-items-center gap-2">
+              <div class="instructor-circle-avatar" id="banner-instructor-avatar" style="width: 28px; height: 28px; font-size: 0.75rem;">SJ</div>
+              <span class="text-white font-semibold" style="font-size: 0.9rem;">Taught by <span id="banner-instructor-name" style="font-weight: 700;">Sarah Jenkins</span></span>
+              <i class="bi bi-patch-check-fill text-primary" style="color: var(--violet-mid) !important;" title="Verified Author"></i>
+            </div>
+            <a href="#" class="small text-decoration-none" style="color: #EF4444; font-weight: 600; font-size: 0.78rem;">
+              <i class="bi bi-flag-fill me-1"></i> Report Instructor
+            </a>
+          </div>
+          
+        </div>
+      </div>
+      
+    </div>
+  </section>
+
+  <!-- ================================================================
+    MAIN GRID SYSTEM (70% Left + 30% Right Sticky Card)
+  ================================================================ -->
+  <div class="container py-5">
+    <div class="row g-4">
+      
+      <!-- ============================================================
+        LEFT COLUMN CONTENT PANEL (70%)
+      ============================================================ -->
+      <div class="col-lg-8 col-12 order-lg-1 order-2">
+        
+        <!-- Premium Tabs Select Bar -->
+        <div class="course-tabs-bar mb-4">
+          <button type="button" class="course-tab-btn active" data-tab="overview">Overview</button>
+          <button type="button" class="course-tab-btn" data-tab="curriculum">Curriculum</button>
+          <button type="button" class="course-tab-btn" data-tab="instructor">Instructor</button>
+          <button type="button" class="course-tab-btn" data-tab="reviews">Reviews</button>
+        </div>
+        
+        <!-- TAB PANELS CONTENT CONTAINER -->
+        <div class="course-tab-content-panels">
+          
+          <!-- TAB 1: OVERVIEW -->
+          <div class="tab-panel active" id="panel-overview">
+            
+            <!-- What you'll learn box -->
+            <div class="overview-box mb-4">
+              <h3 class="text-white fw-bold mb-3" style="font-size: 1.15rem; font-family: var(--font-display);">What you'll learn</h3>
+              <div class="row g-3">
+                <div class="col-md-6 col-12">
+                  <div class="d-flex gap-2">
+                    <i class="bi bi-check-circle-fill" style="color: var(--violet-mid); font-size: 0.95rem; margin-top: 1px;"></i>
+                    <span class="text-white" style="font-size: 0.88rem; line-height: 1.45;">Build high-performance serverless SaaS applications with Next.js 14 App Router.</span>
+                  </div>
+                </div>
+                <div class="col-md-6 col-12">
+                  <div class="d-flex gap-2">
+                    <i class="bi bi-check-circle-fill" style="color: var(--violet-mid); font-size: 0.95rem; margin-top: 1px;"></i>
+                    <span class="text-white" style="font-size: 0.88rem; line-height: 1.45;">Configure robust backend databases, relational keys, and triggers inside Supabase.</span>
+                  </div>
+                </div>
+                <div class="col-md-6 col-12">
+                  <div class="d-flex gap-2">
+                    <i class="bi bi-check-circle-fill" style="color: var(--violet-mid); font-size: 0.95rem; margin-top: 1px;"></i>
+                    <span class="text-white" style="font-size: 0.88rem; line-height: 1.45;">Implement Stripe subscriptions, webhooks, recurring pricing tiers, and billing web hooks.</span>
+                  </div>
+                </div>
+                <div class="col-md-6 col-12">
+                  <div class="d-flex gap-2">
+                    <i class="bi bi-check-circle-fill" style="color: var(--violet-mid); font-size: 0.95rem; margin-top: 1px;"></i>
+                    <span class="text-white" style="font-size: 0.88rem; line-height: 1.45;">Program deep security protocols using PostgreSQL Row-Level Security (RLS) policies.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Prerequisites -->
+            <div class="mb-4">
+              <h3 class="text-white fw-bold mb-3" style="font-size: 1.15rem; font-family: var(--font-display);">Requirements</h3>
+              <ul class="m-0 ps-3 text-white-50" style="font-size: 0.9rem; line-height: 1.7;">
+                <li>Solid foundational knowledge of JavaScript (ES6+), React hooks, and CSS.</li>
+                <li>Basic familiarity with relational database designs and SQL syntax is helpful but not mandatory.</li>
+                <li>Node.js installed on your computer along with a code editor (like VS Code).</li>
+              </ul>
+            </div>
+            
+            <!-- Description -->
+            <div>
+              <h3 class="text-white fw-bold mb-3" style="font-size: 1.15rem; font-family: var(--font-display);">Description</h3>
+              <div style="color: #94A3B8; font-size: 0.92rem; line-height: 1.7;">
+                <p>Welcome to the most complete, modern software engineering guide to building full-stack software-as-a-service (SaaS) web applications! In this course, you will cross the bridge from frontend developer to skilled full-stack architect by building a production-ready application featuring glassmorphic interfaces, robust data schemas, subscription hooks, and high-performance routing protocols.</p>
+                
+                <p>We leverage the absolute state of the art in the developer landscape: **Next.js 14 App Router** for speed and SEO optimization, **Supabase** (Postgres) for secure, real-time serverless database operations, **Tailwind CSS** for ultra-premium dark designs, and **Stripe** for merchant subscription frameworks.</p>
+                
+                <p>Throughout the lessons, we code together line-by-line, establishing advanced best practices in coding architecture, data security policies, API middleware routers, error handling modules, and responsive UI stacks. By the end of this course, you will possess a high-end application blueprint that you can instantly compile, brand, and scale to users!</p>
+              </div>
+            </div>
+            
+          </div>
+          
+          <!-- TAB 2: CURRICULUM Accordions -->
+          <div class="tab-panel" id="panel-curriculum">
+            <h3 class="text-white fw-bold mb-3" style="font-size: 1.15rem; font-family: var(--font-display);">Course Syllabus</h3>
+            
+            <div class="curriculum-accordion-list d-flex flex-column gap-3">
+              
+              <!-- Section 1 -->
+              <div class="curriculum-accordion-block collapsible-active">
+                <div class="curriculum-header-trigger">
+                  <div>
+                    <h4 class="accordion-section-title text-white m-0" style="font-size: 0.92rem; font-weight: 700;">Section 1: Introduction &amp; Environment Setup</h4>
+                    <span class="text-muted" style="font-size: 0.75rem; font-weight: 500;">3 lectures &bull; 32 minutes</span>
+                  </div>
+                  <i class="bi bi-chevron-down toggle-chevron text-white-50"></i>
+                </div>
+                <div class="curriculum-lectures-content">
+                  <div class="lectures-wrapper-list mt-2">
+                    <div class="lecture-item-row">
+                      <i class="bi bi-play-circle-fill text-muted"></i>
+                      <span class="lecture-name text-white">1. Welcome to BrainByte &amp; Course Architecture Overview</span>
+                      <span class="lecture-duration">08:14</span>
+                    </div>
+                    <div class="lecture-item-row">
+                      <i class="bi bi-play-circle-fill text-muted"></i>
+                      <span class="lecture-name text-white">2. Creating the Repository, Boilerplates &amp; Environment Keys</span>
+                      <span class="lecture-duration">12:45</span>
+                    </div>
+                    <div class="lecture-item-row">
+                      <i class="bi bi-play-circle-fill text-muted"></i>
+                      <span class="lecture-name text-white">3. Figma UI Specifications &amp; Design System Tokens Integration</span>
+                      <span class="lecture-duration">11:02</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Section 2 -->
+              <div class="curriculum-accordion-block collapsible-active">
+                <div class="curriculum-header-trigger">
+                  <div>
+                    <h4 class="accordion-section-title text-white m-0" style="font-size: 0.92rem; font-weight: 700;">Section 2: Supabase Schema &amp; Row-Level Security</h4>
+                    <span class="text-muted" style="font-size: 0.75rem; font-weight: 500;">4 lectures &bull; 1 hour 15 minutes</span>
+                  </div>
+                  <i class="bi bi-chevron-down toggle-chevron text-white-50"></i>
+                </div>
+                <div class="curriculum-lectures-content">
+                  <div class="lectures-wrapper-list mt-2">
+                    <div class="lecture-item-row">
+                      <i class="bi bi-play-circle-fill text-muted"></i>
+                      <span class="lecture-name text-white">4. Spinning Up a Supabase Project &amp; Relational SQL Schemas</span>
+                      <span class="lecture-duration">18:40</span>
+                    </div>
+                    <div class="lecture-item-row">
+                      <i class="bi bi-play-circle-fill text-muted"></i>
+                      <span class="lecture-name text-white">5. Programming row-level security (RLS) database policies</span>
+                      <span class="lecture-duration">22:15</span>
+                    </div>
+                    <div class="lecture-item-row">
+                      <i class="bi bi-play-circle-fill text-muted"></i>
+                      <span class="lecture-name text-white">6. Writing Postgres SQL Triggers for New Authenticated Registrations</span>
+                      <span class="lecture-duration">15:30</span>
+                    </div>
+                    <div class="lecture-item-row">
+                      <i class="bi bi-play-circle-fill text-muted"></i>
+                      <span class="lecture-name text-white">7. Real-Time Data Subscriptions &amp; Broadcast Channels Setup</span>
+                      <span class="lecture-duration">18:35</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Section 3 -->
+              <div class="curriculum-accordion-block collapsible-active">
+                <div class="curriculum-header-trigger">
+                  <div>
+                    <h4 class="accordion-section-title text-white m-0" style="font-size: 0.92rem; font-weight: 700;">Section 3: Next.js App Router Integration</h4>
+                    <span class="text-muted" style="font-size: 0.75rem; font-weight: 500;">5 lectures &bull; 2 hours 10 minutes</span>
+                  </div>
+                  <i class="bi bi-chevron-down toggle-chevron text-white-50"></i>
+                </div>
+                <div class="curriculum-lectures-content">
+                  <div class="lectures-wrapper-list mt-2">
+                    <div class="lecture-item-row">
+                      <i class="bi bi-play-circle-fill text-muted"></i>
+                      <span class="lecture-name text-white">8. Directory Structures &amp; Next.js 14 App Router Frameworks</span>
+                      <span class="lecture-duration">24:12</span>
+                    </div>
+                    <div class="lecture-item-row">
+                      <i class="bi bi-play-circle-fill text-muted"></i>
+                      <span class="lecture-name text-white">9. Server components vs client components data fetching limits</span>
+                      <span class="lecture-duration">32:05</span>
+                    </div>
+                    <div class="lecture-item-row">
+                      <i class="bi bi-play-circle-fill text-muted"></i>
+                      <span class="lecture-name text-white">10. Coding dynamic route handlers and fetching Supabase sessions</span>
+                      <span class="lecture-duration">28:40</span>
+                    </div>
+                    <div class="lecture-item-row">
+                      <i class="bi bi-play-circle-fill text-muted"></i>
+                      <span class="lecture-name text-white">11. Custom state management with hooks &amp; contexts</span>
+                      <span class="lecture-duration">22:18</span>
+                    </div>
+                    <div class="lecture-item-row">
+                      <i class="bi bi-play-circle-fill text-muted"></i>
+                      <span class="lecture-name text-white">12. Compiling optimized production builds &amp; client headers errors</span>
+                      <span class="lecture-duration">22:45</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Section 4 -->
+              <div class="curriculum-accordion-block collapsible-active">
+                <div class="curriculum-header-trigger">
+                  <div>
+                    <h4 class="accordion-section-title text-white m-0" style="font-size: 0.92rem; font-weight: 700;">Section 4: Stripe Subscriptions &amp; Webhooks</h4>
+                    <span class="text-muted" style="font-size: 0.75rem; font-weight: 500;">4 lectures &bull; 1 hour 45 minutes</span>
+                  </div>
+                  <i class="bi bi-chevron-down toggle-chevron text-white-50"></i>
+                </div>
+                <div class="curriculum-lectures-content">
+                  <div class="lectures-wrapper-list mt-2">
+                    <div class="lecture-item-row">
+                      <i class="bi bi-play-circle-fill text-muted"></i>
+                      <span class="lecture-name text-white">13. Structuring Products &amp; Prices inside Stripe Dashboard</span>
+                      <span class="lecture-duration">18:22</span>
+                    </div>
+                    <div class="lecture-item-row">
+                      <i class="bi bi-play-circle-fill text-muted"></i>
+                      <span class="lecture-name text-white">14. Designing Next.js API Routes for Stripe Checkout Sessions</span>
+                      <span class="lecture-duration">31:15</span>
+                    </div>
+                    <div class="lecture-item-row">
+                      <i class="bi bi-play-circle-fill text-muted"></i>
+                      <span class="lecture-name text-white">15. Implementing Stripe Webhook Handlers to update Supabase tables</span>
+                      <span class="lecture-duration">34:40</span>
+                    </div>
+                    <div class="lecture-item-row">
+                      <i class="bi bi-play-circle-fill text-muted"></i>
+                      <span class="lecture-name text-white">16. Creating Customer Billing Portal sessions for user control</span>
+                      <span class="lecture-duration">21:23</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+          </div>
+          
+          <!-- TAB 3: INSTRUCTOR details -->
+          <div class="tab-panel" id="panel-instructor">
+            <div class="p-4 border rounded-4 mb-4" style="background: rgba(255, 255, 255, 0.02); border-color: var(--border) !important; backdrop-filter: blur(8px);">
+              <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="instructor-circle-avatar" id="instructor-tab-avatar" style="width: 64px; height: 64px; font-size: 1.5rem;">SJ</div>
+                <div>
+                  <h3 class="text-white fw-bold mb-1" style="font-size: 1.25rem; font-family: var(--font-display);" id="instructor-tab-name">Sarah Jenkins</h3>
+                  <span class="text-muted d-block" style="font-size: 0.8rem; font-weight: 500;">Senior Cloud Solutions Architect &amp; Educator</span>
+                </div>
+              </div>
+              
+              <div class="row g-3 mb-4 text-center">
+                <div class="col-4">
+                  <div class="p-2 border rounded-3" style="background: rgba(255, 255, 255, 0.01); border-color: var(--border) !important;">
+                    <span class="text-white fw-bold d-block" style="font-size: 1.2rem;" id="instructor-tab-students">145k</span>
+                    <span class="text-muted" style="font-size: 0.72rem; font-weight: 600;">Total Students</span>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="p-2 border rounded-3" style="background: rgba(255, 255, 255, 0.01); border-color: var(--border) !important;">
+                    <span class="text-white fw-bold d-block" style="font-size: 1.2rem;">4.9/5</span>
+                    <span class="text-muted" style="font-size: 0.72rem; font-weight: 600;">Average Score</span>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="p-2 border rounded-3" style="background: rgba(255, 255, 255, 0.01); border-color: var(--border) !important;">
+                    <span class="text-white fw-bold d-block" style="font-size: 1.2rem;" id="instructor-tab-courses">12</span>
+                    <span class="text-muted" style="font-size: 0.72rem; font-weight: 600;">Active Courses</span>
+                  </div>
+                </div>
+              </div>
+              
+              <p class="text-muted m-0" style="font-size: 0.9rem; line-height: 1.65;" id="instructor-tab-bio">
+                Sarah is a cloud solution architect with over 12 years of hands-on experience structuring SaaS database models and serverless APIs at leading web platforms. Her unique, logical, line-by-line developer teaching methods have helped thousands of students worldwide transition cleanly into high-growth software engineering career tracks.
+              </p>
+            </div>
+          </div>
+          
+          <!-- TAB 4: REVIEWS -->
+          <div class="tab-panel" id="panel-reviews">
+            
+            <div class="row g-4 mb-4">
+              <!-- Score block -->
+              <div class="col-md-4 col-12 text-center text-md-start">
+                <div class="p-4 border rounded-4 d-flex flex-column align-items-center justify-content-center h-100" style="background: rgba(255, 255, 255, 0.02); border-color: var(--border) !important;">
+                  <span class="fw-bold text-white mb-2" style="font-size: 3rem; line-height: 1;" id="reviews-summary-score">4.8</span>
+                  <div class="stars-summary mb-2">
+                    <i class="bi bi-star-fill text-warning fs-5"></i>
+                    <i class="bi bi-star-fill text-warning fs-5"></i>
+                    <i class="bi bi-star-fill text-warning fs-5"></i>
+                    <i class="bi bi-star-fill text-warning fs-5"></i>
+                    <i class="bi bi-star-half text-warning fs-5"></i>
+                  </div>
+                  <span class="text-muted fw-semibold" style="font-size: 0.8rem;">Average Rating Score</span>
+                </div>
+              </div>
+              
+              <!-- Distribution chart columns -->
+              <div class="col-md-8 col-12">
+                <div class="p-4 border rounded-4 h-100" style="background: rgba(255, 255, 255, 0.02); border-color: var(--border) !important;">
+                  <h4 class="text-white fw-bold mb-3" style="font-size: 0.95rem; font-family: var(--font-display);">Rating Breakdown</h4>
+                  
+                  <div class="d-flex flex-column gap-2">
+                    <!-- 5 stars -->
+                    <div class="d-flex align-items-center gap-2" style="font-size: 0.78rem;">
+                      <span class="text-white fw-semibold" style="width: 45px;">5 Stars</span>
+                      <div class="flex-grow-1" style="height: 6px; background-color: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+                        <div style="width: 82%; height: 100%; background: linear-gradient(90deg, var(--violet-primary), var(--brand-pink)); box-shadow: var(--shadow-glow-violet); border-radius: 3px;"></div>
+                      </div>
+                      <span class="text-muted" style="width: 35px; text-align: right;">82%</span>
+                    </div>
+                    <!-- 4 stars -->
+                    <div class="d-flex align-items-center gap-2" style="font-size: 0.78rem;">
+                      <span class="text-white fw-semibold" style="width: 45px;">4 Stars</span>
+                      <div class="flex-grow-1" style="height: 6px; background-color: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+                        <div style="width: 14%; height: 100%; background: linear-gradient(90deg, var(--violet-primary), var(--brand-pink)); box-shadow: var(--shadow-glow-violet); border-radius: 3px;"></div>
+                      </div>
+                      <span class="text-muted" style="width: 35px; text-align: right;">14%</span>
+                    </div>
+                    <!-- 3 stars -->
+                    <div class="d-flex align-items-center gap-2" style="font-size: 0.78rem;">
+                      <span class="text-white fw-semibold" style="width: 45px;">3 Stars</span>
+                      <div class="flex-grow-1" style="height: 6px; background-color: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+                        <div style="width: 3%; height: 100%; background: linear-gradient(90deg, var(--violet-primary), var(--brand-pink)); box-shadow: var(--shadow-glow-violet); border-radius: 3px;"></div>
+                      </div>
+                      <span class="text-muted" style="width: 35px; text-align: right;">3%</span>
+                    </div>
+                    <!-- 2 stars -->
+                    <div class="d-flex align-items-center gap-2" style="font-size: 0.78rem;">
+                      <span class="text-white fw-semibold" style="width: 45px;">2 Stars</span>
+                      <div class="flex-grow-1" style="height: 6px; background-color: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+                        <div style="width: 1%; height: 100%; background: linear-gradient(90deg, var(--violet-primary), var(--brand-pink)); box-shadow: var(--shadow-glow-violet); border-radius: 3px;"></div>
+                      </div>
+                      <span class="text-muted" style="width: 35px; text-align: right;">1%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- User review comments list -->
+            <div class="d-flex flex-column gap-3">
+              <!-- Review 1 -->
+              <div class="p-3 border rounded-3" style="background: rgba(255, 255, 255, 0.015); border-color: var(--border) !important;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="instructor-circle-avatar" style="width: 24px; height: 24px; font-size: 0.65rem; background: #E2E8F0; color: #1E293B;">TL</div>
+                    <span class="text-white font-semibold" style="font-size: 0.82rem;">Tobias L.</span>
+                    <span class="badge" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); color: #34D399; font-size: 0.65rem;">Verified Purchase</span>
+                  </div>
+                  <span class="text-muted" style="font-size: 0.75rem;">1 week ago</span>
+                </div>
+                <div class="mb-2" style="font-size: 0.75rem;">
+                  <i class="bi bi-star-fill text-warning"></i>
+                  <i class="bi bi-star-fill text-warning"></i>
+                  <i class="bi bi-star-fill text-warning"></i>
+                  <i class="bi bi-star-fill text-warning"></i>
+                  <i class="bi bi-star-fill text-warning"></i>
+                </div>
+                <p class="text-muted m-0" style="font-size: 0.85rem; line-height: 1.55;">
+                  Absolutely phenomenal course! Sarah teaches in an incredibly clear, structured manner, explaining why database keys and RLS security triggers are crucial. Wire Stripe webhooks together with Next.js router handlers was simplified flawlessly. High recommended!
+                </p>
+              </div>
+              
+              <!-- Review 2 -->
+              <div class="p-3 border rounded-3" style="background: rgba(255, 255, 255, 0.015); border-color: var(--border) !important;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="instructor-circle-avatar" style="width: 24px; height: 24px; font-size: 0.65rem; background: #CBD5E1; color: #1E293B;">AM</div>
+                    <span class="text-white font-semibold" style="font-size: 0.82rem;">Amanda M.</span>
+                    <span class="badge" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); color: #34D399; font-size: 0.65rem;">Verified Purchase</span>
+                  </div>
+                  <span class="text-muted" style="font-size: 0.75rem;">3 weeks ago</span>
+                </div>
+                <div class="mb-2" style="font-size: 0.75rem;">
+                  <i class="bi bi-star-fill text-warning"></i>
+                  <i class="bi bi-star-fill text-warning"></i>
+                  <i class="bi bi-star-fill text-warning"></i>
+                  <i class="bi bi-star-fill text-warning"></i>
+                  <i class="bi bi-star-fill text-warning"></i>
+                </div>
+                <p class="text-muted m-0" style="font-size: 0.85rem; line-height: 1.55;">
+                  The UI specifications and Figma-to-Tailwind tokens implementation in Section 1 alone are worth the price. I stood up a serverless subscription business in just 4 days using the template code!
+                </p>
+              </div>
+            </div>
+            
+          </div>
+          
+        </div>
+      </div>
+      
+      <!-- ============================================================
+        RIGHT COLUMN: STICKY ENROLL CARD (30%)
+      ============================================================ -->
+      <div class="col-lg-4 col-12 order-lg-2 order-1">
+        <div class="course-sticky-card-wrapper" id="sticky-enrollment-card">
+          
+          <!-- Category Thumbnail placeholder -->
+          <div class="course-card-thumbnail-container" style="height: 190px;">
+            <span class="course-card-category-badge" id="card-badge-category">Web Dev</span>
+            <div class="course-card-thumbnail-gradient" id="card-gradient-avatar" style="background: linear-gradient(135deg, #667eea, #764ba2); font-size: 3.5rem;">
+              SJ
+            </div>
+          </div>
+          
+          <!-- Price and details box -->
+          <div class="p-4" style="background: rgba(13, 14, 26, 0.40); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.08); border-top: none; border-radius: 0 0 16px 16px;">
+            
+            <!-- Pricing tags -->
+            <div class="d-flex align-items-baseline gap-2 mb-3">
+              <span class="fw-bold text-white" style="font-size: 2.2rem; font-family: var(--font-display);" id="card-price-label">₹499</span>
+              <span class="text-decoration-line-through text-muted small" id="card-original-price">₹4,999</span>
+              <span class="badge" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34D399; font-size: 0.72rem; font-weight: 700; margin-left: auto;" id="card-discount-tag">90% OFF</span>
+            </div>
+            
+            <!-- Enroll Pill Button -->
+            <button type="button" class="btn-bb-login w-100 py-3 mb-3 text-uppercase" id="btn-enroll-submit" style="height: 52px; font-size: 0.95rem; font-weight: 800; letter-spacing: 0.05em; background: #7C3AED; box-shadow: 0 0 20px rgba(124, 58, 237, 0.4); border-radius: 50px; border: none; color: white;">
+              Enroll Now
+            </button>
+            
+            <!-- Safe guarantee subline -->
+            <div class="text-center mb-4">
+              <span style="font-size: 0.78rem; color: #94A3B8; font-weight: 500;" id="card-guarantee-subtext">
+                <i class="bi bi-shield-check text-success me-1 fs-6 align-middle" style="color: var(--teal-mid) !important;"></i> 30-Day Money-Back Guarantee
+              </span>
+            </div>
+            
+            <!-- Includes lists -->
+            <div class="mb-4">
+              <h4 class="text-white fw-bold mb-3" style="font-size: 0.85rem; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.05em;">This course includes:</h4>
+              
+              <div class="d-flex flex-column gap-2" style="font-size: 0.82rem; font-weight: 500; color: #E2E8F0;">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-play-btn text-muted" style="font-size: 0.95rem;"></i>
+                  <span>12.5 hours on-demand video</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-file-earmark-arrow-down text-muted" style="font-size: 0.95rem;"></i>
+                  <span>8 downloadable code repositories</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-infinity text-muted" style="font-size: 0.95rem;"></i>
+                  <span>Full lifetime access</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-laptop text-muted" style="font-size: 0.95rem;"></i>
+                  <span>Access on mobile and TV</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-trophy text-muted" style="font-size: 0.95rem; color: var(--violet-mid) !important;"></i>
+                  <span>Verified on-chain Cert of Completion</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Share & Promo tools -->
+            <div class="d-flex gap-2 pt-3 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
+              <button type="button" class="btn btn-clear-filters flex-grow-1 py-2" id="btn-share-course" style="font-size: 0.78rem;">
+                <i class="bi bi-share-fill me-1.5"></i> Share
+              </button>
+              <button type="button" class="btn btn-clear-filters flex-grow-1 py-2" style="font-size: 0.78rem;">
+                Apply Coupon
+              </button>
+            </div>
+            
+          </div>
+          
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase Config -->
+<script src="js/supabase-config.js"></script>
+<!-- Main JS -->
+<script src="js/main.js"></script>
+</body>
+</html>

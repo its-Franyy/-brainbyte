@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Supabase CDN Client & Protected Page Session Check -->
+  <script>
+    (async () => {
+      const savedUserStr = localStorage.getItem('brainbyte_user');
+      let localSessionActive = false;
+      if (savedUserStr) {
+        try {
+          const user = JSON.parse(savedUserStr);
+          if (user && user.isLoggedIn) {
+            localSessionActive = true;
+          }
+        } catch (e) {}
+      }
+      if (localSessionActive || localStorage.getItem('bb_admin_session') === 'active') {
+        return;
+      }
+      const SUPABASE_URL = "YOUR_SUPABASE_URL";
+      const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+      if (SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_URL !== "") {
+        const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        if (supabase) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) return;
+        }
+      }
+      window.location.href = 'login.html';
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard Control Panel — BrainByte</title>
+  <meta name="description" content="BrainByte system operations control panel. View enrollees metrics, authorize verification queues, and manage the free resources library.">
+  
+  <!-- Preload and load Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Premium Theme CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-body">
+
+  <!-- Ambient background glow elements -->
+  <div class="bg-blob-teal" style="top: -100px; left: -100px; fixed: true; opacity: 0.12; pointer-events: none;"></div>
+  <div class="bg-blob-violet" style="top: 300px; right: -100px; fixed: true; opacity: 0.08; pointer-events: none;"></div>
+  <div class="bg-blob-pink" style="bottom: 10%; left: 5%; fixed: true; opacity: 0.10; pointer-events: none;"></div>
+
+  <!-- ================================================================
+    MOBILE HEADER NAVIGATION BAR (Shown only on small width viewports)
+  ================================================================ -->
+  <div class="mobile-dashboard-header py-2.5 px-3 align-items-center justify-content-between">
+    <button type="button" class="btn text-white p-0 border-0" id="btn-mobile-sidebar-toggle" style="background: transparent;">
+      <i class="bi bi-list fs-2"></i>
+    </button>
+    
+    <span class="text-white fw-bold" style="font-family: var(--font-display); font-size: 1rem;">
+      Admin Dashboard
+    </span>
+    
+    <a class="navbar-brand d-flex align-items-center m-0" href="index.html" style="font-size: 1.15rem;">
+      <span>Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill" style="text-shadow: none;"></i></span>Byte</span>
+    </a>
+  </div>
+
+  <!-- ================================================================
+    ADMIN DASHBOARD GRID CONTAINER
+  ================================================================ -->
+  <div class="dashboard-layout-container">
+    
+    <!-- ==============================================================
+      LEFT SIDEBAR NAVIGATION (Width: 240px, Sticky)
+    ============================================================== -->
+    <aside class="dashboard-sidebar admin-sidebar-override" id="dashboard-sidebar">
+      
+      <!-- Close button visible only on mobile inside side panel -->
+      <div class="d-lg-none d-flex justify-content-end mb-3">
+        <button type="button" class="btn-close-drawer" id="btn-close-sidebar-trigger" style="outline: none;">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- 1. Profile Metadata Box -->
+      <div class="sidebar-profile-box" style="margin-bottom: 1.5rem;">
+        <div class="sidebar-avatar-circle mx-auto mb-3" style="background: linear-gradient(135deg, #EF4444 0%, #F59E0B 100%); width: 72px; height: 72px; border-radius: 50%; font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);">
+          AD
+        </div>
+        <h3 class="sidebar-name text-white fw-bold mb-1" style="font-size: 0.95rem; font-family: var(--font-display);">Super Admin</h3>
+        <div class="mb-2">
+          <span class="admin-badge-red">ADMIN</span>
+        </div>
+        <span style="color: #94A3B8; font-size: 0.76rem; font-weight: 600;">System Administrator</span>
+      </div>
+
+      <!-- 2. Navigations links -->
+      <nav class="sidebar-nav-list flex-grow-1">
+        <a href="admin-dashboard.html" class="admin-sidebar-nav-link active">
+          <i class="bi bi-grid-1x2-fill"></i> Dashboard
+        </a>
+        <a href="admin-verify.html" class="admin-sidebar-nav-link">
+          <i class="bi bi-shield-check"></i> Verifications
+        </a>
+        <a href="admin-library.html" class="admin-sidebar-nav-link">
+          <i class="bi bi-journal-bookmark-fill"></i> Free Library
+        </a>
+        <a href="#" class="admin-sidebar-nav-link" onclick="alert('Admin settings are pre-configured by secure environment variables.');">
+          <i class="bi bi-gear-fill"></i> Settings
+        </a>
+      </nav>
+
+      <!-- 3. Bottom triggers -->
+      <div class="d-flex flex-column gap-2 border-top pt-3" style="border-color: rgba(255,255,255,0.06) !important;">
+        <a href="index.html" class="btn btn-bb-ghost py-2 text-center text-white d-flex align-items-center justify-content-center gap-1.5" style="border-radius: 50px; font-size: 0.78rem; text-decoration: none; font-weight: 600;">
+          <i class="bi bi-arrow-left"></i> Back to Site
+        </a>
+        <a href="admin.html" class="btn btn-bb-ghost py-2 text-center text-danger d-flex align-items-center justify-content-center gap-1.5" id="btn-admin-logout" style="border-radius: 50px; font-size: 0.78rem; text-decoration: none; font-weight: 700; background: transparent; color: #EF4444 !important; border-color: rgba(239, 68, 68, 0.15) !important;">
+          <i class="bi bi-power"></i> Logout
+        </a>
+      </div>
+
+    </aside>
+
+    <!-- ==============================================================
+      RIGHT PANEL: MAIN CONTENT VIEWPORT
+    ============================================================== -->
+    <main class="dashboard-main-content py-4.5 px-sm-4 px-3">
+      
+      <!-- TOP STATUS BAR -->
+      <div class="d-flex flex-sm-row flex-column justify-content-between align-items-sm-center gap-3 mb-4.5">
+        <div>
+          <h1 class="text-white fw-bold mb-1" style="font-size: 1.8rem; font-family: var(--font-display); letter-spacing: -0.02em;">Admin Dashboard</h1>
+          <p style="color: #94A3B8; font-size: 0.9rem; margin: 0; font-weight: 500;">Welcome back, Admin 👋</p>
+        </div>
+        <div>
+          <span class="badge" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); color: #94A3B8; padding: 0.6rem 1rem; font-size: 0.8rem; font-weight: 600; font-family: monospace;" id="admin-dashboard-date-stamp">
+            May 30, 2026
+          </span>
+        </div>
+      </div>
+
+      <!-- KPI CARDS GRID (6 cards, 3x2 grid desktop, stacked mobile) -->
+      <div class="row g-4 mb-4.5">
+        
+        <!-- Card 1 — Total Users -->
+        <div class="col-lg-4 col-sm-6 col-12">
+          <div class="floating-glass-card p-4 h-100 d-flex flex-column justify-content-between" style="transition: all 0.3s ease;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <h4 style="font-size: 2.1rem; font-weight: 800; font-family: var(--font-display); margin-bottom: 0.1rem;" class="text-white">50,000+</h4>
+                <span style="color: #94A3B8; font-size: 0.82rem; font-weight: 600;">Total Users</span>
+              </div>
+              <div class="admin-kpi-icon-circle kpi-purple">
+                <i class="bi bi-people-fill"></i>
+              </div>
+            </div>
+            <div style="font-size: 0.76rem; font-weight: 700; color: #10B981;">
+              <i class="bi bi-arrow-up-right me-0.5"></i> +234 this week
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 — Total Instructors -->
+        <div class="col-lg-4 col-sm-6 col-12">
+          <div class="floating-glass-card p-4 h-100 d-flex flex-column justify-content-between" style="transition: all 0.3s ease;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <h4 style="font-size: 2.1rem; font-weight: 800; font-family: var(--font-display); margin-bottom: 0.1rem;" class="text-white">1,200+</h4>
+                <span style="color: #94A3B8; font-size: 0.82rem; font-weight: 600;">Total Instructors</span>
+              </div>
+              <div class="admin-kpi-icon-circle kpi-cyan">
+                <i class="bi bi-mic-fill"></i>
+              </div>
+            </div>
+            <div style="font-size: 0.76rem; font-weight: 700; color: #10B981;">
+              <i class="bi bi-arrow-up-right me-0.5"></i> +12 this week
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 — Verified Instructors -->
+        <div class="col-lg-4 col-sm-6 col-12">
+          <div class="floating-glass-card p-4 h-100 d-flex flex-column justify-content-between" style="transition: all 0.3s ease;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <h4 style="font-size: 2.1rem; font-weight: 800; font-family: var(--font-display); margin-bottom: 0.1rem;" class="text-white">980</h4>
+                <span style="color: #94A3B8; font-size: 0.82rem; font-weight: 600;">Verified Instructors</span>
+              </div>
+              <div class="admin-kpi-icon-circle kpi-green">
+                <i class="bi bi-patch-check-fill"></i>
+              </div>
+            </div>
+            <div style="font-size: 0.76rem; font-weight: 700; color: #10B981;">
+              <i class="bi bi-shield-fill-check me-0.5"></i> 82% verified
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4 — Pending Reviews (Highlighted Amber Card) -->
+        <div class="col-lg-4 col-sm-6 col-12">
+          <div class="floating-glass-card admin-kpi-card-highlight p-4 h-100 d-flex flex-column justify-content-between" style="transition: all 0.3s ease;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <h4 style="font-size: 2.1rem; font-weight: 800; font-family: var(--font-display); margin-bottom: 0.1rem;" class="text-white">23</h4>
+                <span style="color: #94A3B8; font-size: 0.82rem; font-weight: 600;">Pending Reviews</span>
+              </div>
+              <div class="admin-kpi-icon-circle kpi-amber">
+                <i class="bi bi-hourglass-split"></i>
+              </div>
+            </div>
+            <div style="font-size: 0.76rem; font-weight: 700; color: #F59E0B;">
+              <i class="bi bi-exclamation-triangle-fill me-0.5"></i> 3 urgent reviews
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5 — Total Courses -->
+        <div class="col-lg-4 col-sm-6 col-12">
+          <div class="floating-glass-card p-4 h-100 d-flex flex-column justify-content-between" style="transition: all 0.3s ease;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <h4 style="font-size: 2.1rem; font-weight: 800; font-family: var(--font-display); margin-bottom: 0.1rem;" class="text-white">300+</h4>
+                <span style="color: #94A3B8; font-size: 0.82rem; font-weight: 600;">Published Courses</span>
+              </div>
+              <div class="admin-kpi-icon-circle kpi-purple">
+                <i class="bi bi-journal-bookmark-fill"></i>
+              </div>
+            </div>
+            <div style="font-size: 0.76rem; font-weight: 700; color: #10B981;">
+              <i class="bi bi-arrow-up-right me-0.5"></i> +8 this week
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6 — Library Resources -->
+        <div class="col-lg-4 col-sm-6 col-12">
+          <div class="floating-glass-card p-4 h-100 d-flex flex-column justify-content-between" style="transition: all 0.3s ease;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <h4 style="font-size: 2.1rem; font-weight: 800; font-family: var(--font-display); margin-bottom: 0.1rem;" class="text-white">48</h4>
+                <span style="color: #94A3B8; font-size: 0.82rem; font-weight: 600;">Free Resources</span>
+              </div>
+              <div class="admin-kpi-icon-circle kpi-cyan">
+                <i class="bi bi-unlock-fill"></i>
+              </div>
+            </div>
+            <div style="font-size: 0.76rem; font-weight: 700; color: #06B6D4;">
+              <i class="bi bi-cloud-arrow-up-fill me-0.5"></i> +3 this week
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- MAIN ROW DETAILS -->
+      <div class="row g-4">
+        
+        <!-- Left Column: Activity Feed List (glass card) -->
+        <div class="col-xl-8 col-12">
+          <div class="floating-glass-card p-4 h-100 text-start">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3 class="text-white fw-bold m-0" style="font-family: var(--font-display); font-size: 1.15rem;">Recent Activity Feed</h3>
+              <i class="bi bi-activity text-muted"></i>
+            </div>
+            
+            <div class="d-flex flex-column">
+              <!-- Item 1 -->
+              <div class="activity-feed-row-item">
+                <div class="d-flex align-items-center gap-3">
+                  <span class="activity-feed-dot-icon dot-green"></span>
+                  <span class="activity-feed-text-span">Arjun Mehta verified as instructor</span>
+                </div>
+                <span class="activity-feed-time-span">2m ago</span>
+              </div>
+              
+              <!-- Item 2 -->
+              <div class="activity-feed-row-item">
+                <div class="d-flex align-items-center gap-3">
+                  <span class="activity-feed-dot-icon dot-blue"></span>
+                  <span class="activity-feed-text-span">New course submitted for review</span>
+                </div>
+                <span class="activity-feed-time-span">15m ago</span>
+              </div>
+
+              <!-- Item 3 -->
+              <div class="activity-feed-row-item">
+                <div class="d-flex align-items-center gap-3">
+                  <span class="activity-feed-dot-icon dot-amber"></span>
+                  <span class="activity-feed-text-span">Priya Sharma verification pending</span>
+                </div>
+                <span class="activity-feed-time-span">1h ago</span>
+              </div>
+
+              <!-- Item 4 -->
+              <div class="activity-feed-row-item">
+                <div class="d-flex align-items-center gap-3">
+                  <span class="activity-feed-dot-icon dot-green"></span>
+                  <span class="activity-feed-text-span">New PDF uploaded to library</span>
+                </div>
+                <span class="activity-feed-time-span">2h ago</span>
+              </div>
+
+              <!-- Item 5 -->
+              <div class="activity-feed-row-item">
+                <div class="d-flex align-items-center gap-3">
+                  <span class="activity-feed-dot-icon dot-red"></span>
+                  <span class="activity-feed-text-span">Rahul Verma application rejected</span>
+                </div>
+                <span class="activity-feed-time-span">3h ago</span>
+              </div>
+
+              <!-- Item 6 -->
+              <div class="activity-feed-row-item">
+                <div class="d-flex align-items-center gap-3">
+                  <span class="activity-feed-dot-icon dot-blue"></span>
+                  <span class="activity-feed-text-span">500 new users joined today</span>
+                </div>
+                <span class="activity-feed-time-span">5h ago</span>
+              </div>
+            </div>
+
+            <div class="text-center mt-3.5">
+              <button class="btn btn-bb-outline-teal py-2 w-100" style="font-size: 0.78rem; border-radius: 50px;" onclick="alert('Recent operations activity logs are pre-synced to BrainByte operations database.');">
+                View All Activity
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Quick Actions Card -->
+        <div class="col-xl-4 col-12">
+          <div class="floating-glass-card p-4 h-100 text-start d-flex flex-column justify-content-between">
+            <div>
+              <div class="d-flex justify-content-between align-items-center mb-3.5">
+                <h3 class="text-white fw-bold m-0" style="font-family: var(--font-display); font-size: 1.15rem;">Quick Actions</h3>
+                <i class="bi bi-bolt-fill text-warning"></i>
+              </div>
+              
+              <div class="d-flex flex-column gap-3 mb-4">
+                <!-- Action 1 -->
+                <a href="admin-verify.html" class="btn btn-bb-primary py-3 w-100 text-center d-flex align-items-center justify-content-center gap-2" style="background: #7C3AED; box-shadow: 0 0 15px rgba(124, 58, 237, 0.3); font-weight: bold; border-radius: 50px; font-size: 0.85rem; text-decoration: none; border: none;">
+                  <i class="bi bi-shield-lock-fill"></i> Review Verifications
+                </a>
+                
+                <!-- Action 2 -->
+                <a href="admin-library.html" class="btn btn-bb-primary py-3 w-100 text-center d-flex align-items-center justify-content-center gap-2" style="background: #06B6D4; box-shadow: 0 0 15px rgba(6, 182, 212, 0.3); font-weight: bold; border-radius: 50px; font-size: 0.85rem; text-decoration: none; border: none; color: #0D0E1A !important;">
+                  <i class="bi bi-plus-circle-fill"></i> Upload Resource
+                </a>
+
+                <!-- Action 3 -->
+                <button type="button" class="btn btn-bb-ghost py-3 w-100 d-flex align-items-center justify-content-center gap-2" style="border-radius: 50px; font-weight: bold; font-size: 0.85rem;" onclick="alert('Administrative reports and metrics analytics are loaded securely inside system buckets.');">
+                  <i class="bi bi-graph-up-arrow"></i> View Reports
+                </button>
+              </div>
+            </div>
+
+            <!-- Operations warning disclaimer -->
+            <div class="p-3 text-start rounded-3" style="background: rgba(239, 68, 68, 0.04); border: 1px solid rgba(239, 68, 68, 0.15); font-size: 0.72rem; line-height: 1.5; color: #EF4444;">
+              <i class="bi bi-info-circle-fill me-1"></i> Operations performed under this dashboard affect production database states immediately. Ensure credential matches are checked.
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6Rz5YN5757o+HRvnDJz9O+5G5FkEB83c11SLzmlc9PE9gmgwsnggC+GB53mI3U" crossorigin="anonymous"></script>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase Config -->
+<script src="js/supabase-config.js"></script>
+<!-- Main JS -->
+<script src="js/main.js"></script>
+
+  <!-- Interactive Dashboard drawer toggles and logout scripts -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Mobile off-canvas menu toggle drawer
+      const sidebar = document.getElementById('dashboard-sidebar');
+      const toggleBtn = document.getElementById('btn-mobile-sidebar-toggle');
+      const closeBtn = document.getElementById('btn-close-sidebar-trigger');
+
+      if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => {
+          sidebar.classList.add('mobile-open');
+        });
+      }
+
+      if (closeBtn && sidebar) {
+        closeBtn.addEventListener('click', () => {
+          sidebar.classList.remove('mobile-open');
+        });
+      }
+
+      // Close sidebar if clicking outside of it on mobile
+      document.addEventListener('click', (e) => {
+        if (sidebar && sidebar.classList.contains('mobile-open')) {
+          if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+            sidebar.classList.remove('mobile-open');
+          }
+        }
+      });
+
+      // 2. Pre-fill local date stamp
+      const dateBadge = document.getElementById('admin-dashboard-date-stamp');
+      if (dateBadge) {
+        const now = new Date();
+        const options = { month: 'short', day: 'numeric', year: 'numeric' };
+        dateBadge.innerText = now.toLocaleDateString('en-US', options);
+      }
+
+      // 3. Admin Logout click spinner and clears
+      const logoutBtn = document.getElementById('btn-admin-logout');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          logoutBtn.disabled = true;
+          logoutBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 0.4rem;"></span> <span>Exiting...</span>`;
+
+          console.log("%c[BrainByte Auth] Terminating Admin Control Session...", "color: #EF4444; font-weight: bold;");
+
+          setTimeout(() => {
+            localStorage.removeItem('bb_admin_session');
+            window.location.href = 'admin.html';
+          }, 1200);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

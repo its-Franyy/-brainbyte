@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Control Panel Login — BrainByte</title>
+  <meta name="description" content="Secure authorization gateway for BrainByte network administration control panel. Authorized personnel only.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Premium Theme CSS -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    /* Make page scrollable */
+    html, body {
+      overflow-y: auto !important;
+    }
+
+    /* Admin Login Specific Layout Rules */
+    .admin-login-body {
+      background-color: #0D0E1A;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow-y: auto !important;
+      color: #FFFFFF;
+      font-family: var(--font-body);
+    }
+
+    /* Fixed ambient blobs */
+    .admin-bg-blob-violet {
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(124, 58, 237, 0.06) 0%, transparent 70%);
+      top: -200px;
+      left: -200px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .admin-bg-blob-cyan {
+      position: fixed;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.04) 0%, transparent 70%);
+      bottom: -150px;
+      right: -150px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .admin-top-bar {
+      width: 100%;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 10;
+    }
+
+    .admin-logo {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: #FFFFFF;
+      text-decoration: none;
+    }
+
+    .admin-logo span {
+      background: linear-gradient(135deg, #A855F7, #EC4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .admin-logo .brand-bolt-gold {
+      color: #F59E0B;
+      -webkit-text-fill-color: #F59E0B;
+      display: inline-block;
+      margin-left: 0.1rem;
+      margin-right: 0.15rem;
+    }
+
+    .admin-back-link {
+      color: #94A3B8;
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.25s ease;
+    }
+
+    .admin-back-link:hover {
+      color: #FFFFFF;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    }
+
+    .admin-center-container {
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 0.5rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* High-fidelity stronger glass card */
+    .admin-login-card {
+      max-width: 400px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      border-radius: 20px !important;
+      padding: 24px !important;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      text-align: center;
+      animation: admin-fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Top shield badge */
+    .admin-shield-badge {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7C3AED, #A855F7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 0.5rem auto;
+      font-size: 1.3rem;
+      color: #FFFFFF;
+      box-shadow: 0 0 15px rgba(124, 58, 237, 0.4);
+    }
+
+    .admin-warning-badge {
+      background: rgba(239, 68, 68, 0.10);
+      border: 1px solid rgba(239, 68, 68, 0.20);
+      border-radius: 8px;
+      padding: 4px 12px;
+      color: #EF4444;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .admin-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 0.75rem 0;
+      width: 100%;
+    }
+
+    /* Fix input padding to prevent overlap with prefix and suffix icons */
+    .admin-login-card .glass-input {
+      padding-left: 44px !important;
+      padding-right: 16px !important;
+    }
+    
+    .admin-login-card .glass-input[type="password"] {
+      padding-right: 44px !important;
+    }
+
+    /* Inputs fields prefixes icons absolutely centered vertically */
+    .admin-input-prefix-icon {
+      position: absolute;
+      left: 14px !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      color: #94A3B8;
+      font-size: 1rem;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      z-index: 5;
+    }
+
+    .admin-password-eye-icon {
+      position: absolute;
+      right: 14px !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      color: #94A3B8;
+      font-size: 1rem;
+      cursor: pointer;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      transition: color 0.2s ease;
+    }
+
+    .admin-password-eye-icon:hover {
+      color: #FFFFFF;
+    }
+
+    /* Submitting states spinners */
+    .admin-spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #FFFFFF;
+      animation: spin-anim 0.8s linear infinite;
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+
+    /* Failure alert box */
+    .admin-error-card {
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: #EF4444;
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      animation: shake-anim 0.4s ease;
+    }
+
+    .admin-footer-bar {
+      width: 100%;
+      padding: 1.5rem;
+      text-align: center;
+      position: relative;
+      z-index: 10;
+    }
+
+    @keyframes admin-fade-in {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes spin-anim {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes shake-anim {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+
+    /* Mobile Responsive passthrough values */
+    @media (max-width: 480px) {
+      .admin-login-card {
+        padding: 32px !important;
+        margin: 16px !important;
+      }
+    }
+  </style>
+</head>
+<body class="admin-login-body">
+
+  <!-- Fixed background blobs -->
+  <div class="admin-bg-blob-violet"></div>
+  <div class="admin-bg-blob-cyan"></div>
+
+  <!-- ================================================================
+    TOP BRAND BAR
+  ================================================================ -->
+  <header class="admin-top-bar">
+    <a href="index.html" class="admin-logo">
+      Brain<span class="brand-bolt-gold"><i class="bi bi-lightning-charge-fill"></i></span><span>Byte</span>
+    </a>
+    <a href="index.html" class="admin-back-link">
+      <i class="bi bi-arrow-left me-1"></i> Back to Site
+    </a>
+  </header>
+
+  <!-- ================================================================
+    CENTER ACCESS CARD
+  ================================================================ -->
+  <main class="admin-center-container">
+    <div class="admin-login-card">
+      
+      <!-- Top shield badge -->
+      <div class="admin-shield-badge">
+        <i class="bi bi-shield-lock-fill"></i>
+      </div>
+
+      <h1 class="text-white fw-bold mb-0.5" style="font-family: var(--font-display); font-size: 1.25rem; letter-spacing: -0.02em;">Admin Access Only</h1>
+      <p class="text-muted mb-0" style="font-size: 0.8rem; font-weight: 500;">BrainByte Control Panel</p>
+
+      <!-- Secure warning label badge -->
+      <div class="admin-warning-badge">
+        <i class="bi bi-lock-fill"></i> Restricted Area — Authorized Only
+      </div>
+
+      <div class="admin-divider"></div>
+
+      <!-- ERROR PANEL (Hidden by default) -->
+      <div class="admin-error-card d-none" id="admin-login-error-box">
+        <i class="bi bi-x-circle-fill"></i> Invalid credentials or insufficient access
+      </div>
+
+      <!-- CREDENTIALS FORM -->
+      <form id="admin-login-form" onsubmit="return false;" class="text-start">
+        
+        <!-- Admin Email slot -->
+        <div class="glass-input-wrapper mb-2">
+          <label class="glass-input-label" for="admin-email-field" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Admin Email</label>
+          <div class="validation-input-container">
+            <span class="admin-input-prefix-icon"><i class="bi bi-envelope-fill"></i></span>
+            <input type="email" class="glass-input" id="admin-email-field" placeholder="admin@brainbyte.in" value="admin@brainbyte.in" style="height: 40px; font-size: 0.85rem;" required>
+          </div>
+        </div>
+
+        <!-- Password slot -->
+        <div class="glass-input-wrapper mb-3">
+          <label class="glass-input-label" for="admin-password-field" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Password</label>
+          <div class="validation-input-container">
+            <span class="admin-input-prefix-icon"><i class="bi bi-lock-fill"></i></span>
+            <input type="password" class="glass-input" id="admin-password-field" placeholder="••••••••" value="admin123" style="height: 40px; font-size: 0.85rem;" required>
+            <span class="admin-password-eye-icon" id="admin-password-eye-btn"><i class="bi bi-eye-fill"></i></span>
+          </div>
+        </div>
+
+        <!-- Secure submit button -->
+        <button type="submit" class="btn btn-bb-primary w-100 mb-2 d-flex align-items-center justify-content-center" id="btn-admin-submit-login" style="height: 42px; font-size: 0.88rem; font-weight: 700; border-radius: 50px; background: #7C3AED; box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);">
+          Login to Admin Panel
+        </button>
+
+      </form>
+
+      <div class="admin-divider" style="margin: 0.5rem 0; background: rgba(255,255,255,0.06);"></div>
+
+      <!-- Footer navigation links return -->
+      <div style="font-size: 0.78rem; color: #94A3B8;">
+        Not an admin? <a href="index.html" class="text-decoration-none fw-bold" style="color: var(--accent-purple) !important; transition: all 0.2s ease;">← Return to main site</a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ================================================================
+    SECURITY ANCHOR FOOTER
+  ================================================================ -->
+  <footer class="admin-footer-bar">
+    <span style="font-size: 0.72rem; color: #475569; font-weight: 600; letter-spacing: 0.03em;">
+      🔒 This session is encrypted and monitored
+    </span>
+  </footer>
+
+  <!-- Bootstrap 5 JS Bundle CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6Rz5YN5757o+HRvnDJz9O+5G5FkEB83c11SLzmlc9PE9gmgwsnggC+GB53mI3U" crossorigin="anonymous"></script>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase Config -->
+<script src="js/supabase-config.js"></script>
+<!-- Main JS -->
+<script src="js/main.js"></script>
+
+  <!-- Secure authorization handlers scripting -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('admin-login-form');
+      const emailInput = document.getElementById('admin-email-field');
+      const passwordInput = document.getElementById('admin-password-field');
+      const submitBtn = document.getElementById('btn-admin-submit-login');
+      const errorCard = document.getElementById('admin-login-error-box');
+      const eyeBtn = document.getElementById('admin-password-eye-btn');
+
+      // 1. Password Visibility Eye Toggle
+      if (eyeBtn && passwordInput) {
+        eyeBtn.addEventListener('click', () => {
+          const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+          passwordInput.setAttribute('type', type);
+          
+          const icon = eyeBtn.querySelector('i');
+          if (type === 'text') {
+            icon.className = 'bi bi-eye-slash-fill';
+          } else {
+            icon.className = 'bi bi-eye-fill';
+          }
+        });
+      }
+
+      // 2. Submit credentials verification check loops
+      if (form && submitBtn) {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          
+          if (errorCard) errorCard.classList.add('d-none');
+
+          const email = emailInput ? emailInput.value.trim() : '';
+          const password = passwordInput ? passwordInput.value : '';
+
+          if (!email || !password) {
+            showError("Please enter both your email address and password.");
+            return;
+          }
+
+          // Trigger spinner animations
+          submitBtn.disabled = true;
+          const originalContent = submitBtn.innerHTML;
+          submitBtn.innerHTML = `<span class="admin-spinner"></span> <span>Authorizing Securely...</span>`;
+
+          console.log("%c[BrainByte Security] Authenticating admin credentials locally...", "color: #EC4899; font-weight: bold;");
+
+          setTimeout(() => {
+            if (email === "admin@brainbyte.in" && password === "admin123") {
+              submitBtn.innerHTML = `<i class="bi bi-shield-check"></i> <span>Access Granted!</span>`;
+              submitBtn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+              submitBtn.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.4)';
+              
+              console.log("%c[BrainByte Security] SUCCESS: Administrative access granted.", "color: #10B981; font-weight: bold;");
+              localStorage.setItem('bb_admin_session', 'active');
+              
+              // Also sync user in local storage
+              localStorage.setItem('brainbyte_user', JSON.stringify({
+                full_name: "Super Admin",
+                email: "admin@brainbyte.in",
+                role: "admin",
+                isLoggedIn: true
+              }));
+
+              setTimeout(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalContent;
+                submitBtn.style.background = '';
+                submitBtn.style.boxShadow = '';
+                window.location.href = 'admin-dashboard.html';
+              }, 1200);
+            } else {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = originalContent;
+              showError("Invalid admin credentials");
+            }
+          }, 1000);
+        });
+      }
+
+      function showError(msg) {
+        if (errorCard) {
+          const errText = errorCard.querySelector('div') || errorCard;
+          errText.textContent = msg;
+          errorCard.classList.remove('d-none');
+        }
+      }
+    });
+  </script>
+</body>
+</html>

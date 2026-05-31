@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Supabase CDN Client & Protected Page Session Check -->
+  <script>
+    (async () => {
+      const savedUserStr = localStorage.getItem('brainbyte_user');
+      let localSessionActive = false;
+      if (savedUserStr) {
+        try {
+          const user = JSON.parse(savedUserStr);
+          if (user && user.isLoggedIn) {
+            localSessionActive = true;
+          }
+        } catch (e) {}
+      }
+      if (localSessionActive || localStorage.getItem('bb_admin_session') === 'active') {
+        return;
+      }
+      const SUPABASE_URL = "https://xtbznjtwppchjsprnylt.supabase.co";
+      const SUPABASE_ANON_KEY = "sb_publishable_sjJvee1lOEPjm5kOkejIEg_8IVc-KQD";
+      if (SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_URL !== "") {
+        const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        if (supabase) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) return;
+        }
+      }
+      window.location.href = 'login.html';
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verification Status — BrainByte</title>
+  <meta name="description" content="Track your instructor onboarding verification, view status timelines, review admin feedback, and access FAQ resources.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Premium Theme CSS -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    /* Verification Status Custom Page Styles */
+    .status-card-box {
+      max-width: 600px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      backdrop-filter: blur(12px);
+      padding: 40px;
+    }
+
+    /* Vertical Status Timeline Rules */
+    .vertical-status-timeline {
+      position: relative;
+      padding-left: 2.5rem;
+      margin: 2.2rem 0;
+      text-align: left;
+    }
+
+    .timeline-vertical-line {
+      position: absolute;
+      top: 10px;
+      left: 11px;
+      width: 2px;
+      height: calc(100% - 20px);
+      background: rgba(255, 255, 255, 0.08);
+      z-index: 1;
+    }
+
+    /* Timeline connectors color variables */
+    .timeline-vertical-line-fill-1 {
+      position: absolute;
+      top: 10px;
+      left: 11px;
+      width: 2px;
+      height: 50%;
+      background: #10B981;
+      z-index: 2;
+    }
+
+    .timeline-vertical-line-fill-2 {
+      position: absolute;
+      top: 50%;
+      left: 11px;
+      width: 2px;
+      height: 50%;
+      border-left: 2px dashed #F59E0B;
+      z-index: 2;
+      display: none;
+    }
+
+    .status-timeline-node-item {
+      position: relative;
+      margin-bottom: 2rem;
+      z-index: 3;
+    }
+
+    .status-timeline-node-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .status-timeline-node-circle {
+      position: absolute;
+      left: -2.5rem;
+      top: 2px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0D0E1A;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Finished green circle */
+    .status-timeline-node-item.completed .status-timeline-node-circle {
+      background: #10B981;
+      border-color: #10B981;
+      color: #0D0E1A;
+      font-size: 0.72rem;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+    }
+
+    /* Active amber spinning circle */
+    .status-timeline-node-item.active .status-timeline-node-circle {
+      background: #0D0E1A;
+      border-color: #F59E0B;
+      color: #F59E0B;
+      font-size: 0.85rem;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.25);
+    }
+
+    .status-timeline-node-item.active .status-timeline-node-circle i {
+      display: inline-block;
+      animation: spin-loader 2.5s linear infinite;
+    }
+
+    /* Upcoming empty circle */
+    .status-timeline-node-item.upcoming .status-timeline-node-circle {
+      background: #0D0E1A;
+      border-color: rgba(255, 255, 255, 0.10);
+      color: #94A3B8;
+    }
+
+    .status-timeline-node-details {
+      padding-left: 0.5rem;
+    }
+
+    .status-timeline-node-title {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #94A3B8;
+      margin-bottom: 0.15rem;
+    }
+
+    .status-timeline-node-item.completed .status-timeline-node-title,
+    .status-timeline-node-item.active .status-timeline-node-title {
+      color: #FFFFFF;
+    }
+
+    .status-timeline-node-subtitle {
+      font-size: 0.76rem;
+      color: #94A3B8;
+      margin: 0;
+    }
+
+    .status-timeline-node-estimated {
+      font-size: 0.74rem;
+      color: #F59E0B;
+      font-weight: 700;
+      margin-top: 0.25rem;
+      margin-bottom: 0;
+    }
+
+    @keyframes spin-loader {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Status State Content Cards */
+    .current-status-banner-card {
+      border-radius: 16px;
+      padding: 24px;
+      text-align: left;
+      margin-bottom: 2rem;
+      animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .current-status-banner-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .current-status-banner-desc {
+      font-size: 0.85rem;
+      color: #94A3B8;
+      margin: 0;
+      line-height: 1.55;
+    }
+
+    /* Accordion FAQ Rules */
+    .faq-accordion-container {
+      max-width: 600px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .faq-accordion-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      margin-bottom: 0.85rem;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .faq-accordion-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .faq-accordion-card.active {
+      border-color: rgba(168, 85, 247, 0.30);
+      background: rgba(255, 255, 255, 0.04);
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.08);
+    }
+
+    .faq-accordion-header {
+      padding: 1.1rem 1.25rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+
+    .faq-accordion-question {
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin: 0;
+    }
+
+    .faq-accordion-icon {
+      font-size: 0.85rem;
+      color: #94A3B8;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .faq-accordion-card.active .faq-accordion-icon {
+      transform: rotate(180deg);
+      color: #A855F7;
+    }
+
+    .faq-accordion-body {
+      padding: 0 1.25rem 1.15rem 1.25rem;
+      display: none;
+    }
+
+    .faq-accordion-card.active .faq-accordion-body {
+      display: block;
+      animation: expand-fade 0.3s ease;
+    }
+
+    .faq-accordion-answer {
+      font-size: 0.82rem;
+      color: #94A3B8;
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    @keyframes expand-fade {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slide-up {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Mobile Timeline Layout */
+    @media (max-width: 480px) {
+      .vertical-status-timeline {
+        padding-left: 2rem;
+      }
+      .status-timeline-node-circle {
+        left: -2rem;
+      }
+    }
+  </style>
+</head>
+<body class="verification-page-body">
+
+  <!-- Fixed Ambient background glow blobs -->
+  <div class="bg-blob-teal" style="top: -100px; left: -100px; fixed: true; opacity: 0.15; pointer-events: none;"></div>
+  <div class="bg-blob-violet" style="top: 40%; right: -100px; fixed: true; opacity: 0.10; pointer-events: none;"></div>
+
+  <!-- ================================================================
+    TOP STICKY NAVBAR
+  ================================================================ -->
+  <nav class="navbar navbar-expand-lg bb-navbar scrolled" style="position: sticky; top: 0; z-index: 1000;">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="index.html">
+        <span>Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
+      </a>
+      
+      <button class="navbar-toggler text-white border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation" style="background: transparent; outline: none;">
+        <i class="bi bi-list fs-2"></i>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 gap-2">
+          <li class="nav-item"><a class="nav-link" href="courses.html">Courses</a></li>
+          <li class="nav-item"><a class="nav-link" href="library.html" style="color: var(--cyan-primary) !important;"><i class="bi bi-unlock-fill me-1"></i> Free Library</a></li>
+          <li class="nav-item"><a class="nav-link" href="teach.html">Teach</a></li>
+        </ul>
+        <div class="d-flex align-items-center gap-3">
+          <a href="dashboard.html" class="nav-link text-white fw-bold px-2"><i class="bi bi-grid-1x2-fill me-1.5" style="font-size: 0.85rem;"></i>Dashboard</a>
+          <a href="index.html" class="btn btn-bb-primary px-4 py-2" id="nav-btn-logout-header" style="font-size: 0.82rem; border-radius: 50px; font-weight: bold;">Logout</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ================================================================
+    FLOATING DEMO STATUS CONTROL SWITCHER
+  ================================================================ -->
+  <div class="demo-state-switcher">
+    <div class="demo-state-label"><i class="bi bi-sliders me-1 text-primary" style="color: var(--accent-purple) !important;"></i> State Switcher</div>
+    <button class="demo-switcher-btn active" data-state="pending" id="btn-demo-pending">1. Pending</button>
+    <button class="demo-switcher-btn" data-state="needs-info" id="btn-demo-needs-info">2. Needs Info</button>
+    <button class="demo-switcher-btn" data-state="approved" id="btn-demo-approved">3. Approved</button>
+    <button class="demo-switcher-btn" data-state="rejected" id="btn-demo-rejected">4. Rejected</button>
+    <button class="demo-switcher-btn" data-state="suspended" id="btn-demo-suspended">5. Suspended</button>
+  </div>
+
+  <!-- ================================================================
+    MAIN CARD CONTENT VIEWPORT
+  ================================================================ -->
+  <div class="container d-flex flex-column align-items-center justify-content-center py-5" style="min-height: calc(100vh - 80px); position: relative; z-index: 10;">
+    
+    <!-- Custom Header Navigation Back Link -->
+    <div class="w-100 text-start mb-3" style="max-width: 600px;">
+      <a href="teach.html" class="text-decoration-none text-muted fw-bold d-inline-flex align-items-center gap-1.5" style="font-size: 0.85rem; transition: var(--transition);" onmouseover="this.style.color='#FFFFFF';" onmouseout="this.style.color='#94A3B8';">
+        <i class="bi bi-arrow-left"></i> Back to Studio
+      </a>
+    </div>
+
+    <!-- Centralized Container Card -->
+    <div class="status-card-box mx-auto text-center mb-5">
+      
+      <!-- PAGE HEADER -->
+      <div class="mb-4">
+        <h1 class="text-white fw-bold mb-1.5" style="font-family: var(--font-display); font-size: 2.1rem; letter-spacing: -0.02em;">Verification Status</h1>
+        <p class="text-muted mb-0" style="font-size: 0.95rem; font-weight: 500;">Track your instructor application</p>
+      </div>
+
+      <!-- STATUS TIMELINE -->
+      <div class="vertical-status-timeline" id="status-timeline-visual">
+        <div class="timeline-vertical-line"></div>
+        <div class="timeline-vertical-line-fill-1" id="timeline-line-1"></div>
+        <div class="timeline-vertical-line-fill-2" id="timeline-line-2"></div>
+        
+        <!-- Step 1 — Application Submitted -->
+        <div class="status-timeline-node-item completed" id="node-timeline-1">
+          <div class="status-timeline-node-circle">
+            <i class="bi bi-check-lg"></i>
+          </div>
+          <div class="status-timeline-node-details">
+            <h4 class="status-timeline-node-title">Application Submitted</h4>
+            <p class="status-timeline-node-subtitle">May 29, 2025 • 12:45 PM</p>
+          </div>
+        </div>
+
+        <!-- Step 2 — Under Admin Review -->
+        <div class="status-timeline-node-item active" id="node-timeline-2">
+          <div class="status-timeline-node-circle">
+            <i class="bi bi-hourglass-split"></i>
+          </div>
+          <div class="status-timeline-node-details">
+            <h4 class="status-timeline-node-title">Under Admin Review</h4>
+            <p class="status-timeline-node-subtitle">Usually takes 2-3 business days</p>
+            <p class="status-timeline-node-estimated" id="timeline-node-estimated-date">Expected by June 1, 2025</p>
+          </div>
+        </div>
+
+        <!-- Step 3 — Decision -->
+        <div class="status-timeline-node-item upcoming" id="node-timeline-3">
+          <div class="status-timeline-node-circle"></div>
+          <div class="status-timeline-node-details">
+            <h4 class="status-timeline-node-title" id="timeline-node-3-title">Decision Pending</h4>
+            <p class="status-timeline-node-subtitle" id="timeline-node-3-subtitle">Pending final review check</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==============================================================
+        CURRENT STATUS DISPLAY BANNER CARDS
+      ============================================================== -->
+      <div id="status-cards-container-viewport">
+        
+        <!-- 1. PENDING State Card -->
+        <div class="current-status-banner-card" id="status-card-pending" style="background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.20);">
+          <h3 class="current-status-banner-title" style="color: #F59E0B;"><i class="bi bi-hourglass-split"></i> Your application is in the queue</h3>
+          <p class="current-status-banner-desc mb-3">Our team reviews applications in order. You'll receive an email notification once reviewed. Sit tight!</p>
+          <div style="font-size: 0.8rem; font-weight: 700; color: #F59E0B;">Estimated decision date: <span id="pending-estimated-date-badge">June 1, 2025</span></div>
+        </div>
+
+        <!-- 2. NEEDS INFO State Card -->
+        <div class="current-status-banner-card" id="status-card-needs-info" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.30); display: none;">
+          <h3 class="current-status-banner-title" style="color: #F59E0B;"><i class="bi bi-file-earmark-text-fill"></i> Admin needs more information</h3>
+          <p class="current-status-banner-desc mb-3">We need to clarify or verify some details regarding your profiles before onboarding you.</p>
+          
+          <!-- Admin Message Box -->
+          <div class="p-3 mb-3 text-start rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: bold; color: #F59E0B; margin-bottom: 0.35rem;"><i class="bi bi-chat-left-quote-fill"></i> Review Officer Feedback:</div>
+            <p style="font-size: 0.8rem; font-style: italic; color: #94A3B8; margin: 0; line-height: 1.5;">
+              "Hi Rahul, your LinkedIn looks great! Could you share a teaching video?"
+            </p>
+          </div>
+
+          <!-- Response text area -->
+          <div class="glass-input-wrapper mb-3">
+            <textarea class="glass-input" id="needs-info-response-area" placeholder="Type your response here..." style="height: auto; min-height: 120px; border-radius: 8px;"></textarea>
+            <span class="text-danger mt-1 d-none" style="font-size: 0.7rem; font-weight: 600; text-align: left; display: block;" id="needs-info-response-error"><i class="bi bi-exclamation-circle-fill"></i> Response message cannot be empty.</span>
+          </div>
+
+          <button type="button" class="btn btn-bb-primary py-2.5 px-4" id="btn-status-send-response" style="background: #F59E0B; color: #0D0E1A; width: auto; font-weight: bold; border-radius: 50px; border: none; box-shadow: 0 0 15px rgba(245, 158, 11, 0.45);">
+            Send Response →
+          </button>
+        </div>
+
+        <!-- 3. APPROVED State Card -->
+        <div class="current-status-banner-card text-center" id="status-card-approved" style="background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.30); display: none;">
+          <div class="display-3 text-success mb-2" style="text-shadow: 0 0 20px rgba(16, 185, 129, 0.35);"><i class="bi bi-patch-check-fill"></i></div>
+          <h3 class="current-status-banner-title text-success justify-content-center mb-2" style="font-size: 1.35rem; font-family: var(--font-display);">🎉 Congratulations! You're Verified!</h3>
+          <p class="current-status-banner-desc mb-3.5 text-center">You now have full instructor access. Start creating courses and earning today!</p>
+          
+          <!-- Profile Badge preview -->
+          <div class="p-3.5 mb-4 mx-auto rounded-3 d-flex align-items-center justify-content-center gap-2" style="max-width: 320px; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.08); font-size: 0.8rem; font-weight: 600;">
+            <span class="text-muted">Your profile now shows:</span>
+            <span class="badge" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); color: #C084FC; font-weight: bold; font-family: var(--font-display);"><i class="bi bi-patch-check-fill me-0.5" style="color: var(--accent-purple) !important;"></i> Verified Instructor</span>
+          </div>
+
+          <!-- Buttons -->
+          <div class="d-flex flex-column gap-2.5 max-width-xs mx-auto" style="max-width: 320px;">
+            <a href="teach.html" class="btn btn-bb-primary py-3 w-100" style="background: #7C3AED; box-shadow: 0 0 20px rgba(124, 58, 237, 0.5); font-weight: bold; border-radius: 50px; text-decoration: none;">
+              Start Creating Courses →
+            </a>
+            <a href="teach.html" class="btn btn-bb-ghost py-2.5 w-100" style="border-radius: 50px; text-decoration: none;">
+              Go to Studio →
+            </a>
+          </div>
+        </div>
+
+        <!-- 4. REJECTED State Card -->
+        <div class="current-status-banner-card text-center" id="status-card-rejected" style="background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.25); display: none;">
+          <div class="display-3 text-danger mb-2" style="text-shadow: 0 0 20px rgba(239, 68, 68, 0.35);"><i class="bi bi-x-circle-fill"></i></div>
+          <h3 class="current-status-banner-title text-danger justify-content-center mb-2" style="font-size: 1.15rem;">Application Not Approved</h3>
+          
+          <!-- Reason Box -->
+          <div class="p-3 mb-3.5 mx-auto rounded-3 text-start" style="max-width: 440px; background: rgba(255,255,255,0.04); border: 1px solid rgba(239, 68, 68, 0.20);">
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: bold; color: #EF4444; margin-bottom: 0.3rem;"><i class="bi bi-exclamation-triangle-fill"></i> Rejection Reason:</div>
+            <p style="font-size: 0.8rem; font-weight: bold; color: #94A3B8; margin: 0;">LinkedIn profile incomplete</p>
+          </div>
+
+          <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 0.25rem;">You can reapply after:</p>
+          <div style="font-size: 1.45rem; font-weight: bold; color: #EF4444; margin-bottom: 1.5rem;" id="reapply-date-display">June 28, 2025</div>
+
+          <!-- Buttons -->
+          <div class="d-flex gap-3 justify-content-center max-width-xs mx-auto" style="max-width: 320px;">
+            <a href="mailto:support@brainbyte.in" class="btn btn-bb-ghost py-3 w-50" style="border-radius: 50px; font-weight: bold; font-size: 0.82rem; text-decoration: none; color: #EF4444 !important; border-color: rgba(239, 68, 68, 0.25) !important;">
+              Contact Support
+            </a>
+            <button type="button" class="btn btn-bb-primary py-3 w-50" id="btn-reapply-trigger-status" style="border-radius: 50px; font-weight: bold; font-size: 0.82rem; background: #7C3AED;" disabled>
+              Reapply
+            </button>
+          </div>
+        </div>
+
+        <!-- 5. SUSPENDED State Card -->
+        <div class="current-status-banner-card text-center" id="status-card-suspended" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.30); display: none;">
+          <div class="display-3 text-danger mb-2" style="text-shadow: 0 0 20px rgba(239, 68, 68, 0.35);"><i class="bi bi-slash-circle-fill"></i></div>
+          <h3 class="current-status-banner-title text-danger justify-content-center mb-2" style="font-size: 1.15rem;">Account Suspended</h3>
+          <p class="current-status-banner-desc mb-4 text-center">Please contact support for more information regarding your account status.</p>
+          
+          <a href="mailto:support@brainbyte.in" class="btn btn-bb-primary py-3 px-5 d-inline-flex" style="background: #EF4444; font-weight: bold; border-radius: 50px; text-decoration: none; border: none; font-size: 0.82rem; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);">
+            Contact Support →
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ================================================================
+      FAQ ACCORDION SECTION
+    ================================================================ -->
+    <div class="faq-accordion-container mb-5 text-center">
+      <h2 class="text-white fw-bold mb-3.5" style="font-family: var(--font-display); font-size: 1.35rem;">Frequently Asked Questions</h2>
+      
+      <!-- FAQ item 1 -->
+      <div class="faq-accordion-card">
+        <div class="faq-accordion-header" onclick="toggleFaqAccordion(this);">
+          <span class="faq-accordion-question">How long does review take?</span>
+          <span class="faq-accordion-icon"><i class="bi bi-chevron-down"></i></span>
+        </div>
+        <div class="faq-accordion-body">
+          <p class="faq-accordion-answer">Usually 2-3 business days. We review applications in order of submission.</p>
+        </div>
+      </div>
+
+      <!-- FAQ item 2 -->
+      <div class="faq-accordion-card">
+        <div class="faq-accordion-header" onclick="toggleFaqAccordion(this);">
+          <span class="faq-accordion-question">What if I get rejected?</span>
+          <span class="faq-accordion-icon"><i class="bi bi-chevron-down"></i></span>
+        </div>
+        <div class="faq-accordion-body">
+          <p class="faq-accordion-answer">You can reapply after 30 days with improved profile information.</p>
+        </div>
+      </div>
+
+      <!-- FAQ item 3 -->
+      <div class="faq-accordion-card">
+        <div class="faq-accordion-header" onclick="toggleFaqAccordion(this);">
+          <span class="faq-accordion-question">Can I create courses while pending?</span>
+          <span class="faq-accordion-icon"><i class="bi bi-chevron-down"></i></span>
+        </div>
+        <div class="faq-accordion-body">
+          <p class="faq-accordion-answer">No, you need verification approval before publishing any courses.</p>
+        </div>
+      </div>
+
+      <!-- FAQ item 4 -->
+      <div class="faq-accordion-card">
+        <div class="faq-accordion-header" onclick="toggleFaqAccordion(this);">
+          <span class="faq-accordion-question">How do I speed up review?</span>
+          <span class="faq-accordion-icon"><i class="bi bi-chevron-down"></i></span>
+        </div>
+        <div class="faq-accordion-body">
+          <p class="faq-accordion-answer">Add a YouTube teaching video to your application — it helps a lot!</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CONTACT SUPPORT -->
+    <div class="text-center" style="font-size: 0.88rem; color: #94A3B8;">
+      Need help? <a href="mailto:support@brainbyte.in" class="text-primary text-decoration-none fw-bold" style="color: #A855F7 !important; transition: all 0.2s ease;" onmouseover="this.style.textShadow='0 0 5px rgba(168,85,247,0.35)';" onmouseout="this.style.textShadow='none';">Contact Support</a>
+    </div>
+
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6Rz5YN5757o+HRvnDJz9O+5G5FkEB83c11SLzmlc9PE9gmgwsnggC+GB53mI3U" crossorigin="anonymous"></script>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase Config -->
+<script src="js/supabase-config.js"></script>
+<!-- Main JS -->
+<script src="js/main.js"></script>
+
+  <!-- Interactive logic handler scripts -->
+  <script>
+    // FAQ Accordion Toggler
+    function toggleFaqAccordion(headerEl) {
+      const card = headerEl.parentElement;
+      const isActive = card.classList.contains('active');
+      
+      // Close all accordions
+      document.querySelectorAll('.faq-accordion-card').forEach(item => {
+        item.classList.remove('active');
+      });
+
+      if (!isActive) {
+        card.classList.add('active');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const switcherButtons = document.querySelectorAll('.demo-switcher-btn');
+      
+      const cards = {
+        pending: document.getElementById('status-card-pending'),
+        'needs-info': document.getElementById('status-card-needs-info'),
+        approved: document.getElementById('status-card-approved'),
+        rejected: document.getElementById('status-card-rejected'),
+        suspended: document.getElementById('status-card-suspended')
+      };
+
+      const timelineNodes = {
+        1: document.getElementById('node-timeline-1'),
+        2: document.getElementById('node-timeline-2'),
+        3: document.getElementById('node-timeline-3')
+      };
+
+      const lineFill1 = document.getElementById('timeline-line-1');
+      const lineFill2 = document.getElementById('timeline-line-2');
+
+      const MOCK_STATUS_KEY = 'bb_verify_status_demo';
+
+      function showActiveStatus(stateName) {
+        // Hide all status cards
+        Object.keys(cards).forEach(key => {
+          if (cards[key]) cards[key].style.display = 'none';
+        });
+
+        // Show selected status card
+        if (cards[stateName]) {
+          cards[stateName].style.display = 'block';
+        }
+
+        // Sync switcher buttons
+        switcherButtons.forEach(btn => {
+          if (btn.getAttribute('data-state') === stateName) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+
+        // ── SYNC TIMELINE STEP GRAPH GRAPHICS ──
+        const nodeCircle2 = timelineNodes[2].querySelector('.status-timeline-node-circle');
+        const nodeCircle3 = timelineNodes[3].querySelector('.status-timeline-node-circle');
+        const title3 = document.getElementById('timeline-node-3-title');
+        const subtitle3 = document.getElementById('timeline-node-3-subtitle');
+
+        // Reset timeline line fill displays
+        if (lineFill1) lineFill1.style.background = '#10B981';
+        if (lineFill2) lineFill2.style.display = 'none';
+
+        if (stateName === 'pending' || stateName === 'needs-info') {
+          // Step 1: Done (green)
+          timelineNodes[1].className = 'status-timeline-node-item completed';
+          // Step 2: Active Review (spinning amber)
+          timelineNodes[2].className = 'status-timeline-node-item active';
+          if (nodeCircle2) {
+            nodeCircle2.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+            nodeCircle2.style.borderColor = '#F59E0B';
+            nodeCircle2.style.background = '#0D0E1A';
+          }
+          // Step 3: Decision Pending (upcoming gray)
+          timelineNodes[3].className = 'status-timeline-node-item upcoming';
+          if (nodeCircle3) {
+            nodeCircle3.innerHTML = '';
+            nodeCircle3.style.borderColor = 'rgba(255,255,255,0.10)';
+            nodeCircle3.style.background = '#0D0E1A';
+          }
+          if (title3) title3.innerText = 'Decision Pending';
+          if (subtitle3) subtitle3.innerText = 'Pending final review check';
+        } 
+        else if (stateName === 'approved') {
+          // Step 1: Done (green)
+          timelineNodes[1].className = 'status-timeline-node-item completed';
+          // Step 2: Done (green)
+          timelineNodes[2].className = 'status-timeline-node-item completed';
+          if (nodeCircle2) {
+            nodeCircle2.innerHTML = '<i class="bi bi-check-lg" style="color: #0D0E1A;"></i>';
+            nodeCircle2.style.borderColor = '#10B981';
+            nodeCircle2.style.background = '#10B981';
+          }
+          // Step 3: Done Approved (green check)
+          timelineNodes[3].className = 'status-timeline-node-item completed';
+          if (nodeCircle3) {
+            nodeCircle3.innerHTML = '<i class="bi bi-check-lg" style="color: #0D0E1A;"></i>';
+            nodeCircle3.style.borderColor = '#10B981';
+            nodeCircle3.style.background = '#10B981';
+            nodeCircle3.style.boxShadow = '0 0 12px rgba(16, 185, 129, 0.4)';
+          }
+          if (title3) title3.innerText = 'Onboarding Approved';
+          if (subtitle3) subtitle3.innerText = 'Studio unlocked successfully';
+
+          // Set timeline line fills solid green all way
+          if (lineFill2) {
+            lineFill2.style.display = 'block';
+            lineFill2.style.borderLeft = '2px solid #10B981';
+          }
+        } 
+        else if (stateName === 'rejected') {
+          // Step 1: Done (green)
+          timelineNodes[1].className = 'status-timeline-node-item completed';
+          // Step 2: Done (green)
+          timelineNodes[2].className = 'status-timeline-node-item completed';
+          if (nodeCircle2) {
+            nodeCircle2.innerHTML = '<i class="bi bi-check-lg" style="color: #0D0E1A;"></i>';
+            nodeCircle2.style.borderColor = '#10B981';
+            nodeCircle2.style.background = '#10B981';
+          }
+          // Step 3: Rejected (red x)
+          timelineNodes[3].className = 'status-timeline-node-item completed';
+          if (nodeCircle3) {
+            nodeCircle3.innerHTML = '<i class="bi bi-x" style="color: #FFFFFF;"></i>';
+            nodeCircle3.style.borderColor = '#EF4444';
+            nodeCircle3.style.background = '#EF4444';
+            nodeCircle3.style.boxShadow = '0 0 12px rgba(239, 68, 68, 0.4)';
+          }
+          if (title3) title3.innerText = 'Application Declined';
+          if (subtitle3) subtitle3.innerText = 'Requirements checks failed';
+
+          // Set timeline line fills red
+          if (lineFill2) {
+            lineFill2.style.display = 'block';
+            lineFill2.style.borderLeft = '2px dashed #EF4444';
+          }
+        }
+        else if (stateName === 'suspended') {
+          // Suspended Timeline status
+          timelineNodes[1].className = 'status-timeline-node-item completed';
+          timelineNodes[2].className = 'status-timeline-node-item completed';
+          if (nodeCircle2) {
+            nodeCircle2.innerHTML = '<i class="bi bi-check-lg" style="color: #0D0E1A;"></i>';
+            nodeCircle2.style.borderColor = '#10B981';
+            nodeCircle2.style.background = '#10B981';
+          }
+          timelineNodes[3].className = 'status-timeline-node-item completed';
+          if (nodeCircle3) {
+            nodeCircle3.innerHTML = '<i class="bi bi-slash-circle" style="color: #FFFFFF;"></i>';
+            nodeCircle3.style.borderColor = '#EF4444';
+            nodeCircle3.style.background = '#EF4444';
+            nodeCircle3.style.boxShadow = '0 0 12px rgba(239, 68, 68, 0.4)';
+          }
+          if (title3) title3.innerText = 'Profile Suspended';
+          if (subtitle3) subtitle3.innerText = 'Studio revoked by admin';
+
+          if (lineFill2) {
+            lineFill2.style.display = 'block';
+            lineFill2.style.borderLeft = '2px dashed #EF4444';
+          }
+        }
+
+        // Cache state selection
+        localStorage.setItem(MOCK_STATUS_KEY, stateName);
+      }
+
+      // Bind switcher buttons
+      switcherButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          showActiveStatus(btn.getAttribute('data-state'));
+        });
+      });
+
+      // Needs Info Responder Submit Action
+      const btnSendResponse = document.getElementById('btn-status-send-response');
+      const textarea = document.getElementById('needs-info-response-area');
+      const errorText = document.getElementById('needs-info-response-error');
+
+      if (btnSendResponse && textarea) {
+        btnSendResponse.addEventListener('click', () => {
+          const val = textarea.value.trim();
+          if (val === '') {
+            if (errorText) errorText.classList.remove('d-none');
+            textarea.classList.add('is-invalid');
+            return;
+          }
+          if (errorText) errorText.classList.add('d-none');
+          textarea.classList.remove('is-invalid');
+
+          btnSendResponse.disabled = true;
+          btnSendResponse.innerHTML = `<span class="alert-spinner"></span> <span>Sending...</span>`;
+
+          setTimeout(() => {
+            btnSendResponse.innerHTML = `<i class="bi bi-check-circle-fill"></i> Sent!`;
+            btnSendResponse.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+            btnSendResponse.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.4)';
+
+            setTimeout(() => {
+              btnSendResponse.disabled = false;
+              btnSendResponse.innerHTML = 'Send Response →';
+              btnSendResponse.style.background = '';
+              btnSendResponse.style.boxShadow = '';
+              textarea.value = '';
+              
+              // Transition back to Pending status
+              showActiveStatus('pending');
+            }, 1200);
+
+          }, 1500);
+        });
+      }
+
+      // Reapply trigger status buttons
+      const btnReapplyStatus = document.getElementById('btn-reapply-trigger-status');
+      if (btnReapplyStatus) {
+        btnReapplyStatus.addEventListener('click', () => {
+          window.location.href = 'teach-verify.html';
+        });
+
+        // Simulating 30 days unlock: enable the reapply button automatically for demo reviews
+        setTimeout(() => {
+          btnReapplyStatus.removeAttribute('disabled');
+          btnReapplyStatus.style.boxShadow = '0 0 20px rgba(124, 58, 237, 0.45)';
+          console.log("%c[BrainByte Onboarding] Demo Override: 30 days lock expired. [Reapply] button enabled.", "color: #A855F7; font-weight: bold;");
+        }, 2000);
+      }
+
+      // Pre-set FAQ active accordion on load
+      const firstFaqHeader = document.querySelector('.faq-accordion-header');
+      if (firstFaqHeader) toggleFaqAccordion(firstFaqHeader);
+
+      // Load initial state
+      const initial = localStorage.getItem(MOCK_STATUS_KEY) || 'pending';
+      showActiveStatus(initial);
+    });
+  </script>
+</body>
+</html>

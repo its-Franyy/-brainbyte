@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrainByte — Premium Tech Courses & Free Resource Library</title>
+  <meta name="description" content="Accelerate your technology career with BrainByte. Explore premium high-fidelity courses with Violet coding, and unlock our comprehensive Teal Free Library containing tutorials, guides, and videos.">
+  
+  <!-- Preload and load Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Premium Theme CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Ambient background glow elements -->
+  <div class="bg-blob-violet" style="top: -100px; left: -100px;"></div>
+  <div class="bg-blob-teal" style="top: 300px; right: -100px;"></div>
+  <div class="bg-blob-pink" style="bottom: 35%; left: 5%;"></div>
+  <div class="bg-blob-violet" style="bottom: 5%; right: -50px;"></div>
+
+  <!-- ================================================================
+    HEADER & NAVIGATION
+  ================================================================ -->
+  <nav class="navbar navbar-expand-lg bb-navbar">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="index.html" id="bb-logo">
+        <span>Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
+      </a>
+      
+      <button class="navbar-toggler border-0 shadow-none text-white" type="button" data-bs-toggle="collapse" data-bs-target="#bbNavbar" aria-controls="bbNavbar" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="bi bi-list fs-2" style="color: var(--text-primary);"></i>
+      </button>
+      
+      <div class="collapse navbar-collapse" id="bbNavbar">
+        <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1 mt-3 mt-lg-0">
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link active" aria-current="page" href="courses.html" id="nav-home">Explore</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link library-link" href="library.html" id="nav-library">Library <i class="bi bi-lock-fill ms-1" id="navbar-library-lock-icon" style="font-size: 0.85rem; color: var(--teal-primary);"></i></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="teach.html" id="nav-teach">Teach</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="pricing.html" id="nav-pricing">Pricing</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="about.html" id="nav-about">About</a>
+          </li>
+        </ul>
+        <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">
+          <a href="login.html" class="btn btn-bb-ghost" id="btn-signin">Sign In</a>
+          <a href="signup.html" class="btn btn-bb-primary" id="btn-getstarted">Get Started</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ================================================================
+    HERO SECTION
+  ================================================================ -->
+  <header class="hero-section" id="hero">
+    <div class="container">
+      <div class="row align-items-center gy-5">
+        <!-- Text Columns -->
+        <div class="col-lg-6 text-center text-lg-start">
+          <div class="hero-tag" id="hero-tag-pill">
+            <i class="bi bi-sparkles"></i> ⚡ Elevate Your Tech Skills
+          </div>
+          <h1 class="hero-title" id="main-heading">
+            Learn with <span class="text-gradient-violet">Premium Courses</span>.<br>
+            Grow with our <span class="text-gradient-teal">Free Library</span>.
+          </h1>
+          <p class="hero-subtitle mx-auto mx-lg-0">
+            BrainByte is the ultimate dual-track developer ecosystem. Unlock structured deep-dive certifications or explore our massive, unrestricted library of free videos and guides.
+          </p>
+          <div class="d-flex flex-column flex-sm-row justify-content-center justify-content-lg-start gap-3">
+            <a href="courses.html" class="btn btn-bb-primary px-4 py-3" id="cta-premium">
+              <i class="bi bi-rocket-takeoff-fill me-2"></i> Explore Premium Courses
+            </a>
+            <a href="library.html" class="btn btn-bb-outline-teal px-4 py-3" id="cta-free">
+              <i class="bi bi-book-half me-2"></i> Browse Free Library
+            </a>
+          </div>
+          
+          <!-- Trust Indicators -->
+          <div class="trust-bar" id="trust-bar-container">
+            <p class="trust-title">Trusted by engineers at</p>
+            <div class="d-flex flex-wrap justify-content-center justify-content-lg-start align-items-center gap-4">
+              <span class="partner-logo fw-bold" style="font-size: 1.15rem; font-family: var(--font-display); letter-spacing: -0.05em; color: var(--text-primary);">GOOGLE</span>
+              <span class="partner-logo fw-bold" style="font-size: 1.15rem; font-family: var(--font-display); letter-spacing: -0.05em; color: var(--text-primary);">MICROSOFT</span>
+              <span class="partner-logo fw-bold" style="font-size: 1.15rem; font-family: var(--font-display); letter-spacing: -0.05em; color: var(--text-primary);">META</span>
+              <span class="partner-logo fw-bold" style="font-size: 1.15rem; font-family: var(--font-display); letter-spacing: -0.05em; color: var(--text-primary);">AMAZON</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Premium CSS Visual Mock Column (Dark Obsidian Terminal Look) -->
+        <div class="col-lg-6">
+          <div class="hero-image-wrapper">
+            <!-- Ambient glow sphere behind dashboard mockup -->
+            <div style="position: absolute; inset: 10%; background: linear-gradient(135deg, var(--violet-primary), var(--teal-primary)); filter: blur(70px); opacity: 0.2; border-radius: 50%;"></div>
+            
+            <!-- Dashboard Main Card Mockup -->
+            <div class="hero-main-card" id="hero-dashboard-mock">
+              <!-- Glass Header -->
+              <div class="d-flex align-items-center justify-content-between p-3" style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);">
+                <div class="d-flex gap-2">
+                  <span style="width: 10px; height: 10px; border-radius: 50%; background-color: #EF4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);"></span>
+                  <span style="width: 10px; height: 10px; border-radius: 50%; background-color: #F59E0B; box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);"></span>
+                  <span style="width: 10px; height: 10px; border-radius: 50%; background-color: #10B981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);"></span>
+                </div>
+                <span class="fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em; color: var(--text-muted);">BRAINBYTE LEARNING HUD</span>
+                <span class="badge" style="background: linear-gradient(135deg, var(--violet-primary), var(--brand-pink)); font-size: 0.7rem; box-shadow: var(--shadow-glow-violet);">PRO</span>
+              </div>
+              
+              <!-- Content -->
+              <div class="p-4">
+                <div class="row g-3">
+                  <!-- Main course card inside mock -->
+                  <div class="col-12">
+                    <div class="p-3 border rounded-3 d-flex align-items-center justify-content-between" style="background: rgba(255, 255, 255, 0.02); border-color: var(--border) !important;">
+                      <div class="d-flex align-items-center gap-3">
+                        <div style="width: 46px; height: 46px; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--violet-primary), var(--brand-pink)); display: flex; align-items: center; justify-content: center; color: #FFF; font-weight: 800; box-shadow: var(--shadow-glow-violet);">JS</div>
+                        <div>
+                          <h4 style="font-size: 0.95rem; margin-bottom: 0.2rem; font-weight: 700; color: #FFFFFF;">Advanced Next.js & Supabase</h4>
+                          <span class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-clock me-1"></i> Section 4 of 12 &bull; 72% done</span>
+                        </div>
+                      </div>
+                      <div class="play-btn-circle" style="width: 32px; height: 32px; font-size: 0.85rem; background: var(--violet-primary); color: #FFF; border: none; box-shadow: var(--shadow-glow-violet);">
+                        <i class="bi bi-play-fill" style="margin-left: 2px; color: #FFFFFF;"></i>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Left Mock Panel (Study Minutes) -->
+                  <div class="col-sm-6">
+                    <div class="p-3 border rounded-3 height-100" style="background: rgba(255, 255, 255, 0.01); border-color: var(--border) !important;">
+                      <span class="text-muted fw-semibold" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">Study Minutes</span>
+                      <div class="d-flex align-items-baseline gap-2">
+                        <span class="fw-bold" style="font-size: 1.6rem; letter-spacing: -0.02em; color: #FFFFFF;">382</span>
+                        <span class="fw-bold" style="font-size: 0.75rem; color: var(--teal-mid); text-shadow: 0 0 10px rgba(45,212,191,0.2);"><i class="bi bi-arrow-up-right"></i> +12%</span>
+                      </div>
+                      
+                      <!-- Simple Mock SVG Graph -->
+                      <svg viewBox="0 0 100 35" class="w-100 mt-2" style="height: 40px; overflow: visible;">
+                        <path d="M0,30 Q15,10 30,22 T60,5 T90,15 T100,12" fill="none" stroke="var(--violet-mid)" stroke-width="2.5" stroke-linecap="round" style="filter: drop-shadow(0 0 4px var(--violet-glow));"></path>
+                        <path d="M0,30 Q15,10 30,22 T60,5 T90,15 T100,12 L100,35 L0,35 Z" fill="url(#violet-gradient)" opacity="0.1"></path>
+                        <circle cx="60" cy="5" r="3" fill="var(--brand-pink)" style="filter: drop-shadow(0 0 6px var(--brand-pink-glow));"></circle>
+                        <defs>
+                          <linearGradient id="violet-gradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="var(--violet-primary)"/>
+                            <stop offset="100%" stop-color="transparent"/>
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  <!-- Right Mock Panel (Teal Library downloads) -->
+                  <div class="col-sm-6">
+                    <div class="p-3 border rounded-3 height-100" style="background: rgba(255, 255, 255, 0.01); border-color: var(--border) !important;">
+                      <span class="text-muted fw-semibold" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">Free Resources Grabbed</span>
+                      <div class="d-flex align-items-baseline gap-2">
+                        <span class="fw-bold" style="font-size: 1.6rem; letter-spacing: -0.02em; color: #FFFFFF;">14</span>
+                        <span class="badge" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); color: var(--teal-mid); font-size: 0.7rem; font-weight: 700; box-shadow: var(--shadow-glow-teal);">TEAL LIB</span>
+                      </div>
+                      
+                      <!-- Simple progress indicators -->
+                      <div class="d-flex gap-1 mt-3">
+                        <span style="flex-grow: 1; height: 6px; background: linear-gradient(to right, var(--teal-primary), var(--teal-mid)); border-radius: 3px; box-shadow: var(--shadow-glow-teal);"></span>
+                        <span style="flex-grow: 1; height: 6px; background: linear-gradient(to right, var(--teal-primary), var(--teal-mid)); border-radius: 3px; box-shadow: var(--shadow-glow-teal);"></span>
+                        <span style="flex-grow: 1; height: 6px; background: linear-gradient(to right, var(--teal-primary), var(--teal-mid)); border-radius: 3px; box-shadow: var(--shadow-glow-teal);"></span>
+                        <span style="flex-grow: 1; height: 6px; background-color: var(--border); border-radius: 3px;"></span>
+                      </div>
+                      <span class="text-muted d-block mt-1" style="font-size: 0.68rem; font-weight: 500;">Next unlocks in 2 days</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Floating absolute neon widgets in Hero column -->
+            <div class="floating-widget widget-1" id="float-wid-1">
+              <div class="floating-icon"><i class="bi bi-award-fill"></i></div>
+              <div>
+                <span class="d-block fw-bold text-white" style="font-size: 0.85rem; line-height: 1.2;">React Cert</span>
+                <span class="text-muted d-block" style="font-size: 0.7rem;">Verified on-chain</span>
+              </div>
+            </div>
+            
+            <div class="floating-widget widget-2" id="float-wid-2">
+              <div class="floating-icon"><i class="bi bi-file-earmark-pdf-fill"></i></div>
+              <div>
+                <span class="d-block fw-bold text-white" style="font-size: 0.85rem; line-height: 1.2;">System Design PDF</span>
+                <span class="text-success d-block fw-bold" style="font-size: 0.7rem; color: var(--teal-mid) !important;"><i class="bi bi-arrow-down"></i> 2.4k DLs</span>
+              </div>
+            </div>
+            
+            <div class="floating-widget widget-3" id="float-wid-3">
+              <div class="floating-icon"><i class="bi bi-play-circle-fill"></i></div>
+              <div>
+                <span class="d-block fw-bold text-white" style="font-size: 0.85rem; line-height: 1.2;">Docker Live</span>
+                <span class="text-muted d-block" style="font-size: 0.7rem;">4.2k watching</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================================================================
+    STATS BAR SECTION
+  ================================================================ -->
+  <section class="stats-section" id="stats">
+    <div class="container">
+      <div class="row gy-4 gy-md-0 align-items-center">
+        <div class="col-6 col-md-3">
+          <div class="stat-card" id="stat-card-learners">
+            <div class="stat-number" data-target="50000" data-suffix="+" id="val-learners">50,000+</div>
+            <div class="stat-label">Global Learners</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card" id="stat-card-courses">
+            <div class="stat-number" data-target="200" data-suffix="+" id="val-courses">200+</div>
+            <div class="stat-label">Premium Courses</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card stat-teal" id="stat-card-resources">
+            <div class="stat-number" data-target="150" data-suffix="+" id="val-resources">150+</div>
+            <div class="stat-label">Teal Free Resources</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card" id="stat-card-rating">
+            <div class="stat-number" data-target="4.9" data-prefix="" data-suffix="/5" id="val-rating">4.9/5</div>
+            <div class="stat-label">Avg Student Rating</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+    CATEGORIES SECTION
+  ================================================================ -->
+  <section class="py-5 my-4" id="categories">
+    <div class="container">
+      <div class="section-header text-center mx-auto" style="max-width: 600px;">
+        <span class="section-pill violet-pill" id="cat-pill">Categories</span>
+        <h2 class="h1" id="cat-heading">What would you like to build today?</h2>
+        <p class="text-muted">Explore tailored pathways crafted by experienced engineers across various core disciplines.</p>
+      </div>
+      
+      <div class="row g-4 justify-content-center">
+        <!-- Category Card 1 -->
+        <div class="col-md-6 col-lg-4">
+          <div class="category-card" id="cat-card-1">
+            <div class="category-icon-box">💻</div>
+            <h3 class="category-title" id="cat-title-1">Web Development</h3>
+            <p class="text-muted mb-4" style="font-size: 0.9rem;">Master HTML5, CSS3, JavaScript, React, Next.js, and backend API routing.</p>
+            <div class="d-flex align-items-center justify-content-between">
+              <span class="category-count fw-semibold">48 Courses</span>
+              <span class="fw-bold" style="font-size: 0.85rem; color: var(--violet-mid);">Explore <i class="bi bi-arrow-right"></i></span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Category Card 2 -->
+        <div class="col-md-6 col-lg-4">
+          <div class="category-card" id="cat-card-2">
+            <div class="category-icon-box">🎨</div>
+            <h3 class="category-title" id="cat-title-2">UI/UX Design</h3>
+            <p class="text-muted mb-4" style="font-size: 0.9rem;">Learn premium Figma prototyping, interaction design systems, and heuristics.</p>
+            <div class="d-flex align-items-center justify-content-between">
+              <span class="category-count fw-semibold">32 Courses</span>
+              <span class="fw-bold" style="font-size: 0.85rem; color: var(--violet-mid);">Explore <i class="bi bi-arrow-right"></i></span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Category Card 3 -->
+        <div class="col-md-6 col-lg-4">
+          <div class="category-card" id="cat-card-3">
+            <div class="category-icon-box">📊</div>
+            <h3 class="category-title" id="cat-title-3">Data Science</h3>
+            <p class="text-muted mb-4" style="font-size: 0.9rem;">Harness the power of Python, SQL, Pandas, NumPy, and statistical models.</p>
+            <div class="d-flex align-items-center justify-content-between">
+              <span class="category-count fw-semibold">24 Courses</span>
+              <span class="fw-bold" style="font-size: 0.85rem; color: var(--violet-mid);">Explore <i class="bi bi-arrow-right"></i></span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Category Card 4 -->
+        <div class="col-md-6 col-lg-4">
+          <div class="category-card" id="cat-card-4">
+            <div class="category-icon-box">🧠</div>
+            <h3 class="category-title" id="cat-title-4">AI & Machine Learning</h3>
+            <p class="text-muted mb-4" style="font-size: 0.9rem;">Build LLMs, neural networks, PyTorch engines, and explore OpenAI models.</p>
+            <div class="d-flex align-items-center justify-content-between">
+              <span class="category-count fw-semibold">18 Courses</span>
+              <span class="fw-bold" style="font-size: 0.85rem; color: var(--violet-mid);">Explore <i class="bi bi-arrow-right"></i></span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Category Card 5 -->
+        <div class="col-md-6 col-lg-4">
+          <div class="category-card" id="cat-card-5">
+            <div class="category-icon-box">📱</div>
+            <h3 class="category-title" id="cat-title-5">Mobile Development</h3>
+            <p class="text-muted mb-4" style="font-size: 0.9rem;">Architect cross-platform native iOS & Android applications using Flutter & React Native.</p>
+            <div class="d-flex align-items-center justify-content-between">
+              <span class="category-count fw-semibold">22 Courses</span>
+              <span class="fw-bold" style="font-size: 0.85rem; color: var(--violet-mid);">Explore <i class="bi bi-arrow-right"></i></span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Category Card 6 -->
+        <div class="col-md-6 col-lg-4">
+          <div class="category-card" id="cat-card-6">
+            <div class="category-icon-box">📈</div>
+            <h3 class="category-title" id="cat-title-6">Digital Marketing</h3>
+            <p class="text-muted mb-4" style="font-size: 0.9rem;">Acquire modern SEO growth methodologies, content formulas, and analytics keys.</p>
+            <div class="d-flex align-items-center justify-content-between">
+              <span class="category-count fw-semibold">16 Courses</span>
+              <span class="fw-bold" style="font-size: 0.85rem; color: var(--violet-mid);">Explore <i class="bi bi-arrow-right"></i></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+    TRENDING COURSES (Premium Accents - Neon Violet)
+  ================================================================ -->
+  <section class="py-5" id="premium-courses" style="background-color: rgba(139, 92, 246, 0.02); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+    <div class="container">
+      <div class="section-header text-center mx-auto" style="max-width: 600px;">
+        <span class="section-pill violet-pill" id="premium-pill">Paid Courses</span>
+        <h2 class="h1" id="premium-heading">Trending Premium Courses</h2>
+        <p class="text-muted">Structured developer certifications, complete with hands-on labs, peer-reviewed projects, and verifiable credentials.</p>
+      </div>
+      
+      <div class="row g-4">
+        <!-- Course Card 1 -->
+        <div class="col-md-6 col-lg-4">
+          <article class="course-card" id="course-card-1">
+            <div class="course-thumb-wrapper">
+              <div class="course-thumb-placeholder" style="background: linear-gradient(135deg, #1e1b4b 0%, var(--violet-primary) 100%);">
+                <i class="bi bi-code-slash text-gradient-violet"></i>
+              </div>
+              <span class="course-badge-level">Advanced</span>
+              <span class="course-badge-price">₹1,499</span>
+            </div>
+            
+            <div class="course-card-body">
+              <div class="course-instructor">
+                <span class="instructor-avatar">AS</span>
+                <span class="fw-semibold text-white">Arjun Sharma</span>
+                <span class="instructor-verified" title="Verified Instructor"><i class="bi bi-patch-check-fill"></i></span>
+              </div>
+              
+              <h3 class="course-title"><a href="course-detail.html?title=Next.js%20%26%20Supabase%20Ultimate%20Full-Stack%20Blueprint&instructor=Arjun%20Sharma&level=advanced&price=1499" class="text-white" id="course-title-link-1">Next.js & Supabase Ultimate Full-Stack Blueprint</a></h3>
+              
+              <div class="course-meta">
+                <span><i class="bi bi-journal-text text-gradient-violet"></i> 34 Lessons</span>
+                <span><i class="bi bi-clock text-gradient-violet"></i> 18h 45m</span>
+              </div>
+              
+              <div class="course-rating">
+                <div class="stars">
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                </div>
+                <span class="rating-avg">4.9</span>
+                <span class="rating-count">(1.2k)</span>
+              </div>
+              
+              <a href="course-detail.html?title=Next.js%20%26%20Supabase%20Ultimate%20Full-Stack%20Blueprint&instructor=Arjun%20Sharma&level=advanced&price=1499" class="course-cta-btn" id="course-cta-1">Enroll Now <i class="bi bi-arrow-right"></i></a>
+            </div>
+          </article>
+        </div>
+        
+        <!-- Course Card 2 -->
+        <div class="col-md-6 col-lg-4">
+          <article class="course-card" id="course-card-2">
+            <div class="course-thumb-wrapper">
+              <div class="course-thumb-placeholder" style="background: linear-gradient(135deg, #2e1065 0%, #7c3aed 100%);">
+                <i class="bi bi-palette-fill" style="color: var(--violet-mid);"></i>
+              </div>
+              <span class="course-badge-level">Beginner</span>
+              <span class="course-badge-price">₹999</span>
+            </div>
+            
+            <div class="course-card-body">
+              <div class="course-instructor">
+                <span class="instructor-avatar avatar-yellow">NK</span>
+                <span class="fw-semibold text-white">Neha Kapoor</span>
+                <span class="instructor-verified" title="Verified Instructor"><i class="bi bi-patch-check-fill"></i></span>
+              </div>
+              
+              <h3 class="course-title"><a href="course-detail.html?title=Figma%20UI%2FUX%20Advanced%20Prototyping%20Workshop&instructor=Neha%20Kapoor&level=beginner&price=999" class="text-white" id="course-title-link-2">Figma UI/UX Advanced Prototyping Workshop</a></h3>
+              
+              <div class="course-meta">
+                <span><i class="bi bi-journal-text text-gradient-violet"></i> 26 Lessons</span>
+                <span><i class="bi bi-clock text-gradient-violet"></i> 14h 20m</span>
+              </div>
+              
+              <div class="course-rating">
+                <div class="stars">
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-half"></i>
+                </div>
+                <span class="rating-avg">4.7</span>
+                <span class="rating-count">(840)</span>
+              </div>
+              
+              <a href="course-detail.html?title=Figma%20UI%2FUX%20Advanced%20Prototyping%20Workshop&instructor=Neha%20Kapoor&level=beginner&price=999" class="course-cta-btn" id="course-cta-2">Enroll Now <i class="bi bi-arrow-right"></i></a>
+            </div>
+          </article>
+        </div>
+        
+        <!-- Course Card 3 -->
+        <div class="col-md-6 col-lg-4">
+          <article class="course-card" id="course-card-3">
+            <div class="course-thumb-wrapper">
+              <div class="course-thumb-placeholder" style="background: linear-gradient(135deg, #030712 0%, #3b82f6 100%);">
+                <i class="bi bi-cpu-fill" style="color: var(--teal-primary);"></i>
+              </div>
+              <span class="course-badge-level">Intermediate</span>
+              <span class="course-badge-price">₹1,999</span>
+            </div>
+            
+            <div class="course-card-body">
+              <div class="course-instructor">
+                <span class="instructor-avatar avatar-teal">RV</span>
+                <span class="fw-semibold text-white">Rohan Verma</span>
+                <span class="instructor-verified" title="Verified Instructor"><i class="bi bi-patch-check-fill"></i></span>
+              </div>
+              
+              <h3 class="course-title"><a href="course-detail.html?title=Deep%20Learning%20%26%20Neural%20Networks%20with%20PyTorch&instructor=Rohan%20Verma&level=intermediate&price=1999" class="text-white" id="course-title-link-3">Deep Learning & Neural Networks with PyTorch</a></h3>
+              
+              <div class="course-meta">
+                <span><i class="bi bi-journal-text text-gradient-violet"></i> 42 Lessons</span>
+                <span><i class="bi bi-clock text-gradient-violet"></i> 22h 10m</span>
+              </div>
+              
+              <div class="course-rating">
+                <div class="stars">
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                </div>
+                <span class="rating-avg">4.9</span>
+                <span class="rating-count">(530)</span>
+              </div>
+              
+              <a href="course-detail.html?title=Deep%20Learning%20%26%20Neural%20Networks%20with%20PyTorch&instructor=Rohan%20Verma&level=intermediate&price=1999" class="course-cta-btn" id="course-cta-3">Enroll Now <i class="bi bi-arrow-right"></i></a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+    FREE RESOURCE LIBRARY (Free Accents - Neon Teal)
+  ================================================================ -->
+  <section class="py-5" id="free-library">
+    <div class="container">
+      <div class="section-header text-center mx-auto" style="max-width: 600px;">
+        <span class="section-pill teal-pill" id="library-pill">Free Resources</span>
+        <h2 class="h1" id="library-heading">Free Developer Library</h2>
+        <p class="text-muted">Instantly stream highly focused technical videos or download in-depth PDF cheat sheets. No payment details required.</p>
+      </div>
+      
+      <div class="row g-4">
+        <!-- Resource Card 1 (Video) -->
+        <div class="col-md-6 col-lg-4">
+          <article class="resource-card" id="res-card-1">
+            <div class="resource-thumb-wrapper">
+              <!-- Mock play triggers -->
+              <div class="resource-play-overlay">
+                <div class="play-btn-circle">
+                  <i class="bi bi-play-fill" style="margin-left: 2px;"></i>
+                </div>
+              </div>
+              <span class="resource-type-badge">Video</span>
+              <span class="resource-duration-badge">45 Min</span>
+            </div>
+            
+            <div class="resource-card-body">
+              <span class="resource-tag">Docker & Devops</span>
+              <h3 class="resource-title"><a href="resource-detail.html?id=1" class="text-white" id="res-title-link-1">Docker Containers & Kubernetes Pods: Complete Hand-on Walkthrough</a></h3>
+              <p class="text-muted" style="font-size: 0.85rem; line-height: 1.5; margin-bottom: 1.5rem;">Learn how to compile Dockerfiles, manage volume mounts, structure network clusters, and launch microservices.</p>
+              
+              <div class="resource-stats">
+                <span><i class="bi bi-eye text-gradient-teal"></i> 14,200 views</span>
+                <span class="fw-bold text-success" style="color: var(--teal-mid) !important;">STREAM FREE <i class="bi bi-chevron-right"></i></span>
+              </div>
+            </div>
+          </article>
+        </div>
+        
+        <!-- Resource Card 2 (PDF Cheat Sheet) -->
+        <div class="col-md-6 col-lg-4">
+          <article class="resource-card" id="res-card-2">
+            <div class="resource-thumb-wrapper" style="background: linear-gradient(135deg, var(--teal-dark) 0%, #042f2e 100%); border-bottom: 1px solid var(--border);">
+              <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white" style="font-size: 3rem;">
+                <i class="bi bi-file-earmark-pdf" style="color: var(--teal-mid); filter: drop-shadow(0 0 10px var(--teal-glow));"></i>
+              </div>
+              <span class="resource-type-badge">PDF GUIDE</span>
+              <span class="resource-duration-badge" style="background-color: rgba(6, 182, 212, 0.75);">18 Pages</span>
+            </div>
+            
+            <div class="resource-card-body">
+              <span class="resource-tag">Software Architecture</span>
+              <h3 class="resource-title"><a href="resource-detail.html?id=2" class="text-white" id="res-title-link-2">System Design interview Blueprint: Patterns & Cache Scaling</a></h3>
+              <p class="text-muted" style="font-size: 0.85rem; line-height: 1.5; margin-bottom: 1.5rem;">The ultimate cheat sheet for high-scale systems. Covers database sharding, CDN propagation, redis caching, and load balancing.</p>
+              
+              <div class="resource-stats">
+                <span><i class="bi bi-download text-gradient-teal"></i> 8,450 downloads</span>
+                <span class="fw-bold" style="color: var(--teal-mid) !important;">DOWNLOAD PDF <i class="bi bi-arrow-down-short"></i></span>
+              </div>
+            </div>
+          </article>
+        </div>
+        
+        <!-- Resource Card 3 (Guest Locked Mockup - Blur Overlay) -->
+        <div class="col-md-6 col-lg-4">
+          <article class="resource-card resource-guest-locked" id="res-card-locked">
+            <!-- Simulated Guest lock frame -->
+            <div class="guest-lock-overlay">
+              <div class="lock-card-badge">
+                <i class="bi bi-lock-fill"></i>
+              </div>
+              <h4 class="fw-bold text-white" style="font-size: 1.05rem; margin-bottom: 0.25rem;">Unlock Complete Library</h4>
+              <p class="text-muted" style="font-size: 0.8rem; max-width: 200px; margin-bottom: 1rem;">Create a free account to immediately view all 150+ tutorials</p>
+              <a href="signup.html" class="btn btn-bb-teal py-1.5 px-3 fw-bold" style="font-size: 0.8rem;">Sign Up Free</a>
+            </div>
+            
+            <div class="resource-thumb-wrapper guest-blur-img">
+              <div class="resource-play-overlay">
+                <div class="play-btn-circle" style="opacity: 0.4;"><i class="bi bi-play-fill"></i></div>
+              </div>
+              <span class="resource-type-badge">Video</span>
+              <span class="resource-duration-badge">1h 15m</span>
+            </div>
+            
+            <div class="resource-card-body guest-blur-img">
+              <span class="resource-tag">Security</span>
+              <h3 class="resource-title"><a href="#" class="text-white">OWASP Top 10 Web Vulnerabilities & Prevention Live Demo</a></h3>
+              <p class="text-muted" style="font-size: 0.85rem; line-height: 1.5; margin-bottom: 1.5rem;">Detailed security testing demonstration showcasing XSS injection, CSRF mitigation, JWT protection flaws, and server hardening techniques.</p>
+              
+              <div class="resource-stats">
+                <span><i class="bi bi-eye"></i> 6,900 views</span>
+                <span class="fw-bold text-success">STREAM FREE <i class="bi bi-chevron-right"></i></span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+    HOW IT WORKS (Split tracks with neon accent details)
+  ================================================================ -->
+  <section class="py-5 how-it-works-section" id="how-it-works">
+    <div class="container">
+      <div class="section-header text-center mx-auto" style="max-width: 600px;">
+        <span class="section-pill violet-pill">The Process</span>
+        <h2 class="h1">How BrainByte Works</h2>
+        <p class="text-muted">Two pathways built to empower the technology ecosystem. Choose to learn from industry experts or share your own engineering expertise.</p>
+      </div>
+      
+      <div class="row g-5">
+        <!-- Student Track (Violet) -->
+        <div class="col-lg-6">
+          <div class="split-track-column track-learner" id="track-learners-box">
+            <div class="track-glow-bar"></div>
+            <div class="d-flex align-items-center gap-3 mb-4">
+              <div class="track-num-box" style="width: 50px; height: 50px; font-size: 1.25rem;"><i class="bi bi-rocket-takeoff"></i></div>
+              <div>
+                <h3 class="fw-bold m-0 text-white" style="font-size: 1.35rem;">The Student Pathway</h3>
+                <span class="text-muted" style="font-size: 0.85rem;">Learn, build projects, verify skills</span>
+              </div>
+            </div>
+            
+            <div class="track-step">
+              <div class="track-num-box">1</div>
+              <div>
+                <h4 class="track-step-title">Select Your Path</h4>
+                <p class="track-step-desc">Pick from structured premium courses for full certifications, or filter the free library to brush up on specific tools and utilities.</p>
+              </div>
+            </div>
+            
+            <div class="track-step">
+              <div class="track-num-box">2</div>
+              <div>
+                <h4 class="track-step-title">Build Practical Labs</h4>
+                <p class="track-step-desc">Write code inside actual sandboxes, push functional repositories to GitHub, and integrate databases using Supabase.</p>
+              </div>
+            </div>
+            
+            <div class="track-step">
+              <div class="track-num-box">3</div>
+              <div>
+                <h4 class="track-step-title">Earn Verification</h4>
+                <p class="track-step-desc">Generate secure smart certificates upon curriculum completion. Showcase your verifiable learning credentials directly on LinkedIn.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Instructor Track (Teal) -->
+        <div class="col-lg-6">
+          <div class="split-track-column track-instructor" id="track-instructors-box">
+            <div class="track-glow-bar"></div>
+            <div class="d-flex align-items-center gap-3 mb-4">
+              <div class="track-num-box" style="width: 50px; height: 50px; font-size: 1.25rem;"><i class="bi bi-people-fill"></i></div>
+              <div>
+                <h3 class="fw-bold m-0 text-white" style="font-size: 1.35rem;">The Instructor Pathway</h3>
+                <span class="text-muted" style="font-size: 0.85rem;">Teach, build an audience, earn revenue</span>
+              </div>
+            </div>
+            
+            <div class="track-step">
+              <div class="track-num-box">1</div>
+              <div>
+                <h4 class="track-step-title">Submit Verification</h4>
+                <p class="track-step-desc">Provide your professional engineering background details, LinkedIn record, and a brief description of what you wish to teach.</p>
+              </div>
+            </div>
+            
+            <div class="track-step">
+              <div class="track-num-box">2</div>
+              <div>
+                <h4 class="track-step-title">Create Structured Curriculum</h4>
+                <p class="track-step-desc">Use our intuitive course designer to compile lessons, upload lecture videos, draft articles, and formulate grading quizzes.</p>
+              </div>
+            </div>
+            
+            <div class="track-step">
+              <div class="track-num-box">3</div>
+              <div>
+                <h4 class="track-step-title">Earn Revenue & Grow</h4>
+                <p class="track-step-desc">Set prices for premium tracks or publish free lessons to build your profile. Retain a market-leading 85% of all course earnings.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+    TESTIMONIALS SECTION
+  ================================================================ -->
+  <section class="py-5" id="testimonials">
+    <div class="container">
+      <div class="section-header text-center mx-auto" style="max-width: 600px;">
+        <span class="section-pill violet-pill">Wall of Love</span>
+        <h2>What our learners say</h2>
+        <p class="text-muted">Engineers, students, and educators from around the globe accelerating their coding skills with our modern blueprints.</p>
+      </div>
+      
+      <div class="row g-4">
+        <!-- Testimonial 1 -->
+        <div class="col-md-6 col-lg-4">
+          <div class="testimonial-card" id="test-card-1">
+            <div class="testimonial-stars">
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+            </div>
+            <p class="testimonial-text">
+              "The Next.js and Supabase course on BrainByte is absolute gold. The code is modern, structural, and robust. It helped me land my senior full-stack engineer job in under 3 months."
+            </p>
+            <div class="testimonial-profile">
+              <div class="testimonial-avatar">AK</div>
+              <div>
+                <h4 class="testimonial-name">Aarav Kumar</h4>
+                <span class="testimonial-role">Senior Full-Stack Dev &bull; Bengaluru</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Testimonial 2 (Interactive Rating Target) -->
+        <div class="col-md-6 col-lg-4">
+          <div class="testimonial-card" id="test-card-interactive" style="border-color: rgba(139, 92, 246, 0.35); background: rgba(139, 92, 246, 0.05); box-shadow: 0 0 25px rgba(139,92,246,0.08);">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <!-- Interactive stars container -->
+              <div class="interactive-stars text-shadow" data-rating="5" style="cursor: pointer;" id="star-interactive-widget">
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+              </div>
+              <span class="badge bg-dark text-warning border fw-bold interactive-rating-value" style="border-color: rgba(251, 191, 36, 0.3) !important;" id="star-interactive-badge">5.0</span>
+            </div>
+            <p class="testimonial-text">
+              "Click the stars to rate your own learning experience! BrainByte resources are extremely comprehensive. I downloaded the system design interview PDF and it was better than most textbooks."
+            </p>
+            <div class="testimonial-profile">
+              <div class="testimonial-avatar avatar-yellow">PS</div>
+              <div>
+                <h4 class="testimonial-name">Priya Singh</h4>
+                <span class="testimonial-role">Systems Engineer &bull; Pune</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Testimonial 3 -->
+        <div class="col-md-6 col-lg-4">
+          <div class="testimonial-card" id="test-card-3">
+            <div class="testimonial-stars">
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+            </div>
+            <p class="testimonial-text">
+              "Being able to study advanced content while utilizing free reference templates is incredibly powerful. BrainByte combines the best of premium courses and open-source."
+            </p>
+            <div class="testimonial-profile">
+              <div class="testimonial-avatar avatar-teal">MK</div>
+              <div>
+                <h4 class="testimonial-name">Manish Kelkar</h4>
+                <span class="testimonial-role">Undergrad Student &bull; Delhi Tech</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+    INSTRUCTOR CTA SECTION
+  ================================================================ -->
+  <section class="instructor-cta-section" id="teach">
+    <div class="container">
+      <div class="instructor-cta-box" id="instructor-cta-container">
+        <div class="cta-glow-circle"></div>
+        <div class="row align-items-center gy-5">
+          <!-- Text -->
+          <div class="col-lg-7 text-center text-lg-start">
+            <span class="badge" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); color: var(--teal-mid); font-size: 0.8rem; margin-bottom: 1.25rem; font-family: var(--font-display); font-weight: 700; text-transform: uppercase;">Share Your Knowledge</span>
+            <h2>Teach on BrainByte & Earn</h2>
+            <p>
+              Are you an experienced developer, architect, or designer? Apply to become a verified instructor. Build premium courses or host free assets, connect with thousands of active learners, and earn market-leading revenue splits.
+            </p>
+            <div class="d-flex flex-column flex-sm-row justify-content-center justify-content-lg-start gap-3">
+              <a href="signup.html" class="btn btn-bb-teal px-4 py-3" id="btn-apply-teach"><i class="bi bi-patch-check-fill me-2"></i> Apply to Teach</a>
+              <a href="#" class="btn btn-bb-outline-teal px-4 py-3 text-white border-white" style="background-color: rgba(255,255,255,0.03);" id="btn-teach-info">How Earnings Work</a>
+            </div>
+          </div>
+          
+          <!-- Visual Earnings Preview Box -->
+          <div class="col-lg-5">
+            <div class="earnings-preview-card" id="earnings-card-preview">
+              <div class="preview-title">Estimated Earnings</div>
+              <div class="preview-income" id="earnings-display">
+                ₹85,000<span style="font-size: 1rem; font-weight: 500; color: var(--text-muted);">/mo</span>
+              </div>
+              
+              <div class="mb-3">
+                <label for="student-range" class="form-label d-flex justify-content-between text-white" style="font-size: 0.8rem; font-weight: 600;">
+                  <span>Active Students</span>
+                  <span id="range-val" style="color: var(--teal-mid); font-weight: bold;">250 students</span>
+                </label>
+                <!-- HTML5 earning calculator slider -->
+                <input type="range" class="form-range" min="50" max="1000" step="50" value="250" id="student-range" style="accent-color: var(--teal-primary);">
+              </div>
+              
+              <div class="preview-stats-row">
+                <span>Revenue Split</span>
+                <span class="text-white fw-bold">85% Retained</span>
+              </div>
+              <div class="preview-stats-row">
+                <span>Instructor Rank</span>
+                <span class="fw-bold" style="color: var(--teal-mid);">Silver Tier</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+    FOOTER (Slate Dark Ambient Accent)
+  ================================================================ -->
+  <footer class="bb-footer" id="footer-section">
+    <div class="container">
+      <div class="row g-4 gy-5">
+        <!-- Column 1: Brand details -->
+        <div class="col-lg-4 col-md-6">
+          <a class="navbar-brand d-flex align-items-center mb-3" href="#" style="color: #FFFFFF !important; font-size: 1.6rem;">
+            <span>Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
+          </a>
+          <p class="pe-lg-4" style="line-height: 1.6; color: var(--text-muted);">
+            High-fidelity developer training platforms merging verified premium courses with modular free reference assets. Built for developers by developers.
+          </p>
+          <div class="footer-social-row">
+            <a href="#" class="social-circle" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+            <a href="#" class="social-circle" aria-label="GitHub"><i class="bi bi-github"></i></a>
+            <a href="#" class="social-circle" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+            <a href="#" class="social-circle" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+          </div>
+        </div>
+        
+        <!-- Column 2: Courses links -->
+        <div class="col-lg-2 col-6 col-sm-4">
+          <h3 class="footer-heading">Courses</h3>
+          <ul class="footer-links-list">
+            <li><a href="courses.html?category=web-dev">Web Development</a></li>
+            <li><a href="courses.html?category=system-design">System Design</a></li>
+            <li><a href="courses.html?category=data-science">Data Science</a></li>
+            <li><a href="courses.html">All Courses</a></li>
+            <li><a href="courses.html?category=ai-ml">AI Systems</a></li>
+          </ul>
+        </div>
+        
+        <!-- Column 3: Resources links -->
+        <div class="col-lg-2 col-6 col-sm-4">
+          <h3 class="footer-heading">Resources</h3>
+          <ul class="footer-links-list">
+            <li><a href="library.html">Free Library</a></li>
+            <li><a href="library.html?type=video">Video Tutorials</a></li>
+            <li><a href="library.html?type=pdf">System PDFs</a></li>
+            <li><a href="courses.html">Certifications</a></li>
+            <li><a href="about.html">About Us</a></li>
+          </ul>
+        </div>
+        
+        <!-- Column 4: Newsletter sign-up -->
+        <div class="col-lg-4 col-sm-8 col-md-6">
+          <h3 class="footer-heading">Join the Newsletter</h3>
+          <p style="color: var(--text-muted); line-height: 1.5; font-size: 0.85rem; margin-bottom: 1.25rem;">
+            Subscribe to receive expert architectural cheat sheets, course updates, and exclusive free tutorials.
+          </p>
+          <form class="footer-newsletter-box" onsubmit="event.preventDefault(); alert('Subscribed successfully!');">
+            <input type="email" class="footer-newsletter-input" placeholder="Enter your engineering email..." required>
+            <button type="submit" class="footer-newsletter-btn">Subscribe</button>
+          </form>
+          <span style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.25); display: block; margin-top: 0.5rem;"><i class="bi bi-shield-check"></i> We never spam. Unsubscribe at any time.</span>
+        </div>
+      </div>
+      
+      <hr class="footer-divider">
+      
+      <div class="row align-items-center justify-content-between gy-3 text-center text-md-start">
+        <div class="col-md-6">
+          <span class="footer-bottom-text">&copy; 2026 BrainByte Technology Inc. All rights reserved.</span>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <span class="footer-bottom-text">Made with <i class="bi bi-heart-fill text-danger mx-1" style="color: #EF4444 !important;"></i> &amp; 💜 in India &bull; <a href="#" style="color: var(--text-muted);">Terms</a> &bull; <a href="#" style="color: var(--text-muted);">Privacy Policy</a></span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS Bundle CDN (including Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase Config -->
+<script src="js/supabase-config.js"></script>
+<!-- Main JS -->
+<script src="js/main.js"></script>
+
+  <!-- Interactive Earning Calculator script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const slider = document.getElementById('student-range');
+      const display = document.getElementById('earnings-display');
+      const label = document.getElementById('range-val');
+      
+      if (slider && display && label) {
+        slider.addEventListener('input', (e) => {
+          const value = parseInt(e.target.value);
+          label.textContent = `${value} students`;
+          
+          // Earning formulation: approx ₹340 per student per month
+          const basePrice = 1499;
+          const splitPercent = 0.85;
+          const monthlyActivePercent = 0.25; // 25% purchase rate mock
+          const earnings = Math.floor(value * basePrice * splitPercent * monthlyActivePercent);
+          
+          display.innerHTML = `₹${earnings.toLocaleString('en-IN')}<span style="font-size: 1rem; font-weight: 500; color: var(--text-muted);">/mo</span>`;
+        });
+      }
+    });
+  </script>
+</body>
+</html>

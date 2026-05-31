@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Supabase CDN Client & Protected Page Session Check -->
+  <script>
+    (async () => {
+      const savedUserStr = localStorage.getItem('brainbyte_user');
+      let localSessionActive = false;
+      if (savedUserStr) {
+        try {
+          const user = JSON.parse(savedUserStr);
+          if (user && user.isLoggedIn) {
+            localSessionActive = true;
+          }
+        } catch (e) {}
+      }
+      if (localSessionActive || localStorage.getItem('bb_admin_session') === 'active') {
+        return;
+      }
+      const SUPABASE_URL = "https://xtbznjtwppchjsprnylt.supabase.co";
+      const SUPABASE_ANON_KEY = "sb_publishable_sjJvee1lOEPjm5kOkejIEg_8IVc-KQD";
+      if (SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_URL !== "") {
+        const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        if (supabase) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) return;
+        }
+      }
+      window.location.href = 'login.html';
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instructor Studio — BrainByte</title>
+  <meta name="description" content="Manage your curriculum, publish professional web development and UI courses, analyze sales earnings charts, and interact with the student classroom.">
+  
+  <!-- Preload and load Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Premium Theme CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-body">
+
+  <!-- Ambient background glow elements -->
+  <div class="bg-blob-teal" style="top: -100px; left: -100px; fixed: true; opacity: 0.12;"></div>
+  <div class="bg-blob-violet" style="top: 300px; right: -100px; fixed: true; opacity: 0.08;"></div>
+  <div class="bg-blob-pink" style="bottom: 10%; left: 5%; fixed: true; opacity: 0.10;"></div>
+
+  <!-- ================================================================
+    MOBILE HEADER NAVIGATION BAR (Shown only on small width viewports)
+  ================================================================ -->
+  <div class="mobile-dashboard-header py-2.5 px-3 align-items-center justify-content-between">
+    <button type="button" class="btn text-white p-0 border-0" id="btn-mobile-sidebar-toggle" style="background: transparent;">
+      <i class="bi bi-list fs-2"></i>
+    </button>
+    
+    <span class="text-white fw-bold" style="font-family: var(--font-display); font-size: 1rem;" id="mobile-dashboard-tab-title">
+      Dashboard
+    </span>
+    
+    <a class="navbar-brand d-flex align-items-center m-0" href="index.html" style="font-size: 1.15rem;">
+      <span>Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill" style="text-shadow: none;"></i></span>Byte</span>
+    </a>
+  </div>
+
+  <!-- ================================================================
+    ⚠️ AMBER WARNING BANNER (Shown at very top if unverified)
+  ================================================================ -->
+  <div class="verify-warning-banner py-2.5 text-center" id="instructor-verification-banner" style="position: relative; z-index: 1020;">
+    <div class="container d-flex flex-sm-row flex-column align-items-center justify-content-center gap-2">
+      <span class="text-warning fw-semibold" style="font-size: 0.88rem; font-family: var(--font-display);">
+        <i class="bi bi-exclamation-triangle-fill me-1.5"></i> Complete verification to publish courses and receive payouts
+      </span>
+      <a href="teach-verify.html" class="btn btn-bb-teal py-1 px-3 fs-7" style="font-size: 0.72rem; height: auto; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; border: none; box-shadow: 0 0 10px rgba(245, 158, 11, 0.4); border-radius: 50px; text-decoration: none; font-weight: bold;">
+        Verify Now →
+      </a>
+    </div>
+  </div>
+
+  <!-- ================================================================
+    INSTRUCTOR DASHBOARD GRID CONTAINER
+  ================================================================ -->
+  <div class="dashboard-layout-container">
+    
+    <!-- ==============================================================
+      LEFT SIDEBAR NAVIGATION (Width: 260px, Sticky)
+    ============================================================== -->
+    <aside class="dashboard-sidebar" id="dashboard-sidebar">
+      
+      <!-- Close button visible only on mobile inside side panel -->
+      <div class="d-lg-none d-flex justify-content-end mb-3">
+        <button type="button" class="btn-close-drawer" id="btn-close-sidebar-trigger" style="outline: none;">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- 1. Profile Metadata Box -->
+      <div class="sidebar-profile-box" id="instructor-sidebar-profile">
+        <div class="sidebar-avatar-circle instructor-avatar-initials" id="sidebar-profile-avatar" style="background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);">
+          SJ
+        </div>
+        <h3 class="sidebar-name"><span id="instructor-sidebar-name">Sarah Jenkins</span> <i class="bi bi-patch-check-fill text-primary" style="color: var(--violet-mid) !important;" title="Verified On BrainByte"></i></h3>
+        <span class="sidebar-badge" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); color: #22D3EE;">Instructor</span>
+      </div>
+
+      <!-- 2. Navigations tab buttons links -->
+      <nav class="sidebar-nav-list">
+        <button type="button" class="sidebar-nav-link active" data-tab="dashboard">
+          <i class="bi bi-grid-1x2-fill text-muted"></i> Dashboard
+        </button>
+        <button type="button" class="sidebar-nav-link" data-tab="courses">
+          <i class="bi bi-journal-bookmark-fill text-muted"></i> My Courses
+        </button>
+        <button type="button" class="sidebar-nav-link" data-tab="creator">
+          <i class="bi bi-plus-circle-fill text-muted"></i> Create Course
+        </button>
+        <button type="button" class="sidebar-nav-link" data-tab="earnings">
+          <i class="bi bi-cash-stack text-muted"></i> Earnings
+        </button>
+        <button type="button" class="sidebar-nav-link" data-tab="reviews">
+          <i class="bi bi-star-fill text-muted"></i> Reviews
+        </button>
+      </nav>
+
+      <!-- 3. Logout trigger button -->
+      <button type="button" class="sidebar-logout-btn" id="btn-sidebar-logout">
+        <i class="bi bi-door-open-fill"></i> Logout
+      </button>
+
+    </aside>
+
+    <!-- ==============================================================
+      RIGHT PANEL: DYNAMIC MAIN CONTENT VIEWPORTS
+    ============================================================== -->
+    <main class="dashboard-main-content">
+      
+      <!-- Top banner status switcher for demo testing -->
+      <div class="d-flex justify-content-end mb-4">
+        <div class="session-toggle-pill d-flex align-items-center gap-1.5 p-1 rounded-pill" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+          <span style="font-size: 0.68rem; font-family: var(--font-display); font-weight: 800; color: #94A3B8; padding-left: 0.75rem; padding-right: 0.25rem;">VERIFICATION STATE</span>
+          <button type="button" class="btn btn-session-toggle active" id="toggle-verify-unverified">Unverified</button>
+          <button type="button" class="btn btn-session-toggle" id="toggle-verify-verified">Verified</button>
+        </div>
+      </div>
+
+      <!-- ============================================================
+        TAB PANEL 1: DASHBOARD TAB (Active by default)
+      ============================================================ -->
+      <div class="instructor-tab-panel active" id="panel-dashboard">
+        <!-- Top Salutation header -->
+        <div class="mb-4">
+          <h1 class="text-white fw-bold mb-1" style="font-size: 1.8rem; font-family: var(--font-display);">
+            Welcome back, Sarah 👋
+          </h1>
+          <p style="color: #94A3B8; font-size: 0.9rem; margin: 0;">Analyze your instructor studio metrics and sales channels</p>
+        </div>
+
+        <!-- 4 KPI cards row -->
+        <div class="row g-3 mb-4">
+          <!-- Card 1 -->
+          <div class="col-md-3 col-6">
+            <div class="floating-glass-card p-3 h-100 d-flex flex-column justify-content-between">
+              <span style="color: #10B981; font-size: 0.68rem; font-weight: 700; font-family: var(--font-display); margin-bottom: 0.85rem;"><i class="bi bi-arrow-up-right"></i> +1.2K month</span>
+              <div>
+                <h4 style="font-size: 1.8rem; font-weight: 800; font-family: var(--font-display); margin-bottom: 0.1rem;" class="text-white">145.2K</h4>
+                <span style="color: #94A3B8; font-size: 0.78rem; font-weight: 600;">Total Students</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Card 2 -->
+          <div class="col-md-3 col-6">
+            <div class="floating-glass-card p-3 h-100 d-flex flex-column justify-content-between">
+              <span style="color: #10B981; font-size: 0.68rem; font-weight: 700; font-family: var(--font-display); margin-bottom: 0.85rem;"><i class="bi bi-arrow-up-right"></i> +₹4.2K week</span>
+              <div>
+                <h4 style="font-size: 1.8rem; font-weight: 800; font-family: var(--font-display); margin-bottom: 0.1rem;" class="text-white">₹72.4K</h4>
+                <span style="color: #94A3B8; font-size: 0.78rem; font-weight: 600;">Total Earnings</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="col-md-3 col-6">
+            <div class="floating-glass-card p-3 h-100 d-flex flex-column justify-content-between">
+              <span style="color: #FBBF24; font-size: 0.68rem; font-weight: 700; font-family: var(--font-display); margin-bottom: 0.85rem;"><i class="bi bi-star-fill text-warning"></i> Top Rated</span>
+              <div>
+                <h4 style="font-size: 1.8rem; font-weight: 800; font-family: var(--font-display); margin-bottom: 0.1rem;" class="text-white">4.9/5</h4>
+                <span style="color: #94A3B8; font-size: 0.78rem; font-weight: 600;">Course Ratings</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="col-md-3 col-6">
+            <div class="floating-glass-card p-3 h-100 d-flex flex-column justify-content-between">
+              <span style="color: #06B6D4; font-size: 0.68rem; font-weight: 700; font-family: var(--font-display); margin-bottom: 0.85rem;">3 under review</span>
+              <div>
+                <h4 style="font-size: 1.8rem; font-weight: 800; font-family: var(--font-display); margin-bottom: 0.1rem;" class="text-white">12</h4>
+                <span style="color: #94A3B8; font-size: 0.78rem; font-weight: 600;">Total Courses</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sales chart section and recent enrollments -->
+        <div class="row g-4 mb-4">
+          <!-- Left: Sales line chart vector -->
+          <div class="col-xl-8 col-12">
+            <div class="svg-chart-hud-wrapper">
+              <h3 class="text-white fw-bold mb-3.5" style="font-size: 1.05rem; font-family: var(--font-display);">Monthly Earnings History (₹)</h3>
+              
+              <!-- Responsive SVG Line Chart -->
+              <div style="width: 100%; aspect-ratio: 2/1; max-height: 280px; overflow: hidden;">
+                <svg width="100%" height="100%" viewBox="0 0 500 250" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Grid lines -->
+                  <line x1="50" y1="50" x2="480" y2="50" class="chart-grid-ticks"></line>
+                  <line x1="50" y1="100" x2="480" y2="100" class="chart-grid-ticks"></line>
+                  <line x1="50" y1="150" x2="480" y2="150" class="chart-grid-ticks"></line>
+                  <line x1="50" y1="200" x2="480" y2="200" class="chart-grid-ticks"></line>
+                  
+                  <!-- Left Y axis titles -->
+                  <text x="15" y="55" fill="#94A3B8" font-size="10" font-family="monospace">10K</text>
+                  <text x="15" y="105" fill="#94A3B8" font-size="10" font-family="monospace">7.5K</text>
+                  <text x="15" y="155" fill="#94A3B8" font-size="10" font-family="monospace">5K</text>
+                  <text x="15" y="205" fill="#94A3B8" font-size="10" font-family="monospace">2.5K</text>
+
+                  <!-- Bottom months coordinates tags -->
+                  <text x="65" y="230" fill="#94A3B8" font-size="10" font-family="monospace">Jan</text>
+                  <text x="145" y="230" fill="#94A3B8" font-size="10" font-family="monospace">Feb</text>
+                  <text x="225" y="230" fill="#94A3B8" font-size="10" font-family="monospace">Mar</text>
+                  <text x="305" y="230" fill="#94A3B8" font-size="10" font-family="monospace">Apr</text>
+                  <text x="385" y="230" fill="#94A3B8" font-size="10" font-family="monospace">May</text>
+                  <text x="450" y="230" fill="#94A3B8" font-size="10" font-family="monospace">Jun</text>
+
+                  <!-- Vector line graph path curves -->
+                  <path d="M 65 190 Q 145 130 225 150 T 385 80 L 460 60" class="chart-line-curve-violet"></path>
+                  <path d="M 65 210 Q 145 180 225 120 T 385 110 L 460 85" class="chart-line-curve-teal"></path>
+
+                  <!-- Dots markers -->
+                  <circle cx="385" cy="80" r="5" fill="#EC4899" filter="drop-shadow(0 0 6px #EC4899)"></circle>
+                  <circle cx="460" cy="60" r="5" fill="#A855F7" filter="drop-shadow(0 0 6px #A855F7)"></circle>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Recent Student list Grid table -->
+          <div class="col-xl-4 col-12">
+            <div class="floating-glass-card p-3 h-100 d-flex flex-column justify-content-between">
+              <h3 class="text-white fw-bold mb-3" style="font-size: 1.05rem; font-family: var(--font-display);">Recent Students</h3>
+              
+              <div class="d-flex flex-column gap-2.5">
+                <!-- Row item 1 -->
+                <div class="p-2 border rounded-3 d-flex align-items-center justify-content-between gap-2" style="background: rgba(255,255,255,0.01); border-color: rgba(255,255,255,0.04) !important;">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="instructor-circle-avatar" style="width: 24px; height: 24px; font-size: 0.65rem; background: #6B7280; color: #FFFFFF;">AS</div>
+                    <div>
+                      <span class="text-white font-semibold d-block" style="font-size: 0.8rem; font-weight: 600;">Aarav Sharma</span>
+                      <span class="text-muted d-block" style="font-size: 0.68rem;">SaaS Blueprint</span>
+                    </div>
+                  </div>
+                  <span class="text-muted" style="font-size: 0.68rem;">2 hours ago</span>
+                </div>
+                
+                <!-- Row item 2 -->
+                <div class="p-2 border rounded-3 d-flex align-items-center justify-content-between gap-2" style="background: rgba(255,255,255,0.01); border-color: rgba(255,255,255,0.04) !important;">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="instructor-circle-avatar" style="width: 24px; height: 24px; font-size: 0.65rem; background: #9CA3AF; color: #1F2937;">SM</div>
+                    <div>
+                      <span class="text-white font-semibold d-block" style="font-size: 0.8rem; font-weight: 600;">Sana Malik</span>
+                      <span class="text-muted d-block" style="font-size: 0.68rem;">TypeScript Deep Dive</span>
+                    </div>
+                  </div>
+                  <span class="text-muted" style="font-size: 0.68rem;">1 day ago</span>
+                </div>
+
+                <!-- Row item 3 -->
+                <div class="p-2 border rounded-3 d-flex align-items-center justify-content-between gap-2" style="background: rgba(255,255,255,0.01); border-color: rgba(255,255,255,0.04) !important;">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="instructor-circle-avatar instructor-avatar-initials" style="width: 24px; height: 24px; font-size: 0.65rem; background: #CBD5E1; color: #1E2937;">RK</div>
+                    <div>
+                      <span class="text-white font-semibold d-block" id="instructor-sidebar-name" style="font-size: 0.8rem; font-weight: 600;">Instructor</span>
+                      <span class="text-muted d-block" style="font-size: 0.68rem;">HTML5 &amp; CSS3 Architecture</span>
+                    </div>
+                  </div>
+                  <span class="text-muted" style="font-size: 0.68rem;">3 days ago</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================================
+        TAB PANEL 2: MY COURSES CATALOG TAB
+      ============================================================ -->
+      <div class="instructor-tab-panel" id="panel-courses">
+        <div class="d-flex flex-sm-row flex-column justify-content-between align-items-sm-center gap-3 mb-4">
+          <h1 class="text-white fw-bold m-0" style="font-size: 1.8rem; font-family: var(--font-display);">My Courses Catalog</h1>
+          <button type="button" class="btn btn-bb-primary py-2 px-3" onclick="document.querySelector('[data-tab=\'creator\']').click();" style="font-size: 0.8rem; border-radius: 50px; width: auto;">
+            + Add New Course
+          </button>
+        </div>
+
+        <div class="d-flex flex-column gap-3.5">
+          <!-- Course Row 1 -->
+          <div class="floating-glass-card p-3 d-flex flex-md-row flex-column align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3 w-100 flex-grow-1">
+              <div style="width: 80px; height: 80px; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.35rem;" class="text-white">
+                SJ
+              </div>
+              <div class="flex-grow-1" style="min-width: 0;">
+                <h4 class="text-white fw-bold mb-1 text-truncate" style="font-size: 0.95rem;">Next.js 14 &amp; Supabase: The Full-Stack SaaS Blueprint</h4>
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2" style="font-size: 0.72rem; font-weight: 600;">
+                  <span class="badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #FFFFFF;">WEB DEV</span>
+                  <span class="text-muted">₹499 • Advanced level</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-people-fill me-1" style="color: var(--violet-mid);"></i> 8,240 enrolled</span>
+                  <span class="badge" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); color: #34D399; font-size: 0.65rem; font-weight: bold; text-transform: capitalize;"><i class="bi bi-check-circle-fill me-0.5"></i> Published</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="d-flex gap-2 flex-shrink-0 flex-md-row flex-column w-md-auto w-100">
+              <button type="button" class="btn btn-bb-outline-teal py-2.5 px-3" onclick="document.querySelector('[data-tab=\'creator\']').click();" style="font-size: 0.75rem; border-radius: 50px; height: auto;">
+                Edit Details
+              </button>
+              <button type="button" class="btn btn-bb-ghost text-danger p-0 border-0" style="background: transparent; color: #EF4444 !important; font-weight: bold;" aria-label="Delete course">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Course Row 2 -->
+          <div class="floating-glass-card p-3 d-flex flex-md-row flex-column align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3 w-100 flex-grow-1">
+              <div style="width: 80px; height: 80px; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.35rem;" class="text-white">
+                SJ
+              </div>
+              <div class="flex-grow-1" style="min-width: 0;">
+                <h4 class="text-white fw-bold mb-1 text-truncate" style="font-size: 0.95rem;">TypeScript Deep Dive: Type Safety &amp; Architecture</h4>
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2" style="font-size: 0.72rem; font-weight: 600;">
+                  <span class="badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #FFFFFF;">WEB DEV</span>
+                  <span class="text-muted">₹399 • Advanced level</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-people-fill me-1" style="color: var(--violet-mid);"></i> 3,890 enrolled</span>
+                  <span class="badge" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); color: #34D399; font-size: 0.65rem; font-weight: bold; text-transform: capitalize;"><i class="bi bi-check-circle-fill me-0.5"></i> Published</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="d-flex gap-2 flex-shrink-0 flex-md-row flex-column w-md-auto w-100">
+              <button type="button" class="btn btn-bb-outline-teal py-2.5 px-3" onclick="document.querySelector('[data-tab=\'creator\']').click();" style="font-size: 0.75rem; border-radius: 50px; height: auto;">
+                Edit Details
+              </button>
+              <button type="button" class="btn btn-bb-ghost text-danger p-0 border-0" style="background: transparent; color: #EF4444 !important; font-weight: bold;" aria-label="Delete course">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Course Row 3 -->
+          <div class="floating-glass-card p-3 d-flex flex-md-row flex-column align-items-center justify-content-between gap-3" style="border-color: rgba(245, 158, 11, 0.15);">
+            <div class="d-flex align-items-center gap-3 w-100 flex-grow-1">
+              <div style="width: 80px; height: 80px; border-radius: 8px; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.35rem;" class="text-white">
+                AN
+              </div>
+              <div class="flex-grow-1" style="min-width: 0;">
+                <h4 class="text-white fw-bold mb-1 text-truncate" style="font-size: 0.95rem;">AI &amp; Neural Networks Optimization</h4>
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2" style="font-size: 0.72rem; font-weight: 600;">
+                  <span class="badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #FFFFFF;">AI &amp; ML</span>
+                  <span class="text-muted">₹999 • Advanced level</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-people-fill me-1" style="color: var(--violet-mid);"></i> 0 enrolled</span>
+                  <span class="badge" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.25); color: #FBBF24; font-size: 0.65rem; font-weight: bold; text-transform: capitalize;"><i class="bi bi-exclamation-circle-fill me-0.5"></i> Under Review</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="d-flex gap-2 flex-shrink-0 flex-md-row flex-column w-md-auto w-100">
+              <button type="button" class="btn btn-bb-outline-teal py-2.5 px-3" onclick="document.querySelector('[data-tab=\'creator\']').click();" style="font-size: 0.75rem; border-radius: 50px; height: auto;">
+                Edit Details
+              </button>
+              <button type="button" class="btn btn-bb-ghost text-danger p-0 border-0" style="background: transparent; color: #EF4444 !important; font-weight: bold;" aria-label="Delete course">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================================
+        TAB PANEL 3: CREATE COURSE WIZARD TAB (LOCKED if unverified)
+      ============================================================ -->
+      <div class="instructor-tab-panel" id="panel-creator">
+        <h1 class="text-white fw-bold mb-4" style="font-size: 1.8rem; font-family: var(--font-display);">Create Course Wizard</h1>
+        
+        <!-- locked frosted screen card overlay (visible when unverified) -->
+        <div class="floating-glass-card text-center p-5 mx-auto" id="teach-guest-card" style="max-width: 520px; border-color: rgba(245,158,11,0.30); border-radius: 20px; background: rgba(13,14,26,0.90);">
+          <div class="mb-4" style="font-size: 3.2rem; color: #F59E0B; text-shadow: 0 0 20px rgba(245,158,11,0.25);">
+            <i class="bi bi-shield-lock-fill"></i>
+          </div>
+          <h2 class="text-white fw-bold mb-2" style="font-family: var(--font-display); font-size: 1.45rem;">Instructor Profile Unverified</h2>
+          <p style="color: #94A3B8; font-size: 0.95rem; line-height: 1.6;" class="mb-4">
+            Complete your onboarding verifications form to unlock course creator steps. Our onboarding teams typically evaluate profiles and credentials within 2-3 business days.
+          </p>
+          <a href="teach-verify.html" class="btn-bb-login w-100 py-3 text-center d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; border: none; font-weight: bold; border-radius: 50px; height: 50px; text-decoration: none;">
+            Verify Profile Now <i class="bi bi-arrow-right-short fs-5 ms-1"></i>
+          </a>
+        </div>
+
+        <!-- Unlocked Step Wizard container -->
+        <div id="teach-unlocked-container" class="locked-blur">
+          
+          <!-- Step dots nodes indicator wrapper -->
+          <div class="step-indicator-wrapper" id="step-indicators-wizard">
+            <div class="step-indicator-line-track">
+              <div class="step-indicator-line-fill" id="step-line-fill" style="width: 0%;"></div>
+            </div>
+            
+            <div class="wizard-step-node active" data-step="1">
+              <div class="wizard-step-circle">1</div>
+              <span class="wizard-step-label">Basic Info</span>
+            </div>
+            <div class="wizard-step-node" data-step="2">
+              <div class="wizard-step-circle">2</div>
+              <span class="wizard-step-label">Curriculum</span>
+            </div>
+            <div class="wizard-step-node" data-step="3">
+              <div class="wizard-step-circle">3</div>
+              <span class="wizard-step-label">Pricing</span>
+            </div>
+            <div class="wizard-step-node" data-step="4">
+              <div class="wizard-step-circle">4</div>
+              <span class="wizard-step-label">Publish</span>
+            </div>
+          </div>
+
+          <!-- WIZARD PAGE 1: Course Info -->
+          <div class="wizard-page-panel active" id="page-step-1">
+            <div class="floating-glass-card p-4">
+              <h3 class="text-white fw-bold mb-3.5" style="font-size: 1.1rem; font-family: var(--font-display);">Step 1: Course Details</h3>
+              
+              <div class="d-flex flex-column gap-3 mb-4">
+                <div class="glass-input-wrapper mb-0">
+                  <label for="course-title" class="glass-input-label">Course Title</label>
+                  <input type="text" class="glass-input" id="course-title" placeholder="e.g. Next.js 14 &amp; Supabase SaaS Blueprint" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">
+                </div>
+
+                <div class="row g-3">
+                  <div class="col-md-6 col-12">
+                    <div class="glass-input-wrapper mb-0">
+                      <label class="glass-input-label">Category</label>
+                      <select class="glass-input" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">
+                        <option value="web-dev">Web Development</option>
+                        <option value="design">UI/UX Design</option>
+                        <option value="data-science">Data Science</option>
+                        <option value="mobile">Mobile Development</option>
+                        <option value="ai-ml">AI &amp; Machine Learning</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-6 col-12">
+                    <div class="glass-input-wrapper mb-0">
+                      <label class="glass-input-label">Difficulty Level</label>
+                      <select class="glass-input" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="glass-input-wrapper mb-0">
+                  <label for="course-desc" class="glass-input-label">Short Description</label>
+                  <textarea class="glass-input" id="course-desc" rows="3" placeholder="Provide a brief summary of what students will achieve in this course..." style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); border-radius: 8px;"></textarea>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end">
+                <button type="button" class="btn btn-bb-primary py-2 px-4 btn-wizard-next" style="font-size: 0.8rem; border-radius: 50px; width: auto;">
+                  Next Step <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- WIZARD PAGE 2: Curriculum Section Builders -->
+          <div class="wizard-page-panel" id="page-step-2">
+            <div class="floating-glass-card p-4">
+              <div class="d-flex flex-sm-row flex-column justify-content-between align-items-sm-center gap-2 mb-3.5">
+                <h3 class="text-white fw-bold m-0" style="font-size: 1.1rem; font-family: var(--font-display);">Step 2: Course Curriculum Builder</h3>
+                <button type="button" class="btn btn-bb-teal py-1.5 px-3" id="btn-syllabus-add-section" style="font-size: 0.72rem; border-radius: 50px; width: auto; box-shadow: var(--shadow-glow-teal);">
+                  + Add Section
+                </button>
+              </div>
+              
+              <!-- Syllabus sections builder list container -->
+              <div class="mb-4" id="syllabus-sections-list-container">
+                <!-- Preloaded Section 1 -->
+                <div class="syllabus-section-card">
+                  <div class="syllabus-section-header">
+                    <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 80%;">
+                      <span class="syllabus-drag-grip"><i class="bi bi-grip-vertical"></i></span>
+                      <input type="text" class="glass-input m-0 py-1.5 px-3 font-semibold text-white w-100" value="Section 1: Introduction &amp; Environmental Layout Setup" style="font-size: 0.88rem; border-radius: 8px;">
+                    </div>
+                    <button type="button" class="btn p-0 border-0 btn-delete-section text-danger fs-5" style="background: transparent;" aria-label="Delete Section">
+                      <i class="bi bi-trash-fill"></i>
+                    </button>
+                  </div>
+                  
+                  <div class="syllabus-lessons-list-box">
+                    <div class="lessons-inner-layout d-flex flex-column gap-2">
+                      <!-- Lesson 1 -->
+                      <div class="d-flex align-items-center justify-content-between gap-3 p-2 rounded-3" style="background: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.06);">
+                        <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 85%;">
+                          <i class="bi bi-play-circle-fill text-muted"></i>
+                          <input type="text" class="glass-input m-0 py-1 px-2 text-white w-100" value="1. Welcome and Course Architecture Overview Lecture" style="font-size: 0.78rem; border-radius: 6px;">
+                        </div>
+                        <button type="button" class="btn p-0 border-0 text-danger btn-delete-lesson" style="background: transparent;" aria-label="Delete Lesson">
+                          <i class="bi bi-x-circle"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-bb-outline-teal py-1.5 px-3 mt-2 btn-add-lesson" style="font-size: 0.72rem; border-radius: 50px; width: auto; height: auto;">
+                      + Add Lesson
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Preloaded Section 2 -->
+                <div class="syllabus-section-card">
+                  <div class="syllabus-section-header">
+                    <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 80%;">
+                      <span class="syllabus-drag-grip"><i class="bi bi-grip-vertical"></i></span>
+                      <input type="text" class="glass-input m-0 py-1.5 px-3 font-semibold text-white w-100" value="Section 2: Wire Relational Schema Databanks inside Supabase" style="font-size: 0.88rem; border-radius: 8px;">
+                    </div>
+                    <button type="button" class="btn p-0 border-0 btn-delete-section text-danger fs-5" style="background: transparent;" aria-label="Delete Section">
+                      <i class="bi bi-trash-fill"></i>
+                    </button>
+                  </div>
+                  
+                  <div class="syllabus-lessons-list-box">
+                    <div class="lessons-inner-layout d-flex flex-column gap-2">
+                      <!-- Lesson 1 -->
+                      <div class="d-flex align-items-center justify-content-between gap-3 p-2 rounded-3" style="background: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.06);">
+                        <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 85%;">
+                          <i class="bi bi-play-circle-fill text-muted"></i>
+                          <input type="text" class="glass-input m-0 py-1 px-2 text-white w-100" value="1. Database Relational Tables, Rows and Triggers Setups" style="font-size: 0.78rem; border-radius: 6px;">
+                        </div>
+                        <button type="button" class="btn p-0 border-0 text-danger btn-delete-lesson" style="background: transparent;" aria-label="Delete Lesson">
+                          <i class="bi bi-x-circle"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-bb-outline-teal py-1.5 px-3 mt-2 btn-add-lesson" style="font-size: 0.72rem; border-radius: 50px; width: auto; height: auto;">
+                      + Add Lesson
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-bb-ghost py-2 px-4 btn-wizard-prev" style="font-size: 0.8rem; border-radius: 50px; width: auto;">
+                  <i class="bi bi-arrow-left me-1"></i> Back
+                </button>
+                <button type="button" class="btn btn-bb-primary py-2 px-4 btn-wizard-next" style="font-size: 0.8rem; border-radius: 50px; width: auto;">
+                  Next Step <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- WIZARD PAGE 3: Pricing Settings -->
+          <div class="wizard-page-panel" id="page-step-3">
+            <div class="floating-glass-card p-4">
+              <h3 class="text-white fw-bold mb-3.5" style="font-size: 1.1rem; font-family: var(--font-display);">Step 3: Pricing Tiers Settings</h3>
+              
+              <div class="d-flex flex-column gap-3 mb-4">
+                <!-- Free course toggle switch -->
+                <div class="toggle-switch-wrapper border-bottom pb-3 mb-2" style="border-color: rgba(255,255,255,0.05) !important;">
+                  <div>
+                    <h4 class="text-white fw-bold mb-0.5" style="font-size: 0.88rem;">Free Content Toggle</h4>
+                    <p style="color: #94A3B8; font-size: 0.75rem; margin: 0;">Make this course completely free for all registered members.</p>
+                  </div>
+                  <label class="toggle-switch-btn">
+                    <input type="checkbox" id="course-free-toggle">
+                    <span class="toggle-switch-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Price inputs row -->
+                <div class="row g-3">
+                  <div class="col-md-6 col-12">
+                    <div class="glass-input-wrapper mb-0">
+                      <label for="course-price-input" class="glass-input-label">Sales Price (₹)</label>
+                      <input type="number" class="glass-input" id="course-price-input" value="499" placeholder="e.g. 499" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">
+                    </div>
+                  </div>
+                  <div class="col-md-6 col-12">
+                    <div class="glass-input-wrapper mb-0">
+                      <label for="course-original-price-input" class="glass-input-label">Original Price (₹)</label>
+                      <input type="number" class="glass-input" id="course-original-price-input" value="4999" placeholder="e.g. 4999" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Dynamic discount output tag -->
+                <div class="py-2.5 px-3 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); font-size: 0.82rem;" id="wizard-discount-calc-label">
+                  <span class="text-success"><i class="bi bi-tag-fill me-1"></i> Special Discount: 90% OFF</span>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-bb-ghost py-2 px-4 btn-wizard-prev" style="font-size: 0.8rem; border-radius: 50px; width: auto;">
+                  <i class="bi bi-arrow-left me-1"></i> Back
+                </button>
+                <button type="button" class="btn btn-bb-primary py-2 px-4 btn-wizard-next" style="font-size: 0.8rem; border-radius: 50px; width: auto;">
+                  Next Step <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- WIZARD PAGE 4: Previews and Publish Drafts -->
+          <div class="wizard-page-panel" id="page-step-4">
+            <div class="floating-glass-card p-4">
+              <h3 class="text-white fw-bold mb-3.5" style="font-size: 1.1rem; font-family: var(--font-display);">Step 4: Course Media &amp; Proposal Submission</h3>
+              
+              <div class="row g-4 mb-4">
+                <!-- Left: Upload thumbnail dropzone -->
+                <div class="col-md-7 col-12">
+                  <h4 class="text-white fw-bold mb-2" style="font-size: 0.88rem; font-family: var(--font-display);">Course Thumbnail Image</h4>
+                  
+                  <!-- Dashed Drag Box -->
+                  <div class="p-5 border border-dashed rounded-4 text-center d-flex flex-column align-items-center justify-content-center cursor-pointer" style="border-color: rgba(255,255,255,0.12) !important; background: rgba(255,255,255,0.02); border-radius: 16px; cursor: pointer; transition: var(--transition);" onmouseover="this.style.borderColor='var(--violet-mid)';" onmouseout="this.style.borderColor='rgba(255,255,255,0.12)';">
+                    <span class="display-5 text-muted mb-2"><i class="bi bi-cloud-arrow-up-fill" style="color: var(--violet-mid);"></i></span>
+                    <h5 class="text-white fw-semibold mb-1" style="font-size: 0.85rem;">Upload Course Thumbnail</h5>
+                    <p style="color: #94A3B8; font-size: 0.72rem; margin: 0; line-height: 1.45;">Supports PNG, JPEG up to 5 MB size limit.<br>Recommended aspect ratio is 16:9.</p>
+                  </div>
+                </div>
+
+                <!-- Right: Course Card Preview HUD -->
+                <div class="col-md-5 col-12">
+                  <h4 class="text-white fw-bold mb-2" style="font-size: 0.88rem; font-family: var(--font-display);">Proposal Card Preview</h4>
+                  
+                  <!-- Course Card stub -->
+                  <div class="course-card paid" style="border-radius: 12px; height: auto;">
+                    <div class="course-thumb-wrapper" style="height: 110px;">
+                      <span class="course-badge-level">Advanced</span>
+                      <div class="course-thumb-placeholder" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-size: 1.8rem;">
+                        SJ
+                      </div>
+                    </div>
+                    <div class="course-card-body p-3">
+                      <h4 class="course-title text-white fw-bold mb-2" style="font-size: 0.85rem; height: auto; line-height: 1.4;">Next.js 14 &amp; Supabase SaaS Blueprint</h4>
+                      <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
+                        <span style="color: #EC4899; font-weight: 700; font-size: 0.9rem;">₹499</span>
+                        <span class="badge" style="background: rgba(168,85,247,0.12); color: #C084FC; font-size: 0.65rem; border: none; font-weight: bold;">PREVIEW</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action buttons footer -->
+              <div class="d-flex flex-sm-row flex-column justify-content-between align-items-center gap-3">
+                <button type="button" class="btn btn-bb-ghost py-2 px-4 btn-wizard-prev" style="font-size: 0.8rem; border-radius: 50px; width: auto;">
+                  <i class="bi bi-arrow-left me-1"></i> Back
+                </button>
+                
+                <div class="d-flex gap-2 flex-sm-row flex-column w-sm-auto w-100">
+                  <button type="button" class="btn btn-bb-outline-violet py-2.5 px-4" id="btn-wizard-save-draft" style="font-size: 0.8rem; border-radius: 50px;">
+                    Save Draft
+                  </button>
+                  <button type="button" class="btn btn-bb-primary py-2.5 px-4" id="btn-wizard-submit-review" style="font-size: 0.8rem; border-radius: 50px;">
+                    Submit for Review
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============================================================
+        TAB PANEL 4: EARNINGS ANALYTICS TAB
+      ============================================================ -->
+      <div class="instructor-tab-panel" id="panel-earnings">
+        <h1 class="text-white fw-bold mb-4" style="font-size: 1.8rem; font-family: var(--font-display);">Earnings Analytics</h1>
+
+        <div class="row g-4">
+          <!-- Left: Revenue Bar chart mock SVG -->
+          <div class="col-xl-8 col-12">
+            <div class="svg-chart-hud-wrapper">
+              <h3 class="text-white fw-bold mb-3.5" style="font-size: 1.05rem; font-family: var(--font-display);">Revenues per Month (₹)</h3>
+              
+              <!-- SVG Bar chart -->
+              <div style="width: 100%; aspect-ratio: 2/1; max-height: 280px; overflow: hidden;">
+                <svg width="100%" height="100%" viewBox="0 0 500 250" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Gradients definitions -->
+                  <defs>
+                    <linearGradient id="cyan-gradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.8"></stop>
+                      <stop offset="100%" stop-color="#0891B2" stop-opacity="0.1"></stop>
+                    </linearGradient>
+                    <linearGradient id="violet-gradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.85"></stop>
+                      <stop offset="100%" stop-color="#4C1D95" stop-opacity="0.15"></stop>
+                    </linearGradient>
+                  </defs>
+
+                  <!-- Grid horizontal lines -->
+                  <line x1="50" y1="50" x2="480" y2="50" class="chart-grid-ticks"></line>
+                  <line x1="50" y1="100" x2="480" y2="100" class="chart-grid-ticks"></line>
+                  <line x1="50" y1="150" x2="480" y2="150" class="chart-grid-ticks"></line>
+                  <line x1="50" y1="200" x2="480" y2="200" class="chart-grid-ticks"></line>
+                  
+                  <!-- X coordinates axis titles -->
+                  <text x="65" y="230" fill="#94A3B8" font-size="10" font-family="monospace">Jan</text>
+                  <text x="145" y="230" fill="#94A3B8" font-size="10" font-family="monospace">Feb</text>
+                  <text x="225" y="230" fill="#94A3B8" font-size="10" font-family="monospace">Mar</text>
+                  <text x="305" y="230" fill="#94A3B8" font-size="10" font-family="monospace">Apr</text>
+                  <text x="385" y="230" fill="#94A3B8" font-size="10" font-family="monospace">May</text>
+                  <text x="450" y="230" fill="#94A3B8" font-size="10" font-family="monospace">Jun</text>
+
+                  <!-- Bar cylinders mock layouts -->
+                  <rect x="65" y="140" width="35" height="60" rx="3" class="chart-bar-column"></rect>
+                  <rect x="145" y="100" width="35" height="100" rx="3" class="chart-bar-column"></rect>
+                  <rect x="225" y="150" width="35" height="50" rx="3" class="chart-bar-column"></rect>
+                  <rect x="305" y="90" width="35" height="110" rx="3" class="chart-bar-column"></rect>
+                  <rect x="385" y="60" width="35" height="140" rx="3" class="chart-bar-column" style="fill: url(#violet-gradient);"></rect>
+                  <rect x="445" y="50" width="35" height="150" rx="3" class="chart-bar-column" style="fill: url(#violet-gradient);"></rect>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Transaction sales histories list -->
+          <div class="col-xl-4 col-12">
+            <div class="floating-glass-card p-3 h-100 d-flex flex-column justify-content-between">
+              <h3 class="text-white fw-bold mb-3" style="font-size: 1.05rem; font-family: var(--font-display);">Sales Histories</h3>
+              
+              <div class="d-flex flex-column gap-2.5">
+                <div class="p-2 border rounded-3 d-flex align-items-center justify-content-between gap-1.5" style="background: rgba(255,255,255,0.015); border-color: rgba(255,255,255,0.05) !important; font-size: 0.8rem;">
+                  <div>
+                    <span class="text-white font-semibold d-block">Order #8241</span>
+                    <span class="text-muted d-block" style="font-size: 0.72rem;">SaaS Blueprint sale</span>
+                  </div>
+                  <span class="text-success fw-bold" style="color: #34D399;">+₹499</span>
+                </div>
+                
+                <div class="p-2 border rounded-3 d-flex align-items-center justify-content-between gap-1.5" style="background: rgba(255,255,255,0.015); border-color: rgba(255,255,255,0.05) !important; font-size: 0.8rem;">
+                  <div>
+                    <span class="text-white font-semibold d-block">Order #8239</span>
+                    <span class="text-muted d-block" style="font-size: 0.72rem;">TypeScript Deep Dive sale</span>
+                  </div>
+                  <span class="text-success fw-bold" style="color: #34D399;">+₹399</span>
+                </div>
+
+                <div class="p-2 border rounded-3 d-flex align-items-center justify-content-between gap-1.5" style="background: rgba(255,255,255,0.015); border-color: rgba(255,255,255,0.05) !important; font-size: 0.8rem;">
+                  <div>
+                    <span class="text-white font-semibold d-block">Order #8210</span>
+                    <span class="text-muted d-block" style="font-size: 0.72rem;">SaaS Blueprint sale</span>
+                  </div>
+                  <span class="text-success fw-bold" style="color: #34D399;">+₹499</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================================
+        TAB PANEL 5: STARS REVIEWS LIST TAB
+      ============================================================ -->
+      <div class="instructor-tab-panel" id="panel-reviews">
+        <h1 class="text-white fw-bold mb-4" style="font-size: 1.8rem; font-family: var(--font-display);">Syllabus Reviews</h1>
+
+        <div class="d-flex flex-column gap-3">
+          <!-- Review Item 1 -->
+          <div class="p-3 border rounded-3 classroom-review-row" style="background: rgba(255, 255, 255, 0.015); border-color: var(--border);">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="d-flex align-items-center gap-2">
+                <div class="instructor-circle-avatar" style="width: 24px; height: 24px; font-size: 0.65rem; background: #6B7280; color: #FFFFFF;">TL</div>
+                <span class="text-white font-semibold" style="font-size: 0.82rem;">Tobias L.</span>
+                <span class="badge" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); color: #34D399; font-size: 0.65rem; font-weight: bold;">Verified Student</span>
+              </div>
+              <button type="button" class="btn p-0 border-0 btn-flag-review" style="background: transparent; color: #94A3B8; font-size: 0.78rem; display: flex; align-items: center; gap: 0.25rem;">
+                <i class="bi bi-flag"></i> Flag
+              </button>
+            </div>
+            
+            <div class="stars-subline mb-2" style="font-size: 0.75rem;">
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+            </div>
+            
+            <p class="text-muted m-0" style="font-size: 0.85rem; line-height: 1.55;">
+              Sarah is an absolutely phenomenal cloud solution educator! The Postgres row-level triggers schemas and subscription webhook routes configurations are simplified flawlessly. Highly recommended!
+            </p>
+          </div>
+
+          <!-- Review Item 2 -->
+          <div class="p-3 border rounded-3 classroom-review-row" style="background: rgba(255, 255, 255, 0.015); border-color: var(--border);">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="d-flex align-items-center gap-2">
+                <div class="instructor-circle-avatar" style="width: 24px; height: 24px; font-size: 0.65rem; background: #9CA3AF; color: #1F2937;">AM</div>
+                <span class="text-white font-semibold" style="font-size: 0.82rem;">Amanda M.</span>
+                <span class="badge" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); color: #34D399; font-size: 0.65rem; font-weight: bold;">Verified Student</span>
+              </div>
+              <button type="button" class="btn p-0 border-0 btn-flag-review" style="background: transparent; color: #94A3B8; font-size: 0.78rem; display: flex; align-items: center; gap: 0.25rem;">
+                <i class="bi bi-flag"></i> Flag
+              </button>
+            </div>
+            
+            <div class="stars-subline mb-2" style="font-size: 0.75rem;">
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+            </div>
+            
+            <p class="text-muted m-0" style="font-size: 0.85rem; line-height: 1.55;">
+              The Next.js dynamic routing structures and Stripe checkout parameters tutorials in Section 3 are incredibly well planned. Instantly stood up a serverless subscription business!
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+    
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase Config -->
+<script src="js/supabase-config.js"></script>
+<!-- Main JS -->
+<script src="js/main.js"></script>
+</body>
+</html>

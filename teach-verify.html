@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Supabase CDN Client & Protected Page Session Check -->
+  <script>
+    (async () => {
+      const savedUserStr = localStorage.getItem('brainbyte_user');
+      let localSessionActive = false;
+      if (savedUserStr) {
+        try {
+          const user = JSON.parse(savedUserStr);
+          if (user && user.isLoggedIn) {
+            localSessionActive = true;
+          }
+        } catch (e) {}
+      }
+      if (localSessionActive || localStorage.getItem('bb_admin_session') === 'active') {
+        return;
+      }
+      const SUPABASE_URL = "https://xtbznjtwppchjsprnylt.supabase.co";
+      const SUPABASE_ANON_KEY = "sb_publishable_sjJvee1lOEPjm5kOkejIEg_8IVc-KQD";
+      if (SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_URL !== "") {
+        const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        if (supabase) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) return;
+        }
+      }
+      window.location.href = 'login.html';
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Become a Verified Instructor — BrainByte</title>
+  <meta name="description" content="Verify your qualifications, upload portfolios, and configure your credentials to unlock the BrainByte Instructor Studio.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Premium Theme CSS -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    /* Premium Success Checkmark Animation Styles */
+    .success-checkmark-container {
+      width: 90px;
+      height: 90px;
+      margin: 0 auto 1.5rem auto;
+      position: relative;
+    }
+
+    .success-checkmark-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .success-checkmark-circle {
+      stroke-dasharray: 166;
+      stroke-dashoffset: 166;
+      stroke-width: 3;
+      stroke: #A855F7;
+      fill: none;
+      animation: stroke-draw 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+    }
+
+    .success-checkmark-check {
+      transform-origin: 50% 50%;
+      stroke-dasharray: 48;
+      stroke-dashoffset: 48;
+      stroke-width: 4;
+      stroke: #FFFFFF;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      animation: stroke-draw 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
+    }
+
+    /* Circle pop background fill */
+    .success-checkmark-bg-pop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #A855F7, #EC4899);
+      opacity: 0;
+      z-index: -1;
+      transform: scale(0.8);
+      animation: fill-pop-gradient 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.5s forwards;
+      box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
+    }
+
+    @keyframes stroke-draw {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    @keyframes fill-pop-gradient {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* Custom Purple Checkbox Style */
+    .custom-purple-checkbox-container {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .custom-purple-checkbox-input {
+      display: none;
+    }
+
+    .custom-purple-checkbox-box {
+      width: 20px;
+      height: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.03);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      margin-top: 2px;
+    }
+
+    .custom-purple-checkbox-container:hover .custom-purple-checkbox-box {
+      border-color: rgba(168, 85, 247, 0.5);
+      background: rgba(168, 85, 247, 0.05);
+    }
+
+    .custom-purple-checkbox-input:checked + .custom-purple-checkbox-box {
+      background: linear-gradient(135deg, #A855F7, #EC4899);
+      border-color: transparent;
+      box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+    }
+
+    .custom-purple-checkbox-box i {
+      color: #FFFFFF;
+      font-size: 0.75rem;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .custom-purple-checkbox-input:checked + .custom-purple-checkbox-box i {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Summary Card Table Row */
+    .summary-section-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 1rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .summary-section-row:last-child {
+      border-bottom: none;
+    }
+
+    .summary-row-label {
+      color: #94A3B8;
+      font-size: 0.82rem;
+      font-weight: 500;
+      flex-shrink: 0;
+      width: 140px;
+    }
+
+    .summary-row-content {
+      color: #FFFFFF;
+      font-size: 0.85rem;
+      font-weight: 600;
+      flex-grow: 1;
+      padding-right: 1rem;
+      word-break: break-word;
+    }
+
+    .summary-row-edit-link {
+      color: #A855F7 !important;
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-decoration: none;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .summary-row-edit-link:hover {
+      color: #EC4899 !important;
+      text-shadow: 0 0 8px rgba(236, 72, 153, 0.3);
+    }
+
+    /* Video Speeds Helper Badge */
+    .video-speed-badge {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px dashed rgba(245, 158, 11, 0.25);
+      border-radius: 8px;
+      color: #F59E0B;
+      font-size: 0.74rem;
+      font-weight: 600;
+      padding: 0.65rem 0.85rem;
+    }
+
+    /* Error and warnings cues text placement */
+    .validation-helper-error-msg {
+      color: #EF4444;
+      font-size: 0.72rem;
+      font-weight: 600;
+      margin-top: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    /* Condensed Step Indicator Label styling for mobile viewports */
+    @media (max-width: 480px) {
+      .wizard-step-node .wizard-step-label {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="verification-page-body">
+
+  <!-- Fixed Ambient background glow blobs -->
+  <div class="bg-blob-teal" style="top: -100px; left: -100px; fixed: true; opacity: 0.15; pointer-events: none;"></div>
+  <div class="bg-blob-violet" style="top: 40%; right: -100px; fixed: true; opacity: 0.10; pointer-events: none;"></div>
+  <div class="bg-blob-pink" style="bottom: -150px; left: 10%; fixed: true; opacity: 0.08; pointer-events: none;"></div>
+
+  <!-- ================================================================
+    TOP STICKY NAVBAR
+  ================================================================ -->
+  <nav class="navbar navbar-expand-lg bb-navbar scrolled" style="position: sticky; top: 0; z-index: 1000;">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="index.html">
+        <span>Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
+      </a>
+      
+      <button class="navbar-toggler text-white border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation" style="background: transparent; outline: none;">
+        <i class="bi bi-list fs-2"></i>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 gap-2">
+          <li class="nav-item">
+            <a class="nav-link" href="courses.html">Courses</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="library.html" style="color: var(--cyan-primary) !important;"><i class="bi bi-unlock-fill me-1"></i> Free Library</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="teach.html">Teach</a>
+          </li>
+        </ul>
+        
+        <div class="d-flex align-items-center gap-3">
+          <a href="dashboard.html" class="nav-link text-white fw-bold px-2"><i class="bi bi-grid-1x2-fill me-1.5" style="font-size: 0.85rem;"></i>Dashboard</a>
+          <a href="index.html" class="btn btn-bb-primary px-4 py-2" id="nav-btn-logout-header" style="font-size: 0.82rem; border-radius: 50px; font-weight: bold;">Logout</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ================================================================
+    FLOATING DEMO STATE SWITCHER CAPSULE (Retained for testing Page 11/12 compatibility)
+  ================================================================ -->
+  <div class="demo-state-switcher">
+    <div class="demo-state-label"><i class="bi bi-sliders me-1 text-primary" style="color: var(--accent-purple) !important;"></i> Demo</div>
+    <button class="demo-switcher-btn active" data-state="form" id="btn-demo-form">Form</button>
+    <button class="demo-switcher-btn" data-state="success" id="btn-demo-success">Success View</button>
+  </div>
+
+  <!-- ================================================================
+    MAIN CARD CONTENT VIEWPORT
+  ================================================================ -->
+  <div class="container d-flex flex-column align-items-center justify-content-center py-5" style="min-height: calc(100vh - 80px); position: relative; z-index: 10;">
+    
+    <!-- Centralized Container Card -->
+    <div class="floating-glass-card p-sm-5 p-4 mx-auto w-100" style="max-width: 680px; backdrop-filter: blur(12px); background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; transition: all 0.4s ease;">
+      
+      <!-- ==============================================================
+        STATE 1 PANEL: 4-STEP WIZARD FORM (PAGE 11 CORE)
+      ============================================================== -->
+      <div class="wizard-page-panel active" id="panel-verify-form">
+        
+        <!-- Header Text -->
+        <div class="wizard-header-text-block mb-3 text-center">
+          <h1 class="text-white fw-bold mb-1" style="font-family: var(--font-display); font-size: 2.1rem; letter-spacing: -0.02em;">Become a Verified Instructor</h1>
+          <p class="text-muted mb-0" style="font-size: 0.95rem; font-weight: 500;">5 minutes to fill • Reviewed in 2-3 business days</p>
+        </div>
+
+        <!-- Amber Info Banner Below Header -->
+        <div class="p-3 mb-4 d-flex align-items-start gap-2.5" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.20); border-radius: 12px; color: #F59E0B; text-align: left;">
+          <i class="bi bi-lightning-charge-fill fs-5 flex-shrink-0 mt-0.5"></i>
+          <span style="font-size: 0.84rem; font-weight: 600; line-height: 1.45;">
+            Verified instructors get a purple <i class="bi bi-patch-check-fill text-primary" style="color: var(--accent-purple) !important;"></i> badge, higher trust, and more enrollments!
+          </span>
+        </div>
+
+        <!-- Step node indicator wrapper -->
+        <div class="step-indicator-wrapper mb-4.5">
+          <div class="step-indicator-line-track">
+            <div class="step-indicator-line-fill" id="wizard-verify-progress-bar" style="width: 0%;"></div>
+          </div>
+          <div class="wizard-step-node active" data-step="1" id="node-step-1">
+            <div class="wizard-step-circle">1</div>
+            <div class="wizard-step-label">Personal Info</div>
+          </div>
+          <div class="wizard-step-node" data-step="2" id="node-step-2">
+            <div class="wizard-step-circle">2</div>
+            <div class="wizard-step-label">Skill Proof</div>
+          </div>
+          <div class="wizard-step-node" data-step="3" id="node-step-3">
+            <div class="wizard-step-circle">3</div>
+            <div class="wizard-step-label">Teaching Intent</div>
+          </div>
+          <div class="wizard-step-node" data-step="4" id="node-step-4">
+            <div class="wizard-step-circle">4</div>
+            <div class="wizard-step-label">Review &amp; Submit</div>
+          </div>
+        </div>
+
+        <!-- FORM ROOT -->
+        <form id="verify-wizard-form-element" onsubmit="return false;">
+          
+          <!-- ==========================================
+            STEP 1 VIEWPORT: Personal Info
+          ========================================== -->
+          <div class="wizard-step-panel active" id="step-panel-1">
+            
+            <!-- Photo Upload Area -->
+            <div class="avatar-uploader-wrapper mb-4">
+              <div class="avatar-upload-circle" id="verify-avatar-dropbox" style="width: 120px; height: 120px; background: rgba(168,85,247,0.10); border: 2px dashed rgba(168,85,247,0.30);">
+                <img id="verify-avatar-preview" src="" class="d-none" alt="Avatar Preview" style="border-radius: 50%;">
+                <div class="avatar-upload-placeholder" id="verify-avatar-placeholder">
+                  <i class="bi bi-camera" style="color: #94A3B8; font-size: 1.8rem; display: block; margin-bottom: 0.25rem;"></i>
+                  <span style="font-size: 0.68rem; color: #94A3B8; font-weight: 700; text-transform: uppercase;">Upload Photo</span>
+                </div>
+                <div class="avatar-upload-overlay" id="verify-avatar-overlay-text">
+                  Change Photo
+                </div>
+              </div>
+              <input type="file" id="verify-avatar-input" accept="image/*" class="d-none" aria-label="Upload profile image">
+            </div>
+
+            <!-- Full Name (Pre-filled glass) -->
+            <div class="glass-input-wrapper mb-3 text-start">
+              <label class="glass-input-label" for="verify-fullname">Full Name</label>
+              <input type="text" class="glass-input" id="verify-fullname" value="Rahul Sharma">
+            </div>
+
+            <!-- Teaching Category dropdown -->
+            <div class="glass-input-wrapper mb-3 text-start">
+              <label class="glass-input-label" for="verify-category">Primary Teaching Focus</label>
+              <select class="glass-input" id="verify-category">
+                <option value="Web Dev">Web Dev</option>
+                <option value="Design">Design</option>
+                <option value="Data Science">Data Science</option>
+                <option value="Mobile">Mobile</option>
+                <option value="AI &amp; ML">AI &amp; ML</option>
+                <option value="Photography">Photography</option>
+                <option value="General">General</option>
+              </select>
+            </div>
+
+            <!-- Bio text area with character counts -->
+            <div class="glass-input-wrapper mb-4 text-start">
+              <div class="d-flex justify-content-between align-items-center">
+                <label class="glass-input-label" for="verify-bio">Short Bio</label>
+                <span class="text-muted" style="font-size: 0.72rem; font-weight: bold;" id="verify-bio-char-counter">0 / 300</span>
+              </div>
+              <textarea class="glass-input" id="verify-bio" rows="4" placeholder="Tell learners about yourself..." style="height: auto; border-radius: 8px; min-height: 100px;"></textarea>
+              <div class="validation-helper-error-msg d-none" id="verify-bio-error">
+                <i class="bi bi-exclamation-circle-fill"></i> Biography is required.
+              </div>
+            </div>
+
+            <!-- Full width Next button -->
+            <div class="d-flex mt-4">
+              <button type="button" class="btn btn-bb-primary py-3 w-100" id="btn-step-1-next" style="border-radius: 50px; font-weight: bold; background: #7C3AED; box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);" disabled>
+                Next Step <i class="bi bi-arrow-right ms-1"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ==========================================
+            STEP 2 VIEWPORT: Skill Proof
+          ========================================== -->
+          <div class="wizard-step-panel" id="step-panel-2" style="display: none;">
+            
+            <!-- Skill Verification Card Banner -->
+            <div class="p-3 mb-3.5 text-start d-flex align-items-start gap-2.5 rounded-3" style="background: rgba(6,182,212,0.06); border: 1px solid rgba(6,182,212,0.30); color: #06B6D4;">
+              <i class="bi bi-search fs-5 flex-shrink-0 mt-0.5"></i>
+              <span style="font-size: 0.8rem; font-weight: 600; line-height: 1.45;">
+                🔍 We manually check your profiles to verify your skills are genuine
+              </span>
+            </div>
+
+            <!-- LinkedIn Profile URL (Required) -->
+            <div class="glass-input-wrapper mb-3.5 text-start">
+              <label class="glass-input-label" for="verify-linkedin">LinkedIn Profile URL *</label>
+              <div class="validation-input-container">
+                <!-- LinkedIn logo prefix style -->
+                <span style="position: absolute; left: 14px; top: 12px; color: #0077B5; font-size: 1.25rem;"><i class="bi bi-linkedin"></i></span>
+                <input type="url" class="glass-input ps-5 pe-5" id="verify-linkedin" placeholder="https://linkedin.com/in/yourname">
+                <div class="validation-indicator-badge" id="linkedin-validation-badge">
+                  <i class="bi bi-check"></i>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-1">
+                <span class="text-muted" style="font-size: 0.68rem; font-weight: 600;">Required — we check your experience</span>
+                <span class="text-danger d-none" style="font-size: 0.68rem; font-weight: bold;" id="linkedin-error-text">Syntax invalid</span>
+              </div>
+            </div>
+
+            <!-- GitHub Profile URL (Optional) -->
+            <div class="glass-input-wrapper mb-3.5 text-start">
+              <label class="glass-input-label" for="verify-github">GitHub Profile URL</label>
+              <div class="validation-input-container">
+                <span style="position: absolute; left: 14px; top: 12px; color: #FFFFFF; font-size: 1.25rem;"><i class="bi bi-github"></i></span>
+                <input type="url" class="glass-input ps-5" id="verify-github" placeholder="https://github.com/username">
+              </div>
+              <span class="text-muted d-block mt-1" style="font-size: 0.68rem; font-weight: 600;">Optional but recommended for tech instructors</span>
+            </div>
+
+            <!-- Portfolio/Website URL (Optional) -->
+            <div class="glass-input-wrapper mb-4 text-start">
+              <label class="glass-input-label" for="verify-portfolio">Portfolio / Website</label>
+              <div class="validation-input-container">
+                <span style="position: absolute; left: 14px; top: 12px; color: #94A3B8; font-size: 1.25rem;"><i class="bi bi-globe"></i></span>
+                <input type="url" class="glass-input ps-5" id="verify-portfolio" placeholder="https://yourwebsite.com">
+              </div>
+              <span class="text-muted d-block mt-1" style="font-size: 0.68rem; font-weight: 600;">Optional — any work showcase</span>
+            </div>
+
+            <!-- At least LinkedIn OR GitHub is required note -->
+            <p class="text-muted text-start mb-4" style="font-size: 0.72rem; font-style: italic;">
+              At least LinkedIn OR GitHub is required
+            </p>
+
+            <!-- Buttons -->
+            <div class="d-flex gap-3">
+              <button type="button" class="btn btn-bb-ghost py-3 w-50" id="btn-step-2-back" style="border-radius: 50px; font-weight: bold;">
+                <i class="bi bi-arrow-left me-1"></i> Back
+              </button>
+              <button type="button" class="btn btn-bb-primary py-3 w-50" id="btn-step-2-next" style="border-radius: 50px; font-weight: bold; background: #7C3AED; box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);" disabled>
+                Next <i class="bi bi-arrow-right ms-1"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ==========================================
+            STEP 3 VIEWPORT: Teaching Intent
+          ========================================== -->
+          <div class="wizard-step-panel" id="step-panel-3" style="display: none;">
+            
+            <!-- What will you teach (glass, 500 chars limit) -->
+            <div class="glass-input-wrapper mb-3.5 text-start">
+              <div class="d-flex justify-content-between align-items-center">
+                <label class="glass-input-label" for="verify-what-teach">What will you teach? *</label>
+                <span class="text-muted" style="font-size: 0.72rem; font-weight: bold;" id="verify-what-teach-char-counter">0 / 500</span>
+              </div>
+              <textarea class="glass-input" id="verify-what-teach" rows="4" maxlength="500" placeholder="Describe the topics and skills you plan to teach on BrainByte..." style="height: auto; border-radius: 8px; min-height: 120px;"></textarea>
+              <div class="validation-helper-error-msg d-none" id="verify-what-teach-error">
+                <i class="bi bi-exclamation-triangle"></i> Min 100 characters
+              </div>
+            </div>
+
+            <!-- Why BrainByte (glass, 500 chars limit) -->
+            <div class="glass-input-wrapper mb-3.5 text-start">
+              <div class="d-flex justify-content-between align-items-center">
+                <label class="glass-input-label" for="verify-why-brainbyte">Why do you want to teach here? *</label>
+                <span class="text-muted" style="font-size: 0.72rem; font-weight: bold;" id="verify-why-brainbyte-char-counter">0 / 500</span>
+              </div>
+              <textarea class="glass-input" id="verify-why-brainbyte" rows="4" maxlength="500" placeholder="What makes BrainByte the right platform for you..." style="height: auto; border-radius: 8px; min-height: 120px;"></textarea>
+              <div class="validation-helper-error-msg d-none" id="verify-why-brainbyte-error">
+                <i class="bi bi-exclamation-triangle"></i> Min 100 characters
+              </div>
+            </div>
+
+            <!-- Years of Experience -->
+            <div class="glass-input-wrapper mb-3.5 text-start">
+              <label class="glass-input-label" for="verify-experience">Years of Experience *</label>
+              <select class="glass-input" id="verify-experience">
+                <option value="Less than 1 year">Less than 1 year</option>
+                <option value="1–3 years">1–3 years</option>
+                <option value="3–5 years">3–5 years</option>
+                <option value="5+ years">5+ years</option>
+              </select>
+            </div>
+
+            <!-- YouTube Video Input -->
+            <div class="glass-input-wrapper mb-4 text-start">
+              <label class="glass-input-label" for="verify-video-url">Teaching Video Link (Optional)</label>
+              <div class="validation-input-container mb-2">
+                <span style="position: absolute; left: 14px; top: 12px; color: #FF0000; font-size: 1.25rem;"><i class="bi bi-youtube"></i></span>
+                <input type="url" class="glass-input ps-5" id="verify-video-url" placeholder="https://youtube.com/watch?v=...">
+              </div>
+              <div class="video-speed-badge">
+                💡 Adding a video speeds up approval by 2x!
+              </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-flex gap-3">
+              <button type="button" class="btn btn-bb-ghost py-3 w-50" id="btn-step-3-back" style="border-radius: 50px; font-weight: bold;">
+                <i class="bi bi-arrow-left me-1"></i> Back
+              </button>
+              <button type="button" class="btn btn-bb-primary py-3 w-50" id="btn-step-3-next" style="border-radius: 50px; font-weight: bold; background: #7C3AED; box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);" disabled>
+                Next <i class="bi bi-arrow-right ms-1"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ==========================================
+            STEP 4 VIEWPORT: Review & Submit Summary
+          ========================================== -->
+          <div class="wizard-step-panel" id="step-panel-4" style="display: none;">
+            <h3 class="text-white fw-bold mb-3 text-start" style="font-size: 1.35rem; font-family: var(--font-display);">Review Your Application</h3>
+            
+            <!-- Dynamic glass summary card -->
+            <div class="p-4 mb-4 text-start" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px;">
+              
+              <!-- Photo + Name -->
+              <div class="summary-section-row">
+                <div class="summary-row-label">Photo &amp; Name</div>
+                <div class="summary-row-content d-flex align-items-center gap-3">
+                  <div class="instructor-circle-avatar" id="summary-avatar-circle" style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #A855F7 0%, #EC4899 100%); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; overflow: hidden; flex-shrink: 0;">
+                    RS
+                  </div>
+                  <span class="text-white" id="summary-fullname-text">Rahul Sharma</span>
+                </div>
+                <a class="summary-row-edit-link" data-edit-step="1">Edit ✏️</a>
+              </div>
+
+              <!-- Focus Category + Experience -->
+              <div class="summary-section-row">
+                <div class="summary-row-label">Focus &amp; Exper.</div>
+                <div class="summary-row-content" id="summary-category-experience-text">
+                  Web Dev • 1–3 years
+                </div>
+                <a class="summary-row-edit-link" data-edit-step="1">Edit ✏️</a>
+              </div>
+
+              <!-- LinkedIn -->
+              <div class="summary-section-row">
+                <div class="summary-row-label">LinkedIn URL</div>
+                <div class="summary-row-content">
+                  <a href="#" target="_blank" class="text-info text-decoration-none" style="color: #06B6D4 !important;" id="summary-linkedin-text">Not provided</a>
+                </div>
+                <a class="summary-row-edit-link" data-edit-step="2">Edit ✏️</a>
+              </div>
+
+              <!-- GitHub -->
+              <div class="summary-section-row">
+                <div class="summary-row-label">GitHub URL</div>
+                <div class="summary-row-content">
+                  <a href="#" target="_blank" class="text-info text-decoration-none" style="color: #06B6D4 !important;" id="summary-github-text">Not provided</a>
+                </div>
+                <a class="summary-row-edit-link" data-edit-step="2">Edit ✏️</a>
+              </div>
+
+              <!-- Topics (Truncated to 2 lines in CSS/inline) -->
+              <div class="summary-section-row">
+                <div class="summary-row-label">Teaching topics</div>
+                <div class="summary-row-content text-truncate-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal;" id="summary-topics-text">
+                  React, Node, TypeScript deep dive curriculum proposal...
+                </div>
+                <a class="summary-row-edit-link" data-edit-step="3">Edit ✏️</a>
+              </div>
+
+            </div>
+
+            <!-- Custom terms checkbox (purple) -->
+            <div class="mb-4 text-start">
+              <label class="custom-purple-checkbox-container" for="verify-terms-checkbox">
+                <input class="custom-purple-checkbox-input" type="checkbox" id="verify-terms-checkbox">
+                <span class="custom-purple-checkbox-box">
+                  <i class="bi bi-check-lg"></i>
+                </span>
+                <span style="font-size: 0.82rem; color: #94A3B8; line-height: 1.45; font-weight: 500;">
+                  I confirm all information provided is accurate and genuine
+                </span>
+              </label>
+            </div>
+
+            <!-- Submit buttons footer -->
+            <div class="d-flex flex-column align-items-center gap-3">
+              <div class="d-flex gap-3 w-100">
+                <button type="button" class="btn btn-bb-ghost py-3 w-25" id="btn-step-4-back" style="border-radius: 50px; font-weight: bold;">
+                  <i class="bi bi-arrow-left"></i>
+                </button>
+                <button type="button" class="btn btn-bb-primary py-3 w-75" id="btn-verify-submit" style="border-radius: 50px; font-weight: bold; background: #7C3AED; box-shadow: 0 0 30px rgba(124, 58, 237, 0.5); opacity: 0.4;" disabled>
+                  Submit for Verification
+                </button>
+              </div>
+              <span class="text-muted" style="font-size: 0.72rem; font-weight: bold;">Usually reviewed within 2-3 business days</span>
+            </div>
+
+          </div>
+
+        </form>
+      </div>
+
+      <!-- ==============================================================
+        STATE 2 PANEL: SUCCESS PANEL WITH ANIMATED POP-CHECK (PAGE 12 CONNECT)
+      ============================================================== -->
+      <div class="wizard-page-panel" id="panel-verify-success" style="display: none;">
+        
+        <div class="text-center py-4">
+          <!-- Animated checkmark badge -->
+          <div class="success-checkmark-container">
+            <svg class="success-checkmark-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+              <circle class="success-checkmark-circle" cx="26" cy="26" r="25" />
+              <path class="success-checkmark-check" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+            </svg>
+            <div class="success-checkmark-bg-pop"></div>
+          </div>
+          
+          <h1 class="text-white fw-bold mb-2.5" style="font-family: var(--font-display); font-size: 1.85rem; letter-spacing: -0.02em;">Application Submitted! 🎉</h1>
+          
+          <p class="text-muted mx-auto mb-4.5" style="font-size: 0.88rem; max-width: 480px; line-height: 1.6;">
+            We'll review your profile and email you at <strong class="text-white" style="text-shadow: 0 0 5px rgba(255,255,255,0.1);">rahul@email.com</strong> within 2-3 business days.
+          </p>
+
+          <!-- Small vertical status timeline -->
+          <div class="p-3 mb-4.5 text-start mx-auto rounded-4" style="max-width: 400px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); font-size: 0.76rem;">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <i class="bi bi-check-circle-fill text-success"></i>
+              <span class="text-white">Application Submitted <span class="text-muted">(now)</span></span>
+            </div>
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <i class="bi bi-hourglass-split text-warning" style="animation: pulse-glow-purple 2s infinite;"></i>
+              <span class="text-warning">Under Admin Review <span class="text-muted">(pending)</span></span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-circle text-muted"></i>
+              <span class="text-muted">Decision</span>
+            </div>
+          </div>
+
+          <!-- Redirect buttons -->
+          <div class="d-flex flex-column gap-2.5 align-items-center max-width-xs mx-auto" style="max-width: 280px;">
+            <a href="teach.html" class="btn btn-bb-primary py-3 w-100" id="btn-success-dashboard-redirect" style="border-radius: 50px; font-weight: bold; background: #7C3AED; box-shadow: 0 0 20px rgba(124, 58, 237, 0.4); text-decoration: none;">
+              Go to Dashboard
+            </a>
+            <a href="verify-status.html" class="btn btn-bb-ghost py-2.5 w-100" style="border-radius: 50px; font-weight: bold; text-decoration: none; font-size: 0.82rem;">
+              Check Status <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6Rz5YN5757o+HRvnDJz9O+5G5FkEB83c11SLzmlc9PE9gmgwsnggC+GB53mI3U" crossorigin="anonymous"></script>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase Config -->
+<script src="js/supabase-config.js"></script>
+<!-- Main JS -->
+<script src="js/main.js"></script>
+</body>
+</html>

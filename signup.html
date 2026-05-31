@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up — BrainByte</title>
+  <meta name="description" content="Create your free developer account on BrainByte. Join thousands of developers learning, building, and teaching modern technology career paths.">
+  
+  <!-- Preload and load Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <style>
+    /* Glowing selected states for platform profile selector cards */
+    .role-card, .role-selection-card {
+      cursor: pointer !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+    
+    .role-card:hover, .role-selection-card:hover {
+      border-color: rgba(168, 85, 247, 0.3) !important;
+      transform: translateY(-2px) !important;
+    }
+
+    .role-card.selected, .role-selection-card.selected {
+      border: 2px solid rgba(168, 85, 247, 0.60) !important;
+      background: rgba(168, 85, 247, 0.08) !important;
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.15) !important;
+      transform: translateY(-2px) !important;
+    }
+
+    /* Transition step slides settings */
+    .signup-step {
+      opacity: 1;
+      display: none;
+    }
+    .signup-step.active {
+      display: block;
+    }
+
+    /* Amber styling for the Instructor Verification Info Box */
+    .instructor-email-alert-box {
+      background: rgba(245, 158, 11, 0.1) !important;
+      border: 1px solid rgba(245, 158, 11, 0.25) !important;
+      color: #F59E0B !important;
+      border-radius: 12px !important;
+      padding: 12px !important;
+      margin-top: 12px !important;
+      font-size: 0.8rem !important;
+      font-weight: 500 !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+    }
+  </style>
+  <!-- Custom Premium Theme CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-body">
+
+  <div class="container-fluid p-0">
+    <div class="row g-0 login-wrapper">
+      
+      <!-- ================================================================
+        LEFT PANEL (Brand side - Reused layout, custom quote)
+      ================================================================ -->
+      <div class="col-lg-6 login-brand-side d-none d-lg-flex">
+        <!-- Glow backdrops -->
+        <div class="glow-purple"></div>
+        <div class="glow-cyan"></div>
+        
+        <!-- Logo -->
+        <a class="navbar-brand d-flex align-items-center mb-5 position-relative" style="z-index: 5;" href="index.html" id="signup-brand-logo">
+          <span class="text-white">Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
+        </a>
+        
+        <!-- Impact quote -->
+        <div class="position-relative" style="z-index: 5; max-width: 440px;">
+          <h2 class="text-white fw-bold mb-3" style="font-size: 2.5rem; line-height: 1.25; font-family: var(--font-display);">
+            Start your <span class="text-gradient-violet">learning journey</span> today
+          </h2>
+          <p class="text-muted mb-5" style="font-size: 0.95rem; line-height: 1.6;">
+            Learn directly from senior tech architects, compile hands-on coding repositories, and showcase verified learning achievements to high-growth organizations.
+          </p>
+        </div>
+        
+        <!-- Perspective decorative floating cards -->
+        <div class="perspective-container position-relative" style="z-index: 5;">
+          
+          <!-- Decorative Card 1 -->
+          <div class="floating-glass-card">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge" style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3); color: var(--violet-mid); font-size: 0.7rem; font-weight: 700;">REACT FRONTEND</span>
+              <span class="text-white-50" style="font-size: 0.75rem; font-weight: 500;">84% Done</span>
+            </div>
+            <h4 class="text-white fw-bold m-0" style="font-size: 0.95rem;">Next.js & Supabase Certification</h4>
+            <div class="course-progress-track">
+              <div class="course-progress-bar-glow" style="width: 84%;"></div>
+            </div>
+          </div>
+          
+          <!-- Decorative Card 2 -->
+          <div class="floating-glass-card">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); color: var(--teal-mid); font-size: 0.7rem; font-weight: 700;">UI/UX DESIGN</span>
+              <span class="text-white-50" style="font-size: 0.75rem; font-weight: 500;">95% Done</span>
+            </div>
+            <h4 class="text-white fw-bold m-0" style="font-size: 0.95rem;">Figma UI/UX Advanced Prototyping</h4>
+            <div class="course-progress-track">
+              <div class="course-progress-bar-glow" style="width: 95%; background: linear-gradient(90deg, var(--teal-primary) 0%, var(--teal-mid) 100%); box-shadow: 0 0 8px rgba(6, 182, 212, 0.5);"></div>
+            </div>
+          </div>
+          
+          <!-- Decorative Card 3 -->
+          <div class="floating-glass-card">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge" style="background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.3); color: var(--brand-pink); font-size: 0.7rem; font-weight: 700;">AI DEEP LEARNING</span>
+              <span class="text-white-50" style="font-size: 0.75rem; font-weight: 500;">42% Done</span>
+            </div>
+            <h4 class="text-white fw-bold m-0" style="font-size: 0.95rem;">Deep Learning & PyTorch Systems</h4>
+            <div class="course-progress-track">
+              <div class="course-progress-bar-glow" style="width: 42%; background: linear-gradient(90deg, var(--brand-pink) 0%, #a855f7 100%); box-shadow: 0 0 8px rgba(236, 72, 153, 0.5);"></div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+      <!-- ================================================================
+        RIGHT PANEL (Forms sign-up side)
+      ================================================================ -->
+      <div class="col-lg-6 col-12 login-form-side">
+        <div class="login-form-container">
+          
+          <!-- Brand indicator on Mobile -->
+          <div class="d-lg-none text-center mb-4">
+            <a class="navbar-brand d-inline-flex align-items-center" href="index.html">
+              <span class="text-white">Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
+            </a>
+          </div>
+          
+          <!-- Step Indicator -->
+          <div class="mb-3 d-flex align-items-center justify-content-center justify-content-lg-start gap-2" id="signup-step-indicator">
+            <span class="fw-bold text-white text-uppercase" style="font-size: 0.75rem; font-family: var(--font-display); letter-spacing: 0.08em;" id="indicator-step-text">Step 1</span>
+            <span id="indicator-step-dots" style="font-size: 0.95rem; line-height: 1;"><span style="color: var(--violet-primary);">●●</span><span style="color: rgba(255,255,255,0.12);">○○</span></span>
+          </div>
+
+          <!-- Greeting Header -->
+          <div class="mb-4 text-center text-lg-start">
+            <h1 class="fw-bold text-white mb-2" style="font-size: 2rem; font-family: var(--font-display);" id="signup-title-header">Join BrainByte 🚀</h1>
+            <p style="color: #94A3B8; font-size: 0.95rem;" id="signup-subtext-header">Create your free account</p>
+          </div>
+          
+          <!-- Error alert panel (hidden by default) -->
+          <div class="bb-error-alert d-none" role="alert" id="signup-error-alert">
+            <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+            <div id="signup-error-text">Registration failed. Please check your credentials.</div>
+          </div>
+          
+          <!-- ================================================================
+            STEP 1: Role Selection (Active by default)
+          ================================================================ -->
+          <div class="signup-step active" id="step-1-container">
+            <label class="glass-input-label mb-3 text-center text-lg-start">Select your platform profile</label>
+            
+            <div class="role-cards-grid">
+              <!-- Student Card -->
+              <div class="role-selection-card role-card" id="role-card-student" data-role="student">
+                <div class="role-card-icon">🎓</div>
+                <h3 class="role-card-title">I want to Learn</h3>
+                <span class="text-muted d-block mt-2" style="font-size: 0.72rem; font-weight: 500;">Access free & premium tracks</span>
+              </div>
+              
+              <!-- Instructor Card -->
+              <div class="role-selection-card role-card" id="role-card-instructor" data-role="teach">
+                <div class="role-card-icon">🎙️</div>
+                <h3 class="role-card-title">I want to Teach</h3>
+                <span class="text-muted d-block mt-2" style="font-size: 0.72rem; font-weight: 500;">Share knowledge & earn split</span>
+              </div>
+            </div>
+            
+            <!-- Instructor subnote -->
+            <div class="d-none mb-4 text-center" id="instructor-verify-note">
+              <span style="font-size: 0.8rem; color: #94A3B8; font-weight: 500;">
+                <i class="bi bi-shield-exclamation text-warning me-1"></i> Verification required before publishing courses (takes 2-3 days).
+              </span>
+            </div>
+            
+            <!-- Continue step 1 button -->
+            <button type="button" class="btn-bb-login" id="btn-signup-continue" disabled>
+              <span>Continue <i class="bi bi-arrow-right-short fs-5"></i></span>
+            </button>
+          </div>
+          
+          <!-- ================================================================
+            STEP 2: Account Details (Hidden by default)
+          ================================================================ -->
+          <div class="signup-step" id="step-2-container">
+            <!-- Back Button -->
+            <button type="button" class="btn btn-link text-decoration-none p-0 mb-3 d-inline-flex align-items-center gap-1" id="btn-signup-back" style="color: var(--violet-mid); font-family: var(--font-display); font-weight: 700; font-size: 0.85rem;">
+              <i class="bi bi-arrow-left"></i> Back
+            </button>
+
+            <form id="signup-form" novalidate>
+              
+              <!-- Full Name Input -->
+              <div class="glass-input-wrapper">
+                <label for="fullname" class="glass-input-label">Full Name</label>
+                <input type="text" class="glass-input" id="fullname" placeholder="John Doe" required>
+              </div>
+              
+              <!-- Email Input -->
+              <div class="glass-input-wrapper">
+                <label for="email" class="glass-input-label">Email Address</label>
+                <input type="email" class="glass-input" id="email" placeholder="john@domain.com" required>
+                
+                <!-- Conditional Instructor Info Box below email -->
+                <div class="instructor-email-alert-box d-none" id="instructor-email-info-box">
+                  <i class="bi bi-lightning-charge-fill flex-shrink-0 mt-0.5" style="color: var(--violet-mid);"></i>
+                  <span>⚡ After signup, you'll need to verify your profile before publishing courses (2-3 days).</span>
+                </div>
+              </div>
+              
+              <!-- Password Input & Strength Bar -->
+              <div class="glass-input-wrapper">
+                <label for="password" class="glass-input-label">Password</label>
+                <input type="password" class="glass-input" id="password" placeholder="Min. 8 characters" required>
+                <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility" id="toggle-password-btn" style="top: 32px;">
+                  <i class="bi bi-eye"></i>
+                </button>
+                
+                <!-- Dynamic Strength Meter -->
+                <div class="password-strength-wrapper" id="strength-meter-box">
+                  <div class="strength-bar-track">
+                    <div class="strength-bar-fill" id="strength-bar-bar"></div>
+                  </div>
+                  <div class="strength-label-container">
+                    <span class="strength-label" id="strength-bar-label">Password Strength</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Confirm Password Input -->
+              <div class="glass-input-wrapper">
+                <label for="confirm-password" class="glass-input-label">Confirm Password</label>
+                <input type="password" class="glass-input" id="confirm-password" placeholder="Confirm your password" required>
+                <button type="button" class="password-toggle-btn" aria-label="Toggle confirm visibility" id="toggle-confirm-btn" style="top: 32px;">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <span class="d-none mt-1 fw-semibold text-danger" style="font-size: 0.75rem;" id="match-error-text">
+                  <i class="bi bi-x-circle me-1"></i> Passwords do not match.
+                </span>
+              </div>
+              
+              <!-- Custom Checkbox Wrapper -->
+              <div class="glass-checkbox-wrapper" id="checkbox-terms-wrapper">
+                <input type="checkbox" class="glass-checkbox" id="terms-check" required>
+                <label for="terms-check" class="glass-checkbox-label">
+                  I agree to the <a href="#" style="color: #A855F7; font-weight: 700; text-decoration: none;">Terms of Service</a> &amp; <a href="#" style="color: #A855F7; font-weight: 700; text-decoration: none;">Privacy Policy</a>
+                </label>
+              </div>
+              
+              <!-- Submit Button -->
+              <button type="submit" class="btn-bb-login mt-2" id="submit-signup-btn" disabled>
+                <span>Create Account</span>
+              </button>
+              
+            </form>
+            
+            <!-- Divider -->
+            <div class="login-divider">or continue with</div>
+            
+            <!-- Google OAuth Sign-up -->
+            <button type="button" class="btn-bb-google mb-4" id="btn-oauth-signup-google">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z" fill="#4285F4"/>
+                <path d="M9 18C11.43 18 13.4673 17.1941 14.9564 15.8195L12.0477 13.5614C11.2418 14.1014 10.2109 14.4205 9 14.4205C6.65591 14.4205 4.67182 12.8373 3.96409 10.71H0.957275V13.0418C2.43818 15.9832 5.48182 18 9 18Z" fill="#34A853"/>
+                <path d="M3.96409 10.71C3.78409 10.17 3.68182 9.59727 3.68182 9C3.68182 8.40273 3.78409 7.83 3.96409 7.29V4.95818H0.957275C0.347727 6.17318 0 7.55182 0 9C0 10.4482 0.347727 11.8268 0.957275 13.0418L3.96409 10.71Z" fill="#FBBC05"/>
+                <path d="M9 3.57955C10.3214 3.57955 11.5077 4.03364 12.4405 4.92545L15.0218 2.34409C13.4632 0.891818 11.4259 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.16273 6.65591 3.57955 9 3.57955Z" fill="#EA4335"/>
+              </svg>
+              <span>Continue with Google</span>
+            </button>
+            
+            <!-- Redirect back to login page -->
+            <div class="text-center">
+              <span style="color: #94A3B8; font-size: 0.88rem; font-weight: 500;">
+                Already have an account? <a href="login.html" style="color: #A855F7; font-weight: 700; text-decoration: none;" id="link-signup-login">Login</a>
+              </span>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase Config -->
+<script src="js/supabase-config.js"></script>
+<!-- Main JS -->
+<script src="js/main.js"></script>
+</body>
+</html>

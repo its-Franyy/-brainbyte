@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Supabase CDN Client & Protected Page Session Check -->
+  <script>
+    (async () => {
+      const savedUserStr = localStorage.getItem('brainbyte_user');
+      let localSessionActive = false;
+      if (savedUserStr) {
+        try {
+          const user = JSON.parse(savedUserStr);
+          if (user && user.isLoggedIn) {
+            localSessionActive = true;
+          }
+        } catch (e) {}
+      }
+      if (localSessionActive || localStorage.getItem('bb_admin_session') === 'active') {
+        return;
+      }
+      const SUPABASE_URL = "YOUR_SUPABASE_URL";
+      const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+      if (SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_URL !== "") {
+        const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        if (supabase) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) return;
+        }
+      }
+      window.location.href = 'login.html';
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Free Resource — BrainByte Admin</title>
+  <meta name="description" content="Upload free videos and PDFs study guides for members. Configure details, custom thumbnails, and status settings.">
+  
+  <!-- Preload and load Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Premium Theme CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-body">
+
+  <!-- Ambient background glow elements -->
+  <div class="bg-blob-teal" style="top: -100px; left: -100px; fixed: true; opacity: 0.12; pointer-events: none;"></div>
+  <div class="bg-blob-violet" style="top: 300px; right: -100px; fixed: true; opacity: 0.08; pointer-events: none;"></div>
+  <div class="bg-blob-pink" style="bottom: 10%; left: 5%; fixed: true; opacity: 0.10; pointer-events: none;"></div>
+
+  <!-- ================================================================
+    MOBILE HEADER NAVIGATION BAR (Shown only on small width viewports)
+  ================================================================ -->
+  <div class="mobile-dashboard-header py-2.5 px-3 align-items-center justify-content-between">
+    <button type="button" class="btn text-white p-0 border-0" id="btn-mobile-sidebar-toggle" style="background: transparent;">
+      <i class="bi bi-list fs-2"></i>
+    </button>
+    <span class="text-white fw-bold" style="font-family: var(--font-display); font-size: 1rem;">
+      Upload Free Resource
+    </span>
+    <a class="navbar-brand d-flex align-items-center m-0" href="index.html" style="font-size: 1.15rem;">
+      <span>Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill" style="text-shadow: none;"></i></span>Byte</span>
+    </a>
+  </div>
+
+  <!-- ================================================================
+    ADMIN DASHBOARD GRID CONTAINER
+  ================================================================ -->
+  <div class="dashboard-layout-container">
+    
+    <!-- ==============================================================
+      LEFT SIDEBAR NAVIGATION (Width: 240px, Sticky)
+    ============================================================== -->
+    <aside class="dashboard-sidebar admin-sidebar-override" id="dashboard-sidebar">
+      
+      <!-- Close button visible only on mobile inside side panel -->
+      <div class="d-lg-none d-flex justify-content-end mb-3">
+        <button type="button" class="btn-close-drawer" id="btn-close-sidebar-trigger" style="outline: none;">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- 1. Profile Metadata Box -->
+      <div class="sidebar-profile-box" style="margin-bottom: 1.5rem;">
+        <div class="sidebar-avatar-circle mx-auto mb-3" style="background: linear-gradient(135deg, #EF4444 0%, #F59E0B 100%); width: 72px; height: 72px; border-radius: 50%; font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);">
+          AD
+        </div>
+        <h3 class="sidebar-name text-white fw-bold mb-1" style="font-size: 0.95rem; font-family: var(--font-display);">Super Admin</h3>
+        <div class="mb-2">
+          <span class="admin-badge-red">ADMIN</span>
+        </div>
+        <span style="color: #94A3B8; font-size: 0.76rem; font-weight: 600;">System Administrator</span>
+      </div>
+
+      <!-- 2. Navigation links -->
+      <nav class="sidebar-nav-list flex-grow-1">
+        <a href="admin-dashboard.html" class="admin-sidebar-nav-link">
+          <i class="bi bi-grid-1x2-fill"></i> Dashboard
+        </a>
+        <a href="admin-verify.html" class="admin-sidebar-nav-link">
+          <i class="bi bi-shield-check"></i> Verifications
+        </a>
+        <a href="admin-library.html" class="admin-sidebar-nav-link active">
+          <i class="bi bi-journal-bookmark-fill"></i> Free Library
+        </a>
+        <a href="#" class="admin-sidebar-nav-link" onclick="alert('Admin settings are pre-configured by secure environment variables.');">
+          <i class="bi bi-gear-fill"></i> Settings
+        </a>
+      </nav>
+
+      <!-- 3. Bottom triggers -->
+      <div class="d-flex flex-column gap-2 border-top pt-3" style="border-color: rgba(255,255,255,0.06) !important;">
+        <a href="index.html" class="btn btn-bb-ghost py-2 text-center text-white d-flex align-items-center justify-content-center gap-1.5" style="border-radius: 50px; font-size: 0.78rem; text-decoration: none; font-weight: 600;">
+          <i class="bi bi-arrow-left"></i> Back to Site
+        </a>
+        <a href="admin.html" class="btn btn-bb-ghost py-2 text-center text-danger d-flex align-items-center justify-content-center gap-1.5" id="btn-admin-logout" style="border-radius: 50px; font-size: 0.78rem; text-decoration: none; font-weight: 700; background: transparent; color: #EF4444 !important; border-color: rgba(239, 68, 68, 0.15) !important;">
+          <i class="bi bi-power"></i> Logout
+        </a>
+      </div>
+
+    </aside>
+
+    <!-- ==============================================================
+      RIGHT PANEL: MAIN CONTENT VIEWPORT
+    ============================================================== -->
+    <main class="dashboard-main-content py-4.5 px-sm-4 px-3">
+      
+      <!-- TOP STATUS BAR -->
+      <div class="d-flex justify-content-between align-items-start mb-4 text-start">
+        <div>
+          <a href="admin-library.html" class="text-decoration-none text-muted mb-2 d-inline-flex align-items-center gap-1.5" style="font-size: 0.8rem; font-weight: 600; transition: color 0.2s;" onmouseover="this.style.color='#FFFFFF';" onmouseout="this.style.color='#94A3B8';">
+            <i class="bi bi-arrow-left"></i> Back to Library
+          </a>
+          <h1 class="text-white fw-bold mb-1" style="font-size: 1.8rem; font-family: var(--font-display); letter-spacing: -0.02em;">Upload Free Resource</h1>
+          <p style="color: #94A3B8; font-size: 0.9rem; margin: 0; font-weight: 500;">Add video tutorials or PDF reference sheets to the library</p>
+        </div>
+      </div>
+
+      <!-- TYPE TABS CONTAINER -->
+      <div class="floating-glass-card p-2 mb-4">
+        <div class="admin-filter-tabs border-bottom-0 pb-0 justify-content-center gap-4">
+          <button class="admin-filter-tab-cyan active py-2.5 px-3" data-upload-tab="video" id="btn-tab-video" style="font-size: 0.9rem; font-weight: 700; gap: 0.5rem;">
+            <i class="bi bi-play-btn-fill fs-5 text-cyan" style="color: #06B6D4;"></i> 📹 Upload Video Lesson
+          </button>
+          <button class="admin-filter-tab-cyan py-2.5 px-3" data-upload-tab="pdf" id="btn-tab-pdf" style="font-size: 0.9rem; font-weight: 700; gap: 0.5rem;">
+            <i class="bi bi-file-earmark-pdf-fill fs-5 text-purple" style="color: #A855F7;"></i> 📄 Upload PDF Document
+          </button>
+        </div>
+      </div>
+
+      <!-- ================================================================
+        VIDEO TAB VIEW CONTENT PANEL
+      ================================================================ -->
+      <div class="upload-tab-panel" id="panel-upload-video">
+        <div class="row g-4 text-start">
+          
+          <!-- Left Column: Source & Dropzones forms -->
+          <div class="col-xl-8 col-12">
+            
+            <!-- Source glass selection card -->
+            <div class="floating-glass-card p-4 mb-4">
+              <h4 class="text-white fw-bold mb-3.5" style="font-size: 0.95rem; font-family: var(--font-display);">Select Source</h4>
+              
+              <div class="d-flex flex-sm-row flex-column gap-3">
+                <button type="button" class="btn source-toggle-btn active w-100 py-3" id="btn-source-file">
+                  <i class="bi bi-cloud-arrow-up-fill fs-5"></i> Upload Video File
+                </button>
+                <button type="button" class="btn source-toggle-btn w-100 py-3" id="btn-source-link">
+                  <i class="bi bi-link-45deg fs-5"></i> Paste YouTube/Vimeo Link
+                </button>
+              </div>
+
+              <!-- Option 1: File Dropzone (Visible by default) -->
+              <div class="mt-4" id="video-source-file-block">
+                <div class="glass-dropzone" id="video-dropzone">
+                  <input type="file" id="video-file-input" class="d-none" accept=".mp4,.mov,.webm">
+                  
+                  <div id="dropzone-default-view">
+                    <div class="mx-auto mb-3 text-cyan d-flex align-items-center justify-content-center" style="width: 72px; height: 72px; border-radius: 50%; background: rgba(6, 182, 212, 0.08); font-size: 2.2rem; color: #06B6D4;">
+                      <i class="bi bi-cloud-arrow-up-fill"></i>
+                    </div>
+                    <h5 class="text-white fw-bold mb-1.5" style="font-size: 1rem; font-family: var(--font-display);">Drag &amp; drop video here</h5>
+                    <p style="color: #94A3B8; font-size: 0.8rem; font-weight: 500;" class="mb-2">or <span class="text-cyan font-bold" style="color: #06B6D4; text-decoration: underline;">click to browse</span></p>
+                    <span style="color: #475569; font-size: 0.72rem; font-weight: 600; display: block;">Accepted Formats: .mp4, .mov, .webm • Max 500MB</span>
+                  </div>
+
+                  <!-- Dropzone upload simulator state -->
+                  <div id="dropzone-progress-view" class="d-none py-3 text-start">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="text-white font-semibold" style="font-size: 0.8rem;" id="dropzone-filename">lesson_tutorial.mp4</span>
+                      <span class="text-cyan font-bold" style="font-size: 0.8rem; color: #06B6D4;" id="dropzone-percent-text">Uploading... 0%</span>
+                    </div>
+                    <div class="glass-progress-bar mb-3">
+                      <div class="glass-progress-fill" id="dropzone-progress-fill"></div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center text-muted" style="font-size: 0.72rem;">
+                      <span id="dropzone-filesize">0.0 MB</span>
+                      <button type="button" class="btn p-0 border-0 text-danger" id="btn-cancel-upload" style="background:transparent; font-size: 0.75rem; font-weight: bold;"><i class="bi bi-x-circle-fill"></i> Cancel Upload</button>
+                    </div>
+                  </div>
+
+                  <!-- Dropzone complete state -->
+                  <div id="dropzone-complete-view" class="d-none text-center py-2.5">
+                    <div class="mx-auto mb-2 text-success d-flex align-items-center justify-content-center" style="width: 54px; height: 54px; border-radius: 50%; background: rgba(16, 185, 129, 0.08); font-size: 1.8rem; color: #10B981;">
+                      <i class="bi bi-patch-check-fill"></i>
+                    </div>
+                    <h5 class="text-white fw-bold mb-1" style="font-size: 0.95rem;" id="dropzone-complete-filename">lesson_tutorial.mp4</h5>
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                      <span class="text-success font-bold" style="font-size: 0.76rem; color: #10B981 !important;"><i class="bi bi-check-lg"></i> Upload complete</span>
+                      <button type="button" class="btn p-0 border-0 text-danger fs-6" id="btn-remove-complete" style="background:transparent; color:#EF4444 !important;" title="Remove File"><i class="bi bi-x-circle-fill"></i></button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- Option 2: Paste URL Link Block (Hidden by default) -->
+              <div class="mt-4 d-none" id="video-source-link-block">
+                <div class="row g-3">
+                  <div class="col-sm-9 col-12">
+                    <div class="validation-input-container mb-0">
+                      <span style="position: absolute; left: 14px; top: 12px; color: #94A3B8; font-size: 1.1rem;"><i class="bi bi-link-45deg"></i></span>
+                      <input type="url" class="glass-input ps-5" id="video-link-input" placeholder="https://youtube.com/watch?v=...">
+                    </div>
+                  </div>
+                  <div class="col-sm-3 col-12">
+                    <button type="button" class="btn py-2.5 px-3 text-white w-100 font-bold" id="btn-fetch-details" style="background: #06B6D4; color: #0D0E1A !important; border: none; font-size: 0.8rem; border-radius: 8px; height: 48px; transition: all 0.3s ease;">
+                      Fetch Details
+                    </button>
+                  </div>
+                </div>
+                <div class="text-danger mt-1.5 d-none font-semibold text-start" style="font-size: 0.72rem;" id="video-link-error">
+                  <i class="bi bi-exclamation-circle-fill"></i> Please enter a valid YouTube or Vimeo URL.
+                </div>
+                <div class="text-success mt-1.5 d-none font-bold text-start" style="font-size: 0.75rem; color: #10B981 !important;" id="video-link-success">
+                  <i class="bi bi-patch-check-fill"></i> Video details loaded successfully
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Details Form Card -->
+            <div class="floating-glass-card p-4 mb-4">
+              <h4 class="text-white fw-bold mb-3.5" style="font-size: 0.95rem; font-family: var(--font-display);">Resource Details</h4>
+              
+              <!-- Title input -->
+              <div class="glass-input-wrapper mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="glass-input-label m-0" for="video-details-title">Resource Title *</label>
+                  <span class="text-muted" style="font-size: 0.7rem; font-weight: 600;" id="video-title-char-counter">0/100</span>
+                </div>
+                <input type="text" class="glass-input" id="video-details-title" maxlength="100" placeholder="e.g. Next.js 14 & Supabase Advanced User Actions Schema">
+                <span class="text-danger mt-1.5 d-none font-semibold text-start" style="font-size: 0.7rem;" id="video-title-input-error">
+                  <i class="bi bi-exclamation-circle-fill"></i> Title cannot be empty.
+                </span>
+              </div>
+
+              <!-- Category & Difficulty selects -->
+              <div class="row g-3.5 mb-3.5">
+                <div class="col-sm-6 col-12">
+                  <div class="glass-input-wrapper mb-0">
+                    <label class="glass-input-label" for="video-details-category">Category</label>
+                    <select class="glass-input" id="video-details-category" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">
+                      <option value="Web Dev">Web Dev</option>
+                      <option value="Design">Design</option>
+                      <option value="Data Science">Data Science</option>
+                      <option value="Mobile">Mobile</option>
+                      <option value="AI & ML">AI & ML</option>
+                      <option value="General">General</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-12">
+                  <div class="glass-input-wrapper mb-0">
+                    <label class="glass-input-label" for="video-details-difficulty">Difficulty Level</label>
+                    <select class="glass-input" id="video-details-difficulty" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">
+                      <option value="Beginner">Beginner</option>
+                      <option value="Intermediate">Intermediate</option>
+                      <option value="Advanced">Advanced</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tags box -->
+              <div class="glass-input-wrapper mb-3.5">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="glass-input-label m-0" for="video-details-tags">Tags</label>
+                  <span class="text-muted" style="font-size: 0.7rem; font-weight: 600;" id="video-tags-counter">Max 5 tags</span>
+                </div>
+                <input type="text" class="glass-input" id="video-details-tags" placeholder="Type tag &amp; press Enter...">
+                
+                <div class="tags-list-container" id="video-tags-list">
+                  <!-- Tag pills rendered dynamically -->
+                </div>
+              </div>
+
+              <!-- Description area -->
+              <div class="glass-input-wrapper mb-0">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="glass-input-label m-0" for="video-details-description">Description</label>
+                  <span class="text-muted" style="font-size: 0.7rem; font-weight: 600;" id="video-desc-counter">0/500</span>
+                </div>
+                <textarea class="glass-input" id="video-details-description" rows="4" maxlength="500" placeholder="Provide a summary of what members will learn in this video reference guide..." style="height: auto; border-radius: 8px; min-height: 100px;"></textarea>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- Right Column: Thumbnail previews, publish actions -->
+          <div class="col-xl-4 col-12">
+            
+            <!-- Thumbnail preview card -->
+            <div class="floating-glass-card p-4 mb-4">
+              <h4 class="text-white fw-bold mb-3.5" style="font-size: 0.95rem; font-family: var(--font-display);">Thumbnail Image</h4>
+              
+              <div class="mb-3.5 text-start">
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn py-1.5 px-3" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); font-size: 0.72rem; font-weight: bold; border-radius: 50px; color: #FFFFFF;" id="btn-thumb-video-custom">Upload Custom</button>
+                  <button type="button" class="btn py-1.5 px-3" style="background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.25); font-size: 0.72rem; font-weight: bold; border-radius: 50px; color: #06B6D4;" id="btn-thumb-video-auto">Auto-Generate</button>
+                </div>
+                <input type="file" id="video-thumb-input" class="d-none" accept="image/*">
+              </div>
+
+              <!-- 16:9 aspect image preview box -->
+              <div class="preview-mock-player mb-0" id="video-thumb-preview-box" style="border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(124, 58, 237, 0.04) 100%);">
+                <!-- Previews injected via custom uploaded or autogenerates -->
+                <div class="text-center text-muted" id="video-thumb-placeholder-text">
+                  <i class="bi bi-image fs-3 d-block text-cyan mb-2" style="color: #06B6D4;"></i>
+                  <span style="font-size: 0.72rem; font-weight: bold;">Thumbnail Preview (16:9)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Publish Settings Card -->
+            <div class="floating-glass-card p-4 mb-4">
+              <h4 class="text-white fw-bold mb-3.5" style="font-size: 0.95rem; font-family: var(--font-display);">Publish Settings</h4>
+              
+              <!-- Toggle publication statuses -->
+              <div class="glass-input-wrapper mb-4">
+                <label class="glass-input-label">Resource Status</label>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn py-2.5 w-50 active-toggle source-toggle-btn active w-100" id="btn-status-video-publish" style="font-size: 0.75rem; border-radius: 8px;">
+                    Publish Now ●
+                  </button>
+                  <button type="button" class="btn py-2.5 w-50 source-toggle-btn w-100" id="btn-status-video-draft" style="font-size: 0.75rem; border-radius: 8px;">
+                    Save as Draft ○
+                  </button>
+                </div>
+              </div>
+
+              <!-- Toggle featured homepages switches -->
+              <div class="d-flex align-items-center justify-content-between pt-2 border-top" style="border-color: rgba(255,255,255,0.06) !important;">
+                <div class="text-start pe-2">
+                  <strong class="text-white d-block" style="font-size: 0.82rem;">Show on Homepage</strong>
+                  <span style="color: #94A3B8; font-size: 0.7rem; line-height: 1.3; display: block; margin-top: 2px;">Featured resources appear on the homepage library.</span>
+                </div>
+                <label class="glass-switch-container">
+                  <input type="checkbox" class="glass-switch-input" id="switch-video-featured" checked>
+                  <div class="glass-switch-track">
+                    <div class="glass-switch-thumb"></div>
+                  </div>
+                </label>
+              </div>
+
+            </div>
+
+            <!-- Final Form Actions -->
+            <div class="d-flex flex-column gap-2.5">
+              <button type="button" class="btn py-3 text-white font-bold w-100 btn-submit-publish-trigger" id="btn-submit-publish-video" style="background: #06B6D4; color: #0D0E1A !important; border: none; box-shadow: 0 0 20px rgba(6, 182, 212, 0.35); border-radius: 50px; font-size: 0.85rem; transition: all 0.3s ease;">
+                Upload &amp; Publish Resource
+              </button>
+              <button type="button" class="btn btn-bb-ghost py-3 w-100" id="btn-submit-draft-video" style="border-radius: 50px; font-size: 0.85rem; font-weight: bold;">
+                Save as Draft
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ================================================================
+        PDF TAB VIEW CONTENT PANEL (Hidden by default)
+      ================================================================ -->
+      <div class="upload-tab-panel d-none" id="panel-upload-pdf">
+        <div class="row g-4 text-start">
+          
+          <!-- Left Column: File uploads dropzone, form fields -->
+          <div class="col-xl-8 col-12">
+            
+            <!-- Dropzone glass container for PDFs documents -->
+            <div class="floating-glass-card p-4 mb-4">
+              <h4 class="text-white fw-bold mb-3.5" style="font-size: 0.95rem; font-family: var(--font-display);">Upload Document</h4>
+              
+              <div class="glass-dropzone pdf-dropzone" id="pdf-dropzone">
+                <input type="file" id="pdf-file-input" class="d-none" accept=".pdf">
+                
+                <div id="pdf-dropzone-default-view">
+                  <div class="mx-auto mb-3 text-purple d-flex align-items-center justify-content-center" style="width: 72px; height: 72px; border-radius: 50%; background: rgba(139, 92, 246, 0.08); font-size: 2.2rem; color: #A855F7;">
+                    <i class="bi bi-file-earmark-pdf-fill"></i>
+                  </div>
+                  <h5 class="text-white fw-bold mb-1.5" style="font-size: 1rem; font-family: var(--font-display);">Drag &amp; drop PDF here</h5>
+                  <p style="color: #94A3B8; font-size: 0.8rem; font-weight: 500;" class="mb-2">or <span class="text-purple font-bold" style="color: #A855F7; text-decoration: underline;">click to browse</span></p>
+                  <span style="color: #475569; font-size: 0.72rem; font-weight: 600; display: block;">Accepted Formats: .pdf only • Max 50MB</span>
+                </div>
+
+                <!-- Progress simulator bar for PDF uploads -->
+                <div id="pdf-dropzone-progress-view" class="d-none py-3 text-start">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-white font-semibold" style="font-size: 0.8rem;" id="pdf-dropzone-filename">reference_guide.pdf</span>
+                    <span class="text-purple font-bold" style="font-size: 0.8rem; color: #A855F7;" id="pdf-percent-text">Uploading... 0%</span>
+                  </div>
+                  <div class="glass-progress-bar mb-3">
+                    <div class="glass-progress-fill pdf-fill" id="pdf-progress-fill"></div>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center text-muted" style="font-size: 0.72rem;">
+                    <span id="pdf-dropzone-filesize">0.0 MB</span>
+                    <button type="button" class="btn p-0 border-0 text-danger" id="btn-pdf-cancel-upload" style="background:transparent; font-size: 0.75rem; font-weight: bold;"><i class="bi bi-x-circle-fill"></i> Cancel</button>
+                  </div>
+                </div>
+
+                <!-- Upload PDF complete state view -->
+                <div id="pdf-dropzone-complete-view" class="d-none text-center py-2.5">
+                  <div class="mx-auto mb-2 text-success d-flex align-items-center justify-content-center" style="width: 54px; height: 54px; border-radius: 50%; background: rgba(16, 185, 129, 0.08); font-size: 1.8rem; color: #10B981;">
+                    <i class="bi bi-patch-check-fill"></i>
+                  </div>
+                  <h5 class="text-white fw-bold mb-1" style="font-size: 0.95rem;" id="pdf-dropzone-complete-filename">reference_guide.pdf</h5>
+                  <div class="d-flex align-items-center justify-content-center gap-2">
+                    <span class="text-success font-bold" style="font-size: 0.76rem; color: #10B981 !important;" id="pdf-pages-badge"><i class="bi bi-check-lg"></i> 4 pages found ✓</span>
+                    <button type="button" class="btn p-0 border-0 text-danger fs-6" id="btn-pdf-remove-complete" style="background:transparent; color:#EF4444 !important;" title="Remove File"><i class="bi bi-x-circle-fill"></i></button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- PDF Details Form Card -->
+            <div class="floating-glass-card p-4 mb-4">
+              <h4 class="text-white fw-bold mb-3.5" style="font-size: 0.95rem; font-family: var(--font-display);">Resource Details</h4>
+              
+              <!-- PDF Title Input -->
+              <div class="glass-input-wrapper mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="glass-input-label m-0" for="pdf-details-title">Resource Title *</label>
+                  <span class="text-muted" style="font-size: 0.7rem; font-weight: 600;" id="pdf-title-char-counter">0/100</span>
+                </div>
+                <input type="text" class="glass-input" id="pdf-details-title" maxlength="100" placeholder="e.g. CSS Grid & Flexbox Ultimate Quick Reference Sheets">
+                <span class="text-danger mt-1.5 d-none font-semibold text-start" style="font-size: 0.7rem;" id="pdf-title-input-error">
+                  <i class="bi bi-exclamation-circle-fill"></i> Title cannot be empty.
+                </span>
+              </div>
+
+              <!-- PDF Category & Difficulty selection -->
+              <div class="row g-3.5 mb-3.5">
+                <div class="col-sm-6 col-12">
+                  <div class="glass-input-wrapper mb-0">
+                    <label class="glass-input-label" for="pdf-details-category">Category</label>
+                    <select class="glass-input" id="pdf-details-category" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">
+                      <option value="Design">Design</option>
+                      <option value="Web Dev">Web Dev</option>
+                      <option value="Data Science">Data Science</option>
+                      <option value="Mobile">Mobile</option>
+                      <option value="AI & ML">AI & ML</option>
+                      <option value="General">General</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-12">
+                  <div class="glass-input-wrapper mb-0">
+                    <label class="glass-input-label" for="pdf-details-difficulty">Difficulty Level</label>
+                    <select class="glass-input" id="pdf-details-difficulty" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">
+                      <option value="Beginner">Beginner</option>
+                      <option value="Intermediate">Intermediate</option>
+                      <option value="Advanced">Advanced</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PDF tags inputs -->
+              <div class="glass-input-wrapper mb-3.5">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="glass-input-label m-0" for="pdf-details-tags">Tags</label>
+                  <span class="text-muted" style="font-size: 0.7rem; font-weight: 600;" id="pdf-tags-counter">Max 5 tags</span>
+                </div>
+                <input type="text" class="glass-input" id="pdf-details-tags" placeholder="Type tag &amp; press Enter...">
+                
+                <div class="tags-list-container" id="pdf-tags-list">
+                  <!-- tag elements added dynamically -->
+                </div>
+              </div>
+
+              <!-- PDF Description text area -->
+              <div class="glass-input-wrapper mb-0">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="glass-input-label m-0" for="pdf-details-description">Description</label>
+                  <span class="text-muted" style="font-size: 0.7rem; font-weight: 600;" id="pdf-desc-counter">0/500</span>
+                </div>
+                <textarea class="glass-input" id="pdf-details-description" rows="4" maxlength="500" placeholder="Provide a brief summary of what study files or cheat sheets contain..." style="height: auto; border-radius: 8px; min-height: 100px;"></textarea>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- Right Column: PDF covers custom uploads, publish settings -->
+          <div class="col-xl-4 col-12">
+            
+            <!-- Document cover section -->
+            <div class="floating-glass-card p-4 mb-4">
+              <h4 class="text-white fw-bold mb-3.5" style="font-size: 0.95rem; font-family: var(--font-display);">Document Cover</h4>
+              
+              <div class="mb-3.5 text-start pe-2 d-flex flex-column gap-2.5">
+                <!-- Toggle cover autogenerates -->
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <div class="pe-2">
+                    <strong class="text-white d-block" style="font-size: 0.8rem;">Auto-Generate cover</strong>
+                    <span style="color: #94A3B8; font-size: 0.68rem;">Renders from first page of document.</span>
+                  </div>
+                  <label class="glass-switch-container">
+                    <input type="checkbox" class="glass-switch-input" id="switch-pdf-autogen-cover" checked>
+                    <div class="glass-switch-track">
+                      <div class="glass-switch-thumb"></div>
+                    </div>
+                  </label>
+                </div>
+                
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn py-1.5 px-3" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); font-size: 0.72rem; font-weight: bold; border-radius: 50px; color: #FFFFFF;" id="btn-thumb-pdf-custom">Upload Custom Cover</button>
+                </div>
+                <input type="file" id="pdf-thumb-input" class="d-none" accept="image/*">
+              </div>
+
+              <!-- PDF cover image preview container -->
+              <div class="preview-mock-player mb-0" id="pdf-thumb-preview-box" style="border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(6, 182, 212, 0.04) 100%); aspect-ratio: 4/5; height: 220px; width: 176px; margin: 0 auto;">
+                <div class="text-center text-muted" id="pdf-thumb-placeholder-text">
+                  <i class="bi bi-file-pdf fs-2 d-block text-purple mb-2" style="color: #A855F7;"></i>
+                  <span style="font-size: 0.7rem; font-weight: bold;">Cover Preview (4:5)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- PDF publication settings -->
+            <div class="floating-glass-card p-4 mb-4">
+              <h4 class="text-white fw-bold mb-3.5" style="font-size: 0.95rem; font-family: var(--font-display);">Publish Settings</h4>
+              
+              <!-- Publish draft statuses -->
+              <div class="glass-input-wrapper mb-4">
+                <label class="glass-input-label">Resource Status</label>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn py-2.5 w-50 active-toggle source-toggle-btn active w-100 pdf-active" id="btn-status-pdf-publish" style="font-size: 0.75rem; border-radius: 8px;">
+                    Publish Now ●
+                  </button>
+                  <button type="button" class="btn py-2.5 w-50 source-toggle-btn w-100" id="btn-status-pdf-draft" style="font-size: 0.75rem; border-radius: 8px;">
+                    Save as Draft ○
+                  </button>
+                </div>
+              </div>
+
+              <!-- Homepages checks -->
+              <div class="d-flex align-items-center justify-content-between pt-2 border-top" style="border-color: rgba(255,255,255,0.06) !important;">
+                <div class="text-start pe-2">
+                  <strong class="text-white d-block" style="font-size: 0.82rem;">Show on Homepage</strong>
+                  <span style="color: #94A3B8; font-size: 0.7rem; line-height: 1.3; display: block; margin-top: 2px;">Featured resources appear on the homepage library.</span>
+                </div>
+                <label class="glass-switch-container">
+                  <input type="checkbox" class="glass-switch-input" id="switch-pdf-featured" checked>
+                  <div class="glass-switch-track">
+                    <div class="glass-switch-thumb"></div>
+                  </div>
+                </label>
+              </div>
+
+            </div>
+
+            <!-- PDF Final Submissions -->
+            <div class="d-flex flex-column gap-2.5">
+              <button type="button" class="btn py-3 text-white font-bold w-100 btn-submit-publish-trigger" id="btn-submit-publish-pdf" style="background: #A855F7; color: #FFFFFF !important; border: none; box-shadow: 0 0 20px rgba(139, 92, 246, 0.35); border-radius: 50px; font-size: 0.85rem; transition: all 0.3s ease;">
+                Upload &amp; Publish PDF Resource
+              </button>
+              <button type="button" class="btn btn-bb-ghost py-3 w-100" id="btn-submit-draft-pdf" style="border-radius: 50px; font-size: 0.85rem; font-weight: bold;">
+                Save as Draft
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6Rz5YN5757o+HRvnDJz9O+5G5FkEB83c11SLzmlc9PE9gmgwsnggC+GB53mI3U" crossorigin="anonymous"></script>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase Config -->
+<script src="js/supabase-config.js"></script>
+<!-- Main JS -->
+<script src="js/main.js"></script>
+
+  <!-- Script logic controllers for drag drop simulation, link details fetch, tags lists, counters, and sessionStorage redirects toast -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // ── SIDEBAR DRAWER TOGGLE DRAWER ──
+      const sidebar = document.getElementById('dashboard-sidebar');
+      const toggleBtn = document.getElementById('btn-mobile-sidebar-toggle');
+      const closeBtn = document.getElementById('btn-close-sidebar-trigger');
+
+      if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => sidebar.classList.add('mobile-open'));
+      }
+      if (closeBtn && sidebar) {
+        closeBtn.addEventListener('click', () => sidebar.classList.remove('mobile-open'));
+      }
+
+      // Close sidebar if clicking outside of it on mobile
+      document.addEventListener('click', (e) => {
+        if (sidebar && sidebar.classList.contains('mobile-open')) {
+          if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+            sidebar.classList.remove('mobile-open');
+          }
+        }
+      });
+
+      // ── LOGOUT DRAWER CLICK SPINNER ──
+      const logoutBtn = document.getElementById('btn-admin-logout');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          logoutBtn.disabled = true;
+          logoutBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 0.4rem;"></span> <span>Exiting...</span>`;
+          setTimeout(() => {
+            localStorage.removeItem('bb_admin_session');
+            window.location.href = 'admin.html';
+          }, 1200);
+        });
+      }
+
+      // ── TYPE SWITCHER TABS ──
+      const tabVideo = document.getElementById('btn-tab-video');
+      const tabPdf = document.getElementById('btn-tab-pdf');
+      const panelVideo = document.getElementById('panel-upload-video');
+      const panelPdf = document.getElementById('panel-upload-pdf');
+
+      function switchTab(type) {
+        if (type === 'video') {
+          tabVideo.classList.add('active');
+          tabPdf.classList.remove('active');
+          panelVideo.classList.remove('d-none');
+          panelPdf.classList.add('d-none');
+        } else {
+          tabVideo.classList.remove('active');
+          tabPdf.classList.add('active');
+          panelVideo.classList.add('d-none');
+          panelPdf.classList.remove('d-none');
+        }
+      }
+
+      if (tabVideo) tabVideo.addEventListener('click', () => switchTab('video'));
+      if (tabPdf) tabPdf.addEventListener('click', () => switchTab('pdf'));
+
+
+      // ================================================================
+      //   📹 VIDEO SOURCE SELECTIONS & SIMULATION DRAWER
+      // ================================================================
+      const sourceFileBtn = document.getElementById('btn-source-file');
+      const sourceLinkBtn = document.getElementById('btn-source-link');
+      const blockFile = document.getElementById('video-source-file-block');
+      const blockLink = document.getElementById('video-source-link-block');
+
+      if (sourceFileBtn && sourceLinkBtn) {
+        sourceFileBtn.addEventListener('click', () => {
+          sourceFileBtn.classList.add('active');
+          sourceLinkBtn.classList.remove('active');
+          blockFile.classList.remove('d-none');
+          blockLink.classList.add('d-none');
+        });
+
+        sourceLinkBtn.addEventListener('click', () => {
+          sourceFileBtn.classList.remove('active');
+          sourceLinkBtn.classList.add('active');
+          blockFile.classList.add('d-none');
+          blockLink.classList.remove('d-none');
+        });
+      }
+
+      // ── VIDEO DROPZONE ACTION EVENT LISTENERS ──
+      const videoDropzone = document.getElementById('video-dropzone');
+      const videoFileInput = document.getElementById('video-file-input');
+      const videoDefaultView = document.getElementById('dropzone-default-view');
+      const videoProgressView = document.getElementById('dropzone-progress-view');
+      const videoCompleteView = document.getElementById('dropzone-complete-view');
+
+      const videoFilename = document.getElementById('dropzone-filename');
+      const videoPercent = document.getElementById('dropzone-percent-text');
+      const videoProgressFill = document.getElementById('dropzone-progress-fill');
+      const videoFilesize = document.getElementById('dropzone-filesize');
+      const btnCancelUpload = document.getElementById('btn-cancel-upload');
+
+      const videoCompleteFilename = document.getElementById('dropzone-complete-filename');
+      const btnRemoveComplete = document.getElementById('btn-remove-complete');
+
+      let videoUploadTimer = null;
+      let mockFileSelected = null;
+
+      function simulateVideoUpload(filename, bytesize) {
+        videoDefaultView.classList.add('d-none');
+        videoProgressView.classList.remove('d-none');
+        videoCompleteView.classList.add('d-none');
+
+        videoFilename.innerText = filename;
+        videoFilesize.innerText = (bytesize / (1024 * 1024)).toFixed(1) + ' MB';
+        videoProgressFill.style.width = '0%';
+        videoPercent.innerText = 'Uploading... 0%';
+
+        let percent = 0;
+        videoUploadTimer = setInterval(() => {
+          percent += 10;
+          videoProgressFill.style.width = percent + '%';
+          videoPercent.innerText = `Uploading... ${percent}%`;
+
+          if (percent >= 100) {
+            clearInterval(videoUploadTimer);
+            setTimeout(() => {
+              videoProgressView.classList.add('d-none');
+              videoCompleteView.classList.remove('d-none');
+              videoCompleteFilename.innerText = filename;
+              mockFileSelected = { name: filename, size: bytesize };
+              autoGenerateVideoThumbnail(filename);
+            }, 300);
+          }
+        }, 150);
+      }
+
+      if (videoDropzone && videoFileInput) {
+        videoDropzone.addEventListener('click', (e) => {
+          if (e.target !== btnCancelUpload && !btnCancelUpload.contains(e.target) &&
+              e.target !== btnRemoveComplete && !btnRemoveComplete.contains(e.target)) {
+            videoFileInput.click();
+          }
+        });
+
+        // drag behaviors
+        videoDropzone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          videoDropzone.classList.add('dragover');
+        });
+
+        videoDropzone.addEventListener('dragleave', () => {
+          videoDropzone.classList.remove('dragover');
+        });
+
+        videoDropzone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          videoDropzone.classList.remove('dragover');
+          const file = e.dataTransfer.files[0];
+          if (file && file.type.match('video.*')) {
+            simulateVideoUpload(file.name, file.size);
+          } else {
+            alert('Please select valid .mp4 or .webm video files.');
+          }
+        });
+
+        videoFileInput.addEventListener('change', () => {
+          const file = videoFileInput.files[0];
+          if (file) {
+            simulateVideoUpload(file.name, file.size);
+          }
+        });
+      }
+
+      if (btnCancelUpload) {
+        btnCancelUpload.addEventListener('click', (e) => {
+          e.stopPropagation();
+          clearInterval(videoUploadTimer);
+          videoDefaultView.classList.remove('d-none');
+          videoProgressView.classList.add('d-none');
+          videoCompleteView.classList.add('d-none');
+          videoFileInput.value = '';
+          mockFileSelected = null;
+        });
+      }
+
+      if (btnRemoveComplete) {
+        btnRemoveComplete.addEventListener('click', (e) => {
+          e.stopPropagation();
+          videoDefaultView.classList.remove('d-none');
+          videoProgressView.classList.add('d-none');
+          videoCompleteView.classList.add('d-none');
+          videoFileInput.value = '';
+          mockFileSelected = null;
+          resetVideoThumbnail();
+        });
+      }
+
+      // ── THUMBNAIL AUTO-GENERATOR ──
+      const videoThumbPreviewBox = document.getElementById('video-thumb-preview-box');
+      const videoThumbPlaceholderText = document.getElementById('video-thumb-placeholder-text');
+      const btnThumbVideoAuto = document.getElementById('btn-thumb-video-auto');
+      const btnThumbVideoCustom = document.getElementById('btn-thumb-video-custom');
+      const videoThumbInput = document.getElementById('video-thumb-input');
+
+      function autoGenerateVideoThumbnail(titleText) {
+        if (!videoThumbPreviewBox) return;
+        videoThumbPreviewBox.innerHTML = `
+          <div class="text-center w-100 p-3" style="z-index: 2;">
+            <i class="bi bi-collection-play-fill text-cyan mb-2" style="font-size: 2.2rem; color: #06B6D4;"></i>
+            <h6 class="text-white fw-bold m-0" style="font-size: 0.72rem; line-height: 1.35;">Auto-generated Frame Frame</h6>
+            <small style="color: #94A3B8; font-size: 0.62rem; display: block; margin-top: 4px;">Source: ${titleText.slice(0, 32)}...</small>
+          </div>
+          <div class="bg-blob-teal" style="top: 0; left: 0; width: 100%; height: 100%; opacity: 0.15; position: absolute; pointer-events: none;"></div>
+        `;
+      }
+
+      function resetVideoThumbnail() {
+        if (!videoThumbPreviewBox) return;
+        videoThumbPreviewBox.innerHTML = `
+          <div class="text-center text-muted" id="video-thumb-placeholder-text">
+            <i class="bi bi-image fs-3 d-block text-cyan mb-2" style="color: #06B6D4;"></i>
+            <span style="font-size: 0.72rem; font-weight: bold;">Thumbnail Preview (16:9)</span>
+          </div>
+        `;
+      }
+
+      if (btnThumbVideoAuto) {
+        btnThumbVideoAuto.addEventListener('click', () => {
+          const title = document.getElementById('video-details-title').value.trim();
+          autoGenerateVideoThumbnail(title !== '' ? title : 'Draft Lesson Thumbnail');
+        });
+      }
+
+      if (btnThumbVideoCustom && videoThumbInput) {
+        btnThumbVideoCustom.addEventListener('click', () => videoThumbInput.click());
+        videoThumbInput.addEventListener('change', () => {
+          const file = videoThumbInput.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              videoThumbPreviewBox.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px; z-index: 2;">`;
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      // ── LINK DETAILED FETCH SIMULATOR ──
+      const videoLinkInput = document.getElementById('video-link-input');
+      const btnFetchDetails = document.getElementById('btn-fetch-details');
+      const linkError = document.getElementById('video-link-error');
+      const linkSuccess = document.getElementById('video-link-success');
+      const detailsTitle = document.getElementById('video-details-title');
+
+      if (btnFetchDetails) {
+        btnFetchDetails.addEventListener('click', () => {
+          if (!videoLinkInput) return;
+          const url = videoLinkInput.value.trim().toLowerCase();
+          
+          if (url === '' || (!url.includes('youtube.com/') && !url.includes('youtu.be/') && !url.includes('vimeo.com/'))) {
+            if (linkError) linkError.classList.remove('d-none');
+            if (linkSuccess) linkSuccess.classList.add('d-none');
+            if (videoLinkInput) videoLinkInput.classList.add('is-invalid');
+            return;
+          }
+
+          if (linkError) linkError.classList.add('d-none');
+          if (videoLinkInput) videoLinkInput.classList.remove('is-invalid');
+
+          btnFetchDetails.disabled = true;
+          btnFetchDetails.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
+
+          setTimeout(() => {
+            btnFetchDetails.disabled = false;
+            btnFetchDetails.innerText = 'Fetch Details';
+
+            if (linkSuccess) linkSuccess.classList.remove('d-none');
+            if (detailsTitle) {
+              detailsTitle.value = "Advanced App Routing Structures and Data Relational Schemes inside Next.js";
+              // trigger keyup to update counters
+              detailsTitle.dispatchEvent(new Event('input'));
+            }
+            autoGenerateVideoThumbnail("youtube_lesson_stream");
+          }, 1000);
+        });
+      }
+
+
+      // ================================================================
+      //   📄 PDF DROPZONE & WORKFLOW
+      // ================================================================
+      const pdfDropzone = document.getElementById('pdf-dropzone');
+      const pdfFileInput = document.getElementById('pdf-file-input');
+      const pdfDefaultView = document.getElementById('pdf-dropzone-default-view');
+      const pdfProgressView = document.getElementById('pdf-dropzone-progress-view');
+      const pdfCompleteView = document.getElementById('pdf-dropzone-complete-view');
+
+      const pdfFilename = document.getElementById('pdf-dropzone-filename');
+      const pdfPercent = document.getElementById('pdf-percent-text');
+      const pdfProgressFill = document.getElementById('pdf-progress-fill');
+      const pdfFilesize = document.getElementById('pdf-dropzone-filesize');
+      const btnPdfCancelUpload = document.getElementById('btn-pdf-cancel-upload');
+
+      const pdfCompleteFilename = document.getElementById('pdf-dropzone-complete-filename');
+      const btnPdfRemoveComplete = document.getElementById('btn-pdf-remove-complete');
+      const pdfPagesBadge = document.getElementById('pdf-pages-badge');
+
+      let pdfUploadTimer = null;
+      let pdfMockFile = null;
+
+      function simulatePdfUpload(filename, bytesize) {
+        pdfDefaultView.classList.add('d-none');
+        pdfProgressView.classList.remove('d-none');
+        pdfCompleteView.classList.add('d-none');
+
+        pdfFilename.innerText = filename;
+        pdfFilesize.innerText = (bytesize / (1024 * 1024)).toFixed(2) + ' MB';
+        pdfProgressFill.style.width = '0%';
+        pdfPercent.innerText = 'Uploading... 0%';
+
+        let percent = 0;
+        pdfUploadTimer = setInterval(() => {
+          percent += 10;
+          pdfProgressFill.style.width = percent + '%';
+          pdfPercent.innerText = `Uploading... ${percent}%`;
+
+          if (percent >= 100) {
+            clearInterval(pdfUploadTimer);
+            setTimeout(() => {
+              pdfProgressView.classList.add('d-none');
+              pdfCompleteView.classList.remove('d-none');
+              pdfCompleteFilename.innerText = filename;
+              pdfPagesBadge.innerHTML = `<i class="bi bi-check-lg"></i> 6 pages found ✓`;
+              pdfMockFile = { name: filename, size: bytesize, pages: 6 };
+              autoGeneratePdfCover(filename);
+            }, 300);
+          }
+        }, 150);
+      }
+
+      if (pdfDropzone && pdfFileInput) {
+        pdfDropzone.addEventListener('click', (e) => {
+          if (e.target !== btnPdfCancelUpload && !btnPdfCancelUpload.contains(e.target) &&
+              e.target !== btnPdfRemoveComplete && !btnPdfRemoveComplete.contains(e.target)) {
+            pdfFileInput.click();
+          }
+        });
+
+        pdfDropzone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          pdfDropzone.classList.add('dragover');
+        });
+
+        pdfDropzone.addEventListener('dragleave', () => {
+          pdfDropzone.classList.remove('dragover');
+        });
+
+        pdfDropzone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          pdfDropzone.classList.remove('dragover');
+          const file = e.dataTransfer.files[0];
+          if (file && file.type === 'application/pdf') {
+            simulatePdfUpload(file.name, file.size);
+          } else {
+            alert('Please select a valid .pdf document.');
+          }
+        });
+
+        pdfFileInput.addEventListener('change', () => {
+          const file = pdfFileInput.files[0];
+          if (file) {
+            simulatePdfUpload(file.name, file.size);
+          }
+        });
+      }
+
+      if (btnPdfCancelUpload) {
+        btnPdfCancelUpload.addEventListener('click', (e) => {
+          e.stopPropagation();
+          clearInterval(pdfUploadTimer);
+          pdfDefaultView.classList.remove('d-none');
+          pdfProgressView.classList.add('d-none');
+          pdfCompleteView.classList.add('d-none');
+          pdfFileInput.value = '';
+          pdfMockFile = null;
+        });
+      }
+
+      if (btnPdfRemoveComplete) {
+        btnPdfRemoveComplete.addEventListener('click', (e) => {
+          e.stopPropagation();
+          pdfDefaultView.classList.remove('d-none');
+          pdfProgressView.classList.add('d-none');
+          pdfCompleteView.classList.add('d-none');
+          pdfFileInput.value = '';
+          pdfMockFile = null;
+          resetPdfCover();
+        });
+      }
+
+      // ── PDF COVER PHOTO SYSTEM ──
+      const pdfThumbPreviewBox = document.getElementById('pdf-thumb-preview-box');
+      const btnThumbPdfCustom = document.getElementById('btn-thumb-pdf-custom');
+      const pdfThumbInput = document.getElementById('pdf-thumb-input');
+
+      function autoGeneratePdfCover(titleText) {
+        if (!pdfThumbPreviewBox) return;
+        pdfThumbPreviewBox.innerHTML = `
+          <div class="text-center w-100 p-3" style="z-index: 2;">
+            <i class="bi bi-file-earmark-pdf-fill text-purple mb-2" style="font-size: 2.5rem; color: #A855F7;"></i>
+            <h6 class="text-white fw-bold m-0" style="font-size: 0.65rem; line-height: 1.3;">Page 1 Cover Rendering</h6>
+            <small style="color: #94A3B8; font-size: 0.58rem; display: block; margin-top: 4px;">Document: ${titleText.slice(0, 20)}...</small>
+          </div>
+          <div class="bg-blob-violet" style="top: 0; left: 0; width: 100%; height: 100%; opacity: 0.15; position: absolute; pointer-events: none;"></div>
+        `;
+      }
+
+      function resetPdfCover() {
+        if (!pdfThumbPreviewBox) return;
+        pdfThumbPreviewBox.innerHTML = `
+          <div class="text-center text-muted" id="pdf-thumb-placeholder-text">
+            <i class="bi bi-file-pdf fs-2 d-block text-purple mb-2" style="color: #A855F7;"></i>
+            <span style="font-size: 0.7rem; font-weight: bold;">Cover Preview (4:5)</span>
+          </div>
+        `;
+      }
+
+      if (btnThumbPdfCustom && pdfThumbInput) {
+        btnThumbPdfCustom.addEventListener('click', () => pdfThumbInput.click());
+        pdfThumbInput.addEventListener('change', () => {
+          const file = pdfThumbInput.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              pdfThumbPreviewBox.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px; z-index: 2;">`;
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+
+      // ================================================================
+      //   📝 INTERACTIVE CHARACTER COUNTERS & TAG INPUT SYSTEMS
+      // ================================================================
+      
+      // Counter helpers
+      function wireCharCounter(inputId, labelId, max) {
+        const input = document.getElementById(inputId);
+        const label = document.getElementById(labelId);
+        if (input && label) {
+          input.addEventListener('input', () => {
+            const len = input.value.length;
+            label.innerText = `${len}/${max}`;
+          });
+        }
+      }
+
+      wireCharCounter('video-details-title', 'video-title-char-counter', 100);
+      wireCharCounter('video-details-description', 'video-desc-counter', 500);
+      wireCharCounter('pdf-details-title', 'pdf-title-char-counter', 100);
+      wireCharCounter('pdf-details-description', 'pdf-desc-counter', 500);
+
+      // Tags managers
+      function wireTagsEngine(inputId, listId, isPdf) {
+        const input = document.getElementById(inputId);
+        const list = document.getElementById(listId);
+        let tags = [];
+
+        if (input && list) {
+          input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              const val = input.value.trim().toLowerCase();
+              if (val === '') return;
+
+              if (tags.length >= 5) {
+                alert('Maximum limit of 5 tags reached.');
+                input.value = '';
+                return;
+              }
+
+              if (!tags.includes(val)) {
+                tags.push(val);
+                renderTags();
+              }
+              input.value = '';
+            }
+          });
+        }
+
+        function renderTags() {
+          list.innerHTML = '';
+          tags.forEach((tag, index) => {
+            const div = document.createElement('div');
+            div.className = isPdf ? 'glass-pill-tag glass-pill-tag-pdf' : 'glass-pill-tag';
+            div.innerHTML = `
+              <span>#${tag}</span>
+              <button type="button" class="btn-tag-remove" data-index="${index}"><i class="bi bi-x-circle-fill"></i></button>
+            `;
+            list.appendChild(div);
+          });
+
+          list.querySelectorAll('.btn-tag-remove').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const index = parseInt(btn.getAttribute('data-index'));
+              tags.splice(index, 1);
+              renderTags();
+            });
+          });
+        }
+      }
+
+      wireTagsEngine('video-details-tags', 'video-tags-list', false);
+      wireTagsEngine('pdf-details-tags', 'pdf-tags-list', true);
+
+
+      // ================================================================
+      //   🔘 STATUS TOGGLE BUTTON INTERACTIVE BINDINGS
+      // ================================================================
+      function wireToggleStatus(publishId, draftId) {
+        const pBtn = document.getElementById(publishId);
+        const dBtn = document.getElementById(draftId);
+        if (pBtn && dBtn) {
+          pBtn.addEventListener('click', () => {
+            pBtn.classList.add('active');
+            dBtn.classList.remove('active');
+          });
+          dBtn.addEventListener('click', () => {
+            dBtn.classList.add('active');
+            pBtn.classList.remove('active');
+          });
+        }
+      }
+
+      wireToggleStatus('btn-status-video-publish', 'btn-status-video-draft');
+      wireToggleStatus('btn-status-pdf-publish', 'btn-status-pdf-draft');
+
+
+      // ================================================================
+      //   💾 UPLOAD & PUBLISH REDIRECTIONS & TOAST PAYLOADS
+      // ================================================================
+      function setupPublishHandler(triggerId, titleInputId, errorId, type) {
+        const btn = document.getElementById(triggerId);
+        if (btn) {
+          btn.addEventListener('click', () => {
+            const titleInput = document.getElementById(titleInputId);
+            const titleError = document.getElementById(errorId);
+
+            const titleVal = titleInput ? titleInput.value.trim() : '';
+            if (titleVal === '') {
+              if (titleInput) titleInput.classList.add('is-invalid');
+              if (titleError) titleError.classList.remove('d-none');
+              return;
+            }
+
+            if (titleInput) titleInput.classList.remove('is-invalid');
+            if (titleError) titleError.classList.add('d-none');
+
+            // Trigger submit loader animations
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Publishing...`;
+
+            setTimeout(() => {
+              sessionStorage.setItem('bb_toast_message', `New ${type} "${titleVal.slice(0, 30)}..." published successfully! 🎉`);
+              window.location.href = 'admin-library.html';
+            }, 1200);
+          });
+        }
+      }
+
+      setupPublishHandler('btn-submit-publish-video', 'video-details-title', 'video-title-input-error', 'Video Lesson');
+      setupPublishHandler('btn-submit-publish-pdf', 'pdf-details-title', 'pdf-title-input-error', 'PDF Reference');
+
+      // Draft draft submit redirections
+      function setupDraftHandler(triggerId, titleInputId, errorId, type) {
+        const btn = document.getElementById(triggerId);
+        if (btn) {
+          btn.addEventListener('click', () => {
+            const titleInput = document.getElementById(titleInputId);
+            const titleError = document.getElementById(errorId);
+
+            const titleVal = titleInput ? titleInput.value.trim() : '';
+            if (titleVal === '') {
+              if (titleInput) titleInput.classList.add('is-invalid');
+              if (titleError) titleError.classList.remove('d-none');
+              return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...`;
+
+            setTimeout(() => {
+              sessionStorage.setItem('bb_toast_message', `Draft ${type} saved as draft! 💾`);
+              window.location.href = 'admin-library.html';
+            }, 1200);
+          });
+        }
+      }
+
+      setupDraftHandler('btn-submit-draft-video', 'video-details-title', 'video-title-input-error', 'Video Draft');
+      setupDraftHandler('btn-submit-draft-pdf', 'pdf-details-title', 'pdf-title-input-error', 'PDF Draft');
+    });
+  </script>
+</body>
+</html>

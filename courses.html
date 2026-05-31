@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explore Courses — BrainByte</title>
+  <meta name="description" content="Browse our catalog of premium high-fidelity developer certifications and free learning tutorials. Search, filter, and unlock your technology career path.">
+  
+  <!-- Preload and load Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Premium Theme CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-body">
+
+  <!-- Ambient background glow elements -->
+  <div class="bg-blob-violet" style="top: -100px; left: -100px; fixed: true;"></div>
+  <div class="bg-blob-teal" style="top: 300px; right: -100px; fixed: true;"></div>
+  <div class="bg-blob-pink" style="bottom: 10%; left: 5%; fixed: true;"></div>
+
+  <!-- ================================================================
+    HEADER & NAVIGATION (Scrolled active style by default for search pages)
+  ================================================================ -->
+  <nav class="navbar navbar-expand-lg bb-navbar scrolled">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="index.html" id="bb-logo">
+        <span>Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
+      </a>
+      
+      <button class="navbar-toggler border-0 shadow-none text-white" type="button" data-bs-toggle="collapse" data-bs-target="#bbNavbar" aria-controls="bbNavbar" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="bi bi-list fs-2" style="color: var(--text-primary);"></i>
+      </button>
+      
+      <div class="collapse navbar-collapse" id="bbNavbar">
+        <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1 mt-3 mt-lg-0">
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link active" aria-current="page" href="courses.html" id="nav-home">Explore</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link library-link" href="library.html" id="nav-library">Library <i class="bi bi-lock-fill ms-1" id="navbar-library-lock-icon" style="font-size: 0.85rem; color: var(--teal-primary);"></i></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="teach.html" id="nav-teach">Teach</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="pricing.html" id="nav-pricing">Pricing</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link bb-nav-link" href="about.html" id="nav-about">About</a>
+          </li>
+        </ul>
+        <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">
+          <a href="login.html" class="btn btn-bb-ghost" id="btn-signin">Sign In</a>
+          <a href="signup.html" class="btn btn-bb-primary" id="btn-getstarted">Get Started</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ================================================================
+    MAIN GRID SYSTEM (Sidebar + Main grid panels)
+  ================================================================ -->
+  <main class="courses-explore-container" style="padding-top: 6.5rem; min-height: 100vh;">
+    <div class="container-fluid px-lg-5 px-3">
+      <div class="row g-4">
+        
+        <!-- ============================================================
+          1. FIXED LEFT SIDEBAR (Desktop only, 260px)
+        ============================================================ -->
+        <div class="col-lg-3 d-none d-lg-block">
+          <aside class="courses-sidebar-card">
+            
+            <!-- Search bar -->
+            <div class="glass-input-wrapper mb-4">
+              <span class="search-icon-inside"><i class="bi bi-search" style="color: #94A3B8;"></i></span>
+              <input type="text" class="glass-input ps-5" id="search-courses" placeholder="Search courses...">
+            </div>
+            
+            <div class="sidebar-filters-wrapper">
+              
+              <!-- Category Filter Section (Collapsible) -->
+              <div class="filter-section-block collapsible-active">
+                <div class="filter-section-header" data-target="category-collapse">
+                  <span>Category</span>
+                  <i class="bi bi-chevron-down toggle-chevron"></i>
+                </div>
+                <div class="filter-section-content" id="category-collapse">
+                  <div class="d-flex flex-column gap-2 mt-2">
+                    <label class="glass-check-item">
+                      <input type="checkbox" name="category" value="all" class="glass-checkbox category-checkbox" checked>
+                      <span class="glass-checkbox-label text-white">All Categories</span>
+                    </label>
+                    <label class="glass-check-item">
+                      <input type="checkbox" name="category" value="web-dev" class="glass-checkbox category-checkbox">
+                      <span class="glass-checkbox-label">Web Dev</span>
+                    </label>
+                    <label class="glass-check-item">
+                      <input type="checkbox" name="category" value="design" class="glass-checkbox category-checkbox">
+                      <span class="glass-checkbox-label">Design</span>
+                    </label>
+                    <label class="glass-check-item">
+                      <input type="checkbox" name="category" value="data-science" class="glass-checkbox category-checkbox">
+                      <span class="glass-checkbox-label">Data Science</span>
+                    </label>
+                    <label class="glass-check-item">
+                      <input type="checkbox" name="category" value="mobile" class="glass-checkbox category-checkbox">
+                      <span class="glass-checkbox-label">Mobile Dev</span>
+                    </label>
+                    <label class="glass-check-item">
+                      <input type="checkbox" name="category" value="ai-ml" class="glass-checkbox category-checkbox">
+                      <span class="glass-checkbox-label">AI &amp; ML</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Price Filter Section (Collapsible) -->
+              <div class="filter-section-block collapsible-active">
+                <div class="filter-section-header" data-target="price-collapse">
+                  <span>Price Range</span>
+                  <i class="bi bi-chevron-down toggle-chevron"></i>
+                </div>
+                <div class="filter-section-content" id="price-collapse">
+                  <div class="price-radio-pills mt-2">
+                    <label class="price-pill-item">
+                      <input type="radio" name="price" value="all" checked>
+                      <span class="price-pill-label">All</span>
+                    </label>
+                    <label class="price-pill-item">
+                      <input type="radio" name="price" value="free">
+                      <span class="price-pill-label">Free</span>
+                    </label>
+                    <label class="price-pill-item">
+                      <input type="radio" name="price" value="under-500">
+                      <span class="price-pill-label">Under ₹500</span>
+                    </label>
+                    <label class="price-pill-item">
+                      <input type="radio" name="price" value="500-999">
+                      <span class="price-pill-label">₹500–₹999</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Rating Filter Section (Collapsible) -->
+              <div class="filter-section-block collapsible-active">
+                <div class="filter-section-header" data-target="rating-collapse">
+                  <span>Minimum Rating</span>
+                  <i class="bi bi-chevron-down toggle-chevron"></i>
+                </div>
+                <div class="filter-section-content" id="rating-collapse">
+                  <div class="d-flex flex-column gap-2 mt-2">
+                    <label class="glass-check-item">
+                      <input type="radio" name="rating" value="all" checked class="glass-checkbox">
+                      <span class="glass-checkbox-label text-white">All Ratings</span>
+                    </label>
+                    <label class="glass-check-item">
+                      <input type="radio" name="rating" value="4.5" class="glass-checkbox">
+                      <span class="glass-checkbox-label">
+                        4.5 <i class="bi bi-star-fill text-warning ms-0.5"></i> +
+                      </span>
+                    </label>
+                    <label class="glass-check-item">
+                      <input type="radio" name="rating" value="4.0" class="glass-checkbox">
+                      <span class="glass-checkbox-label">
+                        4.0 <i class="bi bi-star-fill text-warning ms-0.5"></i> +
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Level Filter Section (Collapsible) -->
+              <div class="filter-section-block collapsible-active">
+                <div class="filter-section-header" data-target="level-collapse">
+                  <span>Course Level</span>
+                  <i class="bi bi-chevron-down toggle-chevron"></i>
+                </div>
+                <div class="filter-section-content" id="level-collapse">
+                  <div class="level-radio-pills mt-2">
+                    <label class="price-pill-item">
+                      <input type="radio" name="level" value="all" checked>
+                      <span class="price-pill-label">All</span>
+                    </label>
+                    <label class="price-pill-item">
+                      <input type="radio" name="level" value="beginner">
+                      <span class="price-pill-label">Beginner</span>
+                    </label>
+                    <label class="price-pill-item">
+                      <input type="radio" name="level" value="intermediate">
+                      <span class="price-pill-label">Intermediate</span>
+                    </label>
+                    <label class="price-pill-item">
+                      <input type="radio" name="level" value="advanced">
+                      <span class="price-pill-label">Advanced</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+            
+            <!-- Clear filters button -->
+            <button type="button" class="btn btn-clear-filters w-100 mt-4" id="btn-clear-desktop">
+              <i class="bi bi-trash-fill"></i> Clear All Filters
+            </button>
+            
+          </aside>
+        </div>
+        
+        <!-- ============================================================
+          2. MAIN CONTENT GRID AREA (Right side)
+        ============================================================ -->
+        <div class="col-lg-9 col-12">
+          
+          <!-- Catalog Header / Top Bar Controls -->
+          <div class="catalog-top-controls mb-4">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+              <div>
+                <h2 class="text-white fw-bold m-0" style="font-size: 1.5rem; font-family: var(--font-display);" id="courses-count-label">Showing 24 courses</h2>
+              </div>
+              
+              <!-- Sort dropdown & mobile trigger -->
+              <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-bb-outline-violet d-lg-none py-2 px-3" id="btn-mobile-drawer-trigger" style="font-size: 0.85rem;">
+                  <i class="bi bi-sliders me-1"></i> Filter
+                </button>
+                
+                <div class="d-flex align-items-center gap-2 glass-sort-wrapper">
+                  <span class="text-muted" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Sort:</span>
+                  <select class="glass-sort-dropdown" id="courses-sort-select">
+                    <option value="popular" selected>Most Popular</option>
+                    <option value="newest">Newest</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="rating">Top Rated</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Dynamic Course Catalog Grid -->
+          <div class="row g-4" id="courses-grid-container">
+            <!-- Populated Dynamically via js/main.js -->
+          </div>
+          
+          <!-- Empty State (Hidden by default) -->
+          <div class="text-center py-5 d-none" id="courses-empty-state">
+            <div class="display-1 text-muted mb-4"><i class="bi bi-search-heart"></i></div>
+            <h3 class="text-white fw-bold mb-2">No courses found</h3>
+            <p class="text-muted mb-4 mx-auto" style="max-width: 380px;">Try adjusting your categories, pricing, or search query to find relevant courses.</p>
+            <button type="button" class="btn btn-bb-primary px-4 py-2" id="btn-empty-clear-filters" style="width: auto;">
+              <i class="bi bi-x-circle me-1"></i> Clear Filters
+            </button>
+          </div>
+          
+          <!-- Bottom Pagination Center Block -->
+          <div class="d-flex justify-content-center mt-5 mb-5" id="pagination-nav-container">
+            <!-- Populated dynamically: numbers on desktop, simplified Prev/Next on mobile -->
+          </div>
+          
+        </div>
+        
+      </div>
+    </div>
+  </main>
+
+  <!-- ================================================================
+    MOBILE FILTER DRAWER OVERLAY (Animate slide-up panel)
+  ================================================================ -->
+  <div class="drawer-overlay" id="mobile-drawer-overlay"></div>
+  <div class="mobile-drawer-panel" id="mobile-drawer-panel">
+    
+    <!-- Drawer Header -->
+    <div class="drawer-header-bar d-flex justify-content-between align-items-center">
+      <h3 class="m-0 text-white fw-bold" style="font-size: 1.15rem; font-family: var(--font-display);"><i class="bi bi-sliders me-1 text-primary" style="color: var(--violet-mid) !important;"></i> Filter Options</h3>
+      <button type="button" class="btn-close-drawer" id="btn-close-drawer-trigger"><i class="bi bi-x-lg"></i></button>
+    </div>
+    
+    <!-- Drawer Body Content -->
+    <div class="drawer-content-body">
+      
+      <!-- Mobile Search inside drawer -->
+      <div class="glass-input-wrapper mb-4">
+        <span class="search-icon-inside"><i class="bi bi-search" style="color: #94A3B8;"></i></span>
+        <input type="text" class="glass-input ps-5" id="search-courses-mobile" placeholder="Search courses...">
+      </div>
+      
+      <div class="sidebar-filters-wrapper">
+        
+        <!-- Category (Mobile) -->
+        <div class="filter-section-block collapsible-active">
+          <div class="filter-section-header" data-target="category-collapse-m">
+            <span>Category</span>
+            <i class="bi bi-chevron-down toggle-chevron"></i>
+          </div>
+          <div class="filter-section-content" id="category-collapse-m">
+            <div class="d-flex flex-column gap-2 mt-2">
+              <label class="glass-check-item">
+                <input type="checkbox" name="category-m" value="all" class="glass-checkbox category-checkbox-m" checked>
+                <span class="glass-checkbox-label text-white">All Categories</span>
+              </label>
+              <label class="glass-check-item">
+                <input type="checkbox" name="category-m" value="web-dev" class="glass-checkbox category-checkbox-m">
+                <span class="glass-checkbox-label">Web Dev</span>
+              </label>
+              <label class="glass-check-item">
+                <input type="checkbox" name="category-m" value="design" class="glass-checkbox category-checkbox-m">
+                <span class="glass-checkbox-label">Design</span>
+              </label>
+              <label class="glass-check-item">
+                <input type="checkbox" name="category-m" value="data-science" class="glass-checkbox category-checkbox-m">
+                <span class="glass-checkbox-label">Data Science</span>
+              </label>
+              <label class="glass-check-item">
+                <input type="checkbox" name="category-m" value="mobile" class="glass-checkbox category-checkbox-m">
+                <span class="glass-checkbox-label">Mobile Dev</span>
+              </label>
+              <label class="glass-check-item">
+                <input type="checkbox" name="category-m" value="ai-ml" class="glass-checkbox category-checkbox-m">
+                <span class="glass-checkbox-label">AI &amp; ML</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Price (Mobile) -->
+        <div class="filter-section-block collapsible-active">
+          <div class="filter-section-header" data-target="price-collapse-m">
+            <span>Price Range</span>
+            <i class="bi bi-chevron-down toggle-chevron"></i>
+          </div>
+          <div class="filter-section-content" id="price-collapse-m">
+            <div class="price-radio-pills mt-2">
+              <label class="price-pill-item">
+                <input type="radio" name="price-m" value="all" checked>
+                <span class="price-pill-label">All</span>
+              </label>
+              <label class="price-pill-item">
+                <input type="radio" name="price-m" value="free">
+                <span class="price-pill-label">Free</span>
+              </label>
+              <label class="price-pill-item">
+                <input type="radio" name="price-m" value="under-500">
+                <span class="price-pill-label">Under ₹500</span>
+              </label>
+              <label class="price-pill-item">
+                <input type="radio" name="price-m" value="500-999">
+                <span class="price-pill-label">₹500–₹999</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Rating (Mobile) -->
+        <div class="filter-section-block collapsible-active">
+          <div class="filter-section-header" data-target="rating-collapse-m">
+            <span>Minimum Rating</span>
+            <i class="bi bi-chevron-down toggle-chevron"></i>
+          </div>
+          <div class="filter-section-content" id="rating-collapse-m">
+            <div class="d-flex flex-column gap-2 mt-2">
+              <label class="glass-check-item">
+                <input type="radio" name="rating-m" value="all" checked class="glass-checkbox">
+                <span class="glass-checkbox-label text-white">All Ratings</span>
+              </label>
+              <label class="glass-check-item">
+                <input type="radio" name="rating-m" value="4.5" class="glass-checkbox">
+                <span class="glass-checkbox-label">
+                  4.5 <i class="bi bi-star-fill text-warning ms-0.5"></i> +
+                </span>
+              </label>
+              <label class="glass-check-item">
+                <input type="radio" name="rating-m" value="4.0" class="glass-checkbox">
+                <span class="glass-checkbox-label">
+                  4.0 <i class="bi bi-star-fill text-warning ms-0.5"></i> +
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Level (Mobile) -->
+        <div class="filter-section-block collapsible-active">
+          <div class="filter-section-header" data-target="level-collapse-m">
+            <span>Course Level</span>
+            <i class="bi bi-chevron-down toggle-chevron"></i>
+          </div>
+          <div class="filter-section-content" id="level-collapse-m">
+            <div class="level-radio-pills mt-2">
+              <label class="price-pill-item">
+                <input type="radio" name="level-m" value="all" checked>
+                <span class="price-pill-label">All</span>
+              </label>
+              <label class="price-pill-item">
+                <input type="radio" name="level-m" value="beginner">
+                <span class="price-pill-label">Beginner</span>
+              </label>
+              <label class="price-pill-item">
+                <input type="radio" name="level-m" value="intermediate">
+                <span class="price-pill-label">Intermediate</span>
+              </label>
+              <label class="price-pill-item">
+                <input type="radio" name="level-m" value="advanced">
+                <span class="price-pill-label">Advanced</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+      
+      <!-- Clear buttons inside drawer -->
+      <div class="row g-2 mt-4 mb-3">
+        <div class="col-6">
+          <button type="button" class="btn btn-clear-filters w-100 py-2.5" id="btn-clear-mobile" style="font-size: 0.85rem;">
+            Clear All
+          </button>
+        </div>
+        <div class="col-6">
+          <button type="button" class="btn-bb-login w-100" id="btn-apply-mobile" style="font-size: 0.85rem; height: 40px;">
+            Apply Filters
+          </button>
+        </div>
+      </div>
+      
+    </div>
+    
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase Config -->
+<script src="js/supabase-config.js"></script>
+<!-- Main JS -->
+<script src="js/main.js"></script>
+</body>
+</html>
