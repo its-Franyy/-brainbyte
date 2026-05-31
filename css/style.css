@@ -6230,3 +6230,306 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+/* ================================================================
+  PREMIUM DYNAMIC STAT COUNTING ANIMATIONS
+================================================================ */
+.stat-number {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), text-shadow 0.3s ease;
+  display: inline-block; /* Ensure transform applies properly */
+}
+
+.stat-number.counting {
+  text-shadow: 0 0 20px var(--violet-glow);
+  transform: scale(1.06);
+  opacity: 0.95;
+}
+
+.stat-card.stat-teal .stat-number.counting {
+  text-shadow: 0 0 20px var(--teal-glow);
+}
+
+.stat-number.count-complete {
+  animation: count-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes count-pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+    text-shadow: 0 0 25px rgba(255, 255, 255, 0.8), 0 0 35px var(--violet-primary);
+  }
+  100% {
+    transform: scale(1);
+    text-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
+  }
+}
+
+.stat-card.stat-teal .stat-number.count-complete {
+  animation: count-pop-teal 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes count-pop-teal {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+    text-shadow: 0 0 25px rgba(255, 255, 255, 0.8), 0 0 35px var(--teal-primary);
+  }
+  100% {
+    transform: scale(1);
+    text-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+  }
+}
+
+/* ================================================================
+  SYSTEM-WIDE ULTIMATE MOBILE RESPONSIVE POLISH & ALIGNMENT FIXES
+================================================================ */
+@media (max-width: 991.98px) {
+  /* 1. Prevent floating widget clipping & horizontal overflow completely */
+  .floating-widget {
+    display: none !important; /* Completely hide decorative widgets below tablet width to keep screen bounds pristine */
+  }
+
+  /* 2. Responsive section spacing for smoother vertical scrolls */
+  .hero-section {
+    padding-top: 7.5rem !important;
+    padding-bottom: 4.5rem !important;
+  }
+  
+  /* 3. Smooth, touch-friendly mobile navbar collapse system */
+  .navbar-collapse {
+    padding-top: 0.75rem;
+    padding-bottom: 1.5rem;
+  }
+  
+  .navbar-nav .nav-item {
+    margin-bottom: 0.35rem;
+  }
+  
+  .bb-nav-link {
+    padding: 0.65rem 1rem !important;
+    display: block;
+    width: 100%;
+    border-radius: var(--radius-sm);
+  }
+  
+  /* 4. Full-width balanced dual auth buttons inside mobile drawer */
+  .navbar-collapse .d-flex {
+    width: 100%;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0.75rem !important;
+    justify-content: stretch !important;
+    margin-top: 1.25rem !important;
+  }
+  
+  .navbar-collapse .d-flex a,
+  .navbar-collapse .d-flex button {
+    flex: 1 !important;
+    display: inline-flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 0.75rem 1rem !important;
+  }
+}
+
+@media (max-width: 767.98px) {
+  /* 1. Responsive Typography hierarchy prevents awkward line wraps on small screens */
+  h1, .hero-title {
+    font-size: 2.2rem !important;
+    line-height: 1.2 !important;
+    letter-spacing: -0.02em !important;
+  }
+  
+  h2, h2.h1, .h1 {
+    font-size: 1.75rem !important;
+    line-height: 1.25 !important;
+  }
+  
+  h3 {
+    font-size: 1.4rem !important;
+  }
+  
+  /* 2. Stat card numbers scale beautifully on mobile rows */
+  .stat-number {
+    font-size: 2.3rem !important;
+  }
+  
+  .stat-label {
+    font-size: 0.85rem !important;
+  }
+  
+  /* 3. Prevent cards padding excess on tight screens */
+  .category-card, .course-card-body, .resource-card-body {
+    padding: 1.5rem 1.25rem !important;
+  }
+  
+  /* 4. Testimonial section responsive adjustments */
+  .testimonial-card {
+    padding: 1.5rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* 1. Extra mobile optimization for tiny viewport scales */
+  h1, .hero-title {
+    font-size: 1.95rem !important;
+  }
+  
+  .stat-number {
+    font-size: 1.95rem !important;
+  }
+  
+  .btn-bb-primary, .btn-bb-teal, .btn-bb-outline-teal, .btn-bb-outline-violet {
+    padding: 0.65rem 1.25rem !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+/* Premium course thumbnail image styling with zoom hover effect */
+.course-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+
+.course-card:hover .course-thumb-img,
+.course-browse-card:hover .course-thumb-img,
+.course-sticky-card-wrapper:hover .course-thumb-img {
+  transform: scale(1.06);
+}
+
+/* ================================================================
+   UI-UX PRO MAX SKILL OVERRIDES: SOLID OBSIDIAN FLAT ADMIN SYSTEM
+   De-animated, high-density, flat-aligned corporate control panel
+================================================================ */
+
+/* 1. Stop background blob nebulae animations inside Admin Control Panels */
+.login-body .bg-blob-teal,
+.login-body .bg-blob-violet,
+.login-body .bg-blob-pink {
+  animation: none !important;
+  opacity: 0.04 !important;
+  pointer-events: none !important;
+}
+
+/* 2. Professional Flat obsidian dashboard cards targeting Admin modules */
+.admin-sidebar-override ~ main .floating-glass-card,
+.admin-sidebar-override ~ main .category-card,
+.admin-sidebar-override ~ main .course-card,
+.admin-sidebar-override ~ main .testimonial-card,
+.dashboard-layout-container aside.admin-sidebar-override ~ main .floating-glass-card,
+.dashboard-layout-container aside.admin-sidebar-override ~ main .card,
+.admin-sidebar-override ~ main .admin-verify-table-row {
+  transform: none !important;
+  margin: 0 !important;
+  animation: none !important;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease !important;
+  background: #0D0C1D !important; /* solid stable surface */
+  border: 1px solid #1E2035 !important; /* crisp grid border */
+  box-shadow: none !important;
+}
+
+/* Specific card definitions override for all dashboards in layouts */
+.dashboard-layout-container .floating-glass-card {
+  transform: none !important;
+  margin: 0 !important;
+  animation: none !important;
+}
+
+.dashboard-layout-container .floating-glass-card:nth-child(2) {
+  margin-left: 0 !important;
+  transform: none !important;
+}
+
+.dashboard-layout-container .floating-glass-card:nth-child(3) {
+  margin-left: 0 !important;
+  transform: none !important;
+}
+
+/* 3. Professional Card Hover Feedback (Flat Subtle glow border instead of floating scales) */
+.dashboard-layout-container .floating-glass-card:hover,
+.admin-sidebar-override ~ main .floating-glass-card:hover {
+  transform: none !important;
+  border-color: #3b3d54 !important;
+  background: #121124 !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* 4. Table UI Alignments & Non-animated components for Admin verifications */
+.admin-verify-table-row {
+  transition: background-color 0.2s ease;
+}
+.admin-verify-table-row:hover {
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+.admin-sidebar-nav-link {
+  transition: all 0.2s ease !important;
+}
+
+/* 5. Custom dynamic rating toast styling rules */
+#bb-rating-toast {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6) !important;
+  border-left: 4px solid var(--violet-primary) !important;
+}
+
+/* ================================================================
+   ADDITIONAL POLISH: UI-UX PRO MAX FINAL LAYER
+   Category Links, Thumbnail Containers, Micro-interactions
+================================================================ */
+
+/* Make category card wrapper links not inherit browser link blue */
+a[id^="cat-card-link"] {
+  color: inherit !important;
+  display: block;
+  height: 100%;
+}
+
+a[id^="cat-card-link"] .category-card {
+  height: 100%;
+}
+
+/* Ensure resource-thumb-wrapper has relative positioning for absolutely placed children */
+.resource-thumb-wrapper {
+  position: relative !important;
+}
+
+/* Subtle arrow animation on category card hover Explore arrow */
+.category-card:hover .bi-arrow-right {
+  transform: translateX(4px);
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Smooth count-complete glow animation for the rating stat */
+@keyframes stat-glow-pulse {
+  0% { text-shadow: 0 0 0 rgba(139, 92, 246, 0); }
+  50% { text-shadow: 0 0 20px rgba(139, 92, 246, 0.6), 0 0 40px rgba(139, 92, 246, 0.2); }
+  100% { text-shadow: 0 0 0 rgba(139, 92, 246, 0); }
+}
+
+.stat-number.count-complete {
+  animation: stat-glow-pulse 0.6s ease-in-out;
+}
+
+/* Enhanced course card thumbnail image fit */
+.course-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Resource card thumbnail inner content should be positioned relative to the wrapper */
+.resource-thumb-wrapper > div[style*="position: absolute"] {
+  pointer-events: none;
+}

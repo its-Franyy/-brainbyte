@@ -434,89 +434,102 @@
 
   <!-- Script logics for verifications updates and modals -->
   <script>
-    // Global preloaded candidates array
-    let candidates = [
-      {
-        id: "priya-sharma",
-        initials: "PS",
-        name: "Priya Sharma",
-        email: "priya@email.com",
-        category: "Web Dev",
-        applied: "1 hour ago",
-        linkedin: "https://linkedin.com/in/priya-sharma",
-        github: "https://github.com/priya-sharma",
-        videoUrl: "https://youtube.com/watch?v=...",
-        status: "pending",
-        bio: "I have 5 years teaching fullstack development at coding bootcamps. Specialized in React, Node ecosystem.",
-        teach: "Next.js Advanced App routing structures, database relational tables with Prisma ORMs",
-        why: "Partnering with premium glass hubs will help scale quality courses to active tech developers",
-        experience: "3-5 years"
-      },
-      {
-        id: "arjun-mehta",
-        initials: "AM",
-        name: "Arjun Mehta",
-        email: "arjun@email.com",
-        category: "Mobile",
-        applied: "2 days ago",
-        linkedin: "https://linkedin.com/in/arjun-mehta",
-        github: "https://github.com/arjun-mehta",
-        videoUrl: "",
-        status: "approved",
-        bio: "Senior iOS developer building Swift products for tech firms since 2012. Passionate lecturer.",
-        teach: "SwiftUI layouts architectures, Core Data, and AppStore provisioning pipelines.",
-        why: "To teach modern iOS curriculum inside India's fastest scaling student database community.",
-        experience: "5+ years"
-      },
-      {
-        id: "rahul-verma",
-        initials: "RV",
-        name: "Rahul Verma",
-        email: "rahul@email.com",
-        category: "Design",
-        applied: "3 days ago",
-        linkedin: "https://linkedin.com/in/rahul-verma",
-        github: "",
-        videoUrl: "",
-        status: "rejected",
-        bio: "Freelance UI designer specializing in dark cyberpunk glass interfaces.",
-        teach: "Figma grids systems, vector illustrations, and micro-interactions prototyping.",
-        why: "Sharing glass concepts requires the premium obsidian backdrop theme of BrainByte.",
-        experience: "1-3 years"
-      },
-      {
-        id: "siddharth-roy",
-        initials: "SR",
-        name: "Siddharth Roy",
-        email: "sid@email.com",
-        category: "AI & ML",
-        applied: "4 days ago",
-        linkedin: "https://linkedin.com/in/sid-roy",
-        github: "https://github.com/sid-roy",
-        videoUrl: "https://youtube.com/watch?v=...",
-        status: "needs-info",
-        bio: "Data analyst and developer lecturing neural networks at universities.",
-        teach: "TensorsFlow data classifications modeling, Pandas datasets cleaning, and Python algos.",
-        why: "The free library model matches my academic open-science curriculum philosophies.",
-        experience: "3-5 years"
-      },
-      {
-        id: "neha-gupta",
-        initials: "NG",
-        name: "Neha Gupta",
-        email: "neha@email.com",
-        category: "General",
-        applied: "5 days ago",
-        linkedin: "https://linkedin.com/in/neha-gupta",
-        github: "",
-        videoUrl: "",
-        status: "pending",
-        bio: "Professional landscape photography specialist capturing moments worldwide.",
-        teach: "Digital cameras apertures, ISO speeds controls, and Adobe Lightroom presets editing.",
-        why: "To expand photography curriculum lists to developers looking for creative hobbies.",
-        experience: "5+ years"
+    // Global preloaded candidates array with localStorage persistence
+    let candidates = [];
+    const localCandidates = localStorage.getItem('brainbyte_candidates');
+    if (localCandidates) {
+      try {
+        candidates = JSON.parse(localCandidates);
+      } catch (e) {
+        console.error("Error loading candidates from localStorage:", e);
       }
-    ];
+    }
+
+    if (!candidates || candidates.length === 0) {
+      candidates = [
+        {
+          id: "priya-sharma",
+          initials: "PS",
+          name: "Priya Sharma",
+          email: "priya@email.com",
+          category: "Web Dev",
+          applied: "1 hour ago",
+          linkedin: "https://linkedin.com/in/priya-sharma",
+          github: "https://github.com/priya-sharma",
+          videoUrl: "https://youtube.com/watch?v=...",
+          status: "pending",
+          bio: "I have 5 years teaching fullstack development at coding bootcamps. Specialized in React, Node ecosystem.",
+          teach: "Next.js Advanced App routing structures, database relational tables with Prisma ORMs",
+          why: "Partnering with premium glass hubs will help scale quality courses to active tech developers",
+          experience: "3-5 years"
+        },
+        {
+          id: "arjun-mehta",
+          initials: "AM",
+          name: "Arjun Mehta",
+          email: "arjun@email.com",
+          category: "Mobile",
+          applied: "2 days ago",
+          linkedin: "https://linkedin.com/in/arjun-mehta",
+          github: "https://github.com/arjun-mehta",
+          videoUrl: "",
+          status: "approved",
+          bio: "Senior iOS developer building Swift products for tech firms since 2012. Passionate lecturer.",
+          teach: "SwiftUI layouts architectures, Core Data, and AppStore provisioning pipelines.",
+          why: "To teach modern iOS curriculum inside India's fastest scaling student database community.",
+          experience: "5+ years"
+        },
+        {
+          id: "rahul-verma",
+          initials: "RV",
+          name: "Rahul Verma",
+          email: "rahul@email.com",
+          category: "Design",
+          applied: "3 days ago",
+          linkedin: "https://linkedin.com/in/rahul-verma",
+          github: "",
+          videoUrl: "",
+          status: "rejected",
+          bio: "Freelance UI designer specializing in dark cyberpunk glass interfaces.",
+          teach: "Figma grids systems, vector illustrations, and micro-interactions prototyping.",
+          why: "Sharing glass concepts requires the premium obsidian backdrop theme of BrainByte.",
+          experience: "1-3 years"
+        },
+        {
+          id: "siddharth-roy",
+          initials: "SR",
+          name: "Siddharth Roy",
+          email: "sid@email.com",
+          category: "AI & ML",
+          applied: "4 days ago",
+          linkedin: "https://linkedin.com/in/sid-roy",
+          github: "https://github.com/sid-roy",
+          videoUrl: "https://youtube.com/watch?v=...",
+          status: "needs-info",
+          bio: "Data analyst and developer lecturing neural networks at universities.",
+          teach: "TensorsFlow data classifications modeling, Pandas datasets cleaning, and Python algos.",
+          why: "The free library model matches my academic open-science curriculum philosophies.",
+          experience: "3-5 years"
+        },
+        {
+          id: "neha-gupta",
+          initials: "NG",
+          name: "Neha Gupta",
+          email: "neha@email.com",
+          category: "General",
+          applied: "5 days ago",
+          linkedin: "https://linkedin.com/in/neha-gupta",
+          github: "",
+          videoUrl: "",
+          status: "pending",
+          bio: "Professional landscape photography specialist capturing moments worldwide.",
+          teach: "Digital cameras apertures, ISO speeds controls, and Adobe Lightroom presets editing.",
+          why: "To expand photography curriculum lists to developers looking for creative hobbies.",
+          experience: "5+ years"
+        }
+      ];
+      localStorage.setItem('brainbyte_candidates', JSON.stringify(candidates));
+    }
 
     let activeCandidate = null;
     let selectedFilter = 'all';
@@ -872,6 +885,7 @@
           setTimeout(() => {
             // Update status dynamically
             activeCandidate.status = 'approved';
+            localStorage.setItem('brainbyte_candidates', JSON.stringify(candidates));
             
             btnApprove.disabled = false;
             btnApprove.innerHTML = `<i class="bi bi-patch-check-fill me-1"></i> Approve Onboarding Application`;
@@ -915,6 +929,7 @@
 
           setTimeout(() => {
             activeCandidate.status = 'rejected';
+            localStorage.setItem('brainbyte_candidates', JSON.stringify(candidates));
             
             btnRejectConfirm.disabled = false;
             btnRejectConfirm.innerText = 'Send Rejection';
@@ -990,6 +1005,7 @@
 
           setTimeout(() => {
             activeCandidate.status = 'needs-info';
+            localStorage.setItem('brainbyte_candidates', JSON.stringify(candidates));
             
             btnRequestConfirm.disabled = false;
             btnRequestConfirm.innerText = 'Send Message';
@@ -1025,6 +1041,8 @@
               }
             });
 
+            localStorage.setItem('brainbyte_candidates', JSON.stringify(candidates));
+
             btnBulkApprove.disabled = false;
             btnBulkApprove.innerText = 'Approve Selected';
             bulkSelectAll.checked = false;
@@ -1053,6 +1071,8 @@
                 console.log(`%c[BrainByte Bulk Decline] Rejected candidate: ID=${id}`, "color:#EF4444; font-weight:bold;");
               }
             });
+
+            localStorage.setItem('brainbyte_candidates', JSON.stringify(candidates));
 
             btnBulkReject.disabled = false;
             btnBulkReject.innerText = 'Reject Selected';

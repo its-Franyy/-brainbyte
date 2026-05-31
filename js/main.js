@@ -64,15 +64,20 @@ function initStatsCounter() {
       const isDecimal = targetStr.includes('.');
       
       let current = 0;
-      const duration = 1500; // 1.5s animation
+      const duration = 1600; // Smooth 1.6s animation duration
       const frameRate = 1000 / 60; // 60fps
       const steps = duration / frameRate;
       const increment = targetVal / steps;
+
+      // Add counting class for glow styling during ascent
+      element.classList.add('counting');
 
       const updateCounter = () => {
         current += increment;
         if (current >= targetVal) {
           element.innerHTML = `${prefix}${formatNumber(targetVal, isDecimal)}${suffix}`;
+          element.classList.remove('counting');
+          element.classList.add('count-complete');
         } else {
           element.innerHTML = `${prefix}${formatNumber(current, isDecimal)}${suffix}`;
           requestAnimationFrame(updateCounter);
@@ -88,13 +93,14 @@ function initStatsCounter() {
       return num.toFixed(1);
     }
     
-    // Format large numbers (e.g. 50000 -> 50,000 or keep simple)
+    // Format large numbers (e.g. 50000 -> 50,000)
     if (num >= 1000) {
       return Math.floor(num).toLocaleString('en-US');
     }
     return Math.floor(num);
   };
 
+  // 1. Reliable IntersectionObserver with lower threshold
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting && !animated) {
@@ -103,9 +109,21 @@ function initStatsCounter() {
         observer.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.2 });
+  }, { threshold: 0.05 });
 
   observer.observe(statsSection);
+
+  // 2. High-Fidelity Scroll & Viewport Fail-Safe
+  setTimeout(() => {
+    if (!animated) {
+      const rect = statsSection.getBoundingClientRect();
+      const inViewport = (rect.top <= window.innerHeight && rect.bottom >= 0);
+      if (inViewport) {
+        animated = true;
+        animateCounters();
+      }
+    }
+  }, 400);
 }
 
 /**
@@ -141,6 +159,10 @@ function initInteractiveRating() {
       // Add subtle scale pop animation
       star.classList.add('scale-pop');
       setTimeout(() => star.classList.remove('scale-pop'), 200);
+
+      // UI-UX PRO MAX: Recalculate average rating & show custom glassmorphic toast
+      updateGlobalRating(rating);
+      showToastAlert(rating);
     });
   });
 
@@ -152,6 +174,83 @@ function initInteractiveRating() {
         star.className = 'bi bi-star text-muted';
       }
     });
+  };
+
+  // Helper to dynamically calculate and update the global rating stat card
+  const updateGlobalRating = (userRating) => {
+    const ratingElement = document.getElementById('val-rating');
+    if (!ratingElement) return;
+
+    // Simulate authentic weighted average: 2,480 existing ratings at 4.90 avg
+    const baseCount = 2480;
+    const baseAvg = 4.90;
+    const newAvg = ((baseCount * baseAvg) + userRating) / (baseCount + 1);
+
+    // Update data-target so any active counters grab the new value, and inject display
+    ratingElement.setAttribute('data-target', newAvg.toFixed(2));
+    ratingElement.innerHTML = `${newAvg.toFixed(2)}/5`;
+
+    // Visual snap pop animation to show real-time update success
+    ratingElement.classList.add('count-complete');
+    setTimeout(() => ratingElement.classList.remove('count-complete'), 600);
+  };
+
+  // Helper to construct and show a modern glassmorphic floating toast notification
+  const showToastAlert = (rating) => {
+    const existing = document.getElementById('bb-rating-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'bb-rating-toast';
+    toast.style.cssText = `
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: rgba(13, 12, 29, 0.9);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(255, 255, 255, 0.02);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #FFFFFF;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    `;
+
+    let emoji = '⭐️';
+    if (rating === 5) emoji = '🔥';
+    if (rating <= 2) emoji = '⚠️';
+
+    toast.innerHTML = `
+      <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(139, 92, 246, 0.15); display: flex; align-items: center; justify-content: center; color: #FBBF24; font-size: 1.15rem;">
+        ${emoji}
+      </div>
+      <div>
+        <span style="font-weight: 700; font-size: 0.85rem; display: block; letter-spacing: -0.015em; color: #FFFFFF;">Thank You!</span>
+        <span style="color: #9CA3AF; font-size: 0.74rem; font-weight: 500; display: block; margin-top: 1px;">Logged your ${rating}.0/5.0 rating in real-time.</span>
+      </div>
+    `;
+
+    document.body.appendChild(toast);
+
+    // Slide-in animation trigger
+    setTimeout(() => {
+      toast.style.transform = 'translateY(0)';
+      toast.style.opacity = '1';
+    }, 100);
+
+    // Auto dismiss
+    setTimeout(() => {
+      toast.style.transform = 'translateY(30px)';
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 500);
+    }, 4000);
   };
 }
 
@@ -1352,6 +1451,15 @@ function initCoursesController() {
         }
       }
 
+      let thumbImg = 'assets/thumbnails/nextjs_supabase.png'; // default
+      if (course.category === 'design') {
+        thumbImg = 'assets/thumbnails/figma_uiux.png';
+      } else if (course.category === 'data-science' || course.category === 'ai-ml') {
+        thumbImg = 'assets/thumbnails/pytorch_ai.png';
+      } else if (course.category === 'mobile') {
+        thumbImg = 'assets/thumbnails/nextjs_supabase.png';
+      }
+
       const cardCol = document.createElement('div');
       cardCol.className = 'col-md-6 col-xl-4 col-12';
       cardCol.innerHTML = `
@@ -1359,9 +1467,7 @@ function initCoursesController() {
           <!-- Thumbnail header -->
           <div class="course-card-thumbnail-container">
             <span class="course-card-category-badge">${course.categoryLabel}</span>
-            <div class="course-card-thumbnail-gradient" style="background: ${course.gradient};">
-              ${course.initials}
-            </div>
+            <img src="${thumbImg}" alt="${course.title}" class="course-thumb-img">
           </div>
           
           <!-- Card content -->
@@ -1663,8 +1769,20 @@ function initCourseDetailController() {
 
   if (cardBadge) cardBadge.textContent = categoryLabel;
   if (cardGradient) {
-    cardGradient.textContent = initials;
-    cardGradient.style.background = gradient;
+    let thumbImg = 'assets/thumbnails/nextjs_supabase.png'; // default
+    if (categorySlug === 'design') {
+      thumbImg = 'assets/thumbnails/figma_uiux.png';
+    } else if (categorySlug === 'data-science' || categorySlug === 'ai-ml') {
+      thumbImg = 'assets/thumbnails/pytorch_ai.png';
+    } else if (categorySlug === 'mobile') {
+      thumbImg = 'assets/thumbnails/nextjs_supabase.png';
+    }
+    
+    // Replace gradient placeholder div with a gorgeous dynamic thumbnail image tag
+    const parentContainer = cardGradient.parentNode;
+    if (parentContainer) {
+      cardGradient.outerHTML = `<img src="${thumbImg}" alt="${title}" class="course-thumb-img" id="card-gradient-avatar">`;
+    }
   }
 
   const isFree = (priceVal === '0' || priceVal.toLowerCase() === 'free');

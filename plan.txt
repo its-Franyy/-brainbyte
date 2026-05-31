@@ -1,0 +1,81 @@
+PROJECT: BrainByte Premium Course Thumbnails & Mobile Polish Revamp
+STYLE PRESET: brand
+DATE: 2026-05-31
+
+─────────────────────────────────────────
+1. OVERVIEW
+─────────────────────────────────────────
+Integrate high-fidelity educational course thumbnail images into all course cards across the website to replace plain gradient placeholder icon/initial tags. The new thumbnails feature sleek dark tech layouts with glowing neon vectors, abstract coding synaptics, design wireframes, and AI synapse grids.
+
+─────────────────────────────────────────
+2. TECH STACK
+─────────────────────────────────────────
+Framework:     Vanilla HTML5
+Styling:       Custom CSS (style.css) + Bootstrap 5 CDN
+State:         JavaScript State Hooks (js/main.js)
+Icons:         Bootstrap Icons CDN
+Assets:        Generated high-fidelity tech course thumbnails (.png)
+
+─────────────────────────────────────────
+3. FILE STRUCTURE
+─────────────────────────────────────────
+- assets/thumbnails/
+  - nextjs_supabase.png  : Sleek code brackets + network databases visual in violet/pink neon.
+  - figma_uiux.png       : Clean design wireframes + canvas nodes visual in magenta/violet.
+  - pytorch_ai.png       : Glowing neural synapse matrix + AI chip visual in cyan/blue.
+- index.html             : Replaced trending courses placeholder cards with actual img elements.
+- js/main.js             : Dynamic thumbnail routing based on categories inside explore catalog, and dynamic image injection inside details sticky enroll card.
+- css/style.css          : Customized cover alignment and high-end cubic-bezier scale zoom transitions on card hovers.
+
+─────────────────────────────────────────
+4. COMPONENT TREE
+─────────────────────────────────────────
+App
+└── Header (Translucent Fixed Glass Navbar)
+├── HeroSection (Main Headline + Glass Dashboard Mockup)
+├── StatsSection (Animated counters with spring pop locks)
+├── BrowseCatalog Grid (Rendered via js/main.js with dynamic thumbnails)
+└── StickyEnrollCard (Dynamically updated with matching category image)
+
+─────────────────────────────────────────
+5. DESIGN TOKENS
+─────────────────────────────────────────
+Primary color:   #8B5CF6 (Violet primary)
+Secondary color: #06B6D4 (Teal primary)
+Background:      #030014 (Deep cosmic space navy)
+Glass:           rgba(255, 255, 255, 0.03) (var(--surface-card))
+Images:          16:9 ratio, object-fit: cover, transition zoom scale (1.06)
+
+─────────────────────────────────────────
+6. SECTION-BY-SECTION SPEC
+─────────────────────────────────────────
+- Trending Cards (index.html):
+  - Injects high-fidelity nextjs_supabase.png, figma_uiux.png, and pytorch_ai.png.
+  - Smooth card layout hovers trigger a premium transition zoom on thumbnails.
+- Catalog Cards (js/main.js):
+  - Injects dynamic category checks ('design' -> figma_uiux, 'ai-ml'/'data-science' -> pytorch_ai, 'web-dev'/'mobile' -> nextjs_supabase).
+  - Swaps initials placeholders with clean image elements.
+- Sticky Enroll Card (js/main.js):
+  - Swaps the static gradient initial placeholder div inside course-detail.html with a gorgeous matching category thumbnail dynamically on render.
+
+─────────────────────────────────────────
+7. DATA & STATE
+─────────────────────────────────────────
+- Dynamic Thumbnail Mapping:
+  - category == 'design'       -> assets/thumbnails/figma_uiux.png
+  - category == 'web-dev'      -> assets/thumbnails/nextjs_supabase.png
+  - category == 'mobile'       -> assets/thumbnails/nextjs_supabase.png
+  - category == 'data-science' -> assets/thumbnails/pytorch_ai.png
+  - category == 'ai-ml'        -> assets/thumbnails/pytorch_ai.png
+
+─────────────────────────────────────────
+8. ACCESSIBILITY & QUALITY CHECKLIST
+─────────────────────────────────────────
+- Images contain accurate alt text for screen readers.
+- Cover sizing prevents image stretch or aspect distortion.
+- Zoom scale triggers are restricted to hover borders, preventing document scrolls.
+
+─────────────────────────────────────────
+9. KNOWN EDGE CASES
+─────────────────────────────────────────
+- Missing categories: Fallback set to load nextjs_supabase.png as the generic template to ensure no broken image tags display in any scenario.

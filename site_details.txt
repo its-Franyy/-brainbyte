@@ -1,0 +1,221 @@
+================================================================================
+                    BRAINBYTE — MASTER SITE SPECIFICATION BLUEPRINT
+                     Sleek Cyber-Obsidian & Premium Glassmorphism
+================================================================================
+
+This document contains the complete technical, structural, architectural, design,
+and behavioral blueprint of the BrainByte web application. It is designed to be
+fully digested by AI systems to understand, refactor, expand, or compile any part
+of this codebase in subsequent sessions.
+
+================================================================================
+1. ARCHITECTURAL OVERVIEW
+================================================================================
+BrainByte is an ultra-premium, high-fidelity developer training platform designed
+as a dual-track ecosystem:
+- Track A (Premium/Paid Certification Tracks): Deep-dive courses (Next.js, Figma,
+  PyTorch, SwiftUI) with hands-on labs, peer-reviewed projects, and on-chain certificates.
+- Track B (Free Library Tracks): Free, high-fidelity video streams and cheat sheets
+  (CDNs, system design, Docker) available instantly upon free registration.
+
+It is structured as a multi-page, high-fidelity responsive static application
+composed of clean, semantic HTML5, utility-based styling with customized extensions
+(via Bootstrap 5 CDN + Custom style.css), and modular vanilla ES6 interactive scripts
+backed by a live Supabase backend.
+
+================================================================================
+2. BRANDING & DESIGN SYSTEM TOKENS
+================================================================================
+The site uses a customized Cyber-Obsidian & Neon Glassmorphism style system. 
+
+/* --- BASE BACKGROUNDS & PALETTE --- */
+- Deep Space Navy Base Background (Body) : #030014
+- Solid Surface Panels & Dropdowns       : #0D0C1D
+- Frosted Glass Card Surfaces            : rgba(255, 255, 255, 0.03) (var(--surface-card))
+- Glass Hover Surfaces                   : rgba(255, 255, 255, 0.06) (var(--surface-hover))
+- Subtle Frosted Card Borders             : rgba(255, 255, 255, 0.08) (var(--border))
+- Frosted Card Borders (Hover)           : rgba(255, 255, 255, 0.18) (var(--border-hover))
+
+/* --- NEON ACCENTS & GLOW AURA SPECS --- */
+- Violet Primary Accent (Paid Courses)    : #8B5CF6 (Glow: rgba(139, 92, 246, 0.35))
+- Violet Light Tint (Badge backdrops)    : rgba(139, 92, 246, 0.1)
+- Teal Primary Accent (Free Resources)   : #06B6D4 (Glow: rgba(6, 182, 212, 0.35))
+- Teal Light Tint (Badge backdrops)      : rgba(6, 182, 212, 0.1)
+- Electric Magenta Pink Accent           : #EC4899 (Glow: rgba(236, 72, 153, 0.35))
+- Success Emerald (Verified States)      : #10B981
+- Error Red (Alert & Rejection States)   : #EF4444
+- Warning Amber (Pending & Stars)        : #FBBF24
+
+/* --- TYPOGRAPHY TOKENS --- */
+- Header Font Family    : 'Plus Jakarta Sans', sans-serif (Weights: 700/800 Display)
+- Body Font Family      : 'DM Sans', sans-serif (Weights: 400/500/600 Body)
+- Monospace Font Family : 'Fira Code', monospace (Code listings, metadata)
+
+/* --- GLOBAL LAYOUT TOKENS --- */
+- Border Radius Standard : 16px (var(--radius-md))
+- Border Radius Large    : 24px (var(--radius-lg))
+- Border Radius Small    : 8px (var(--radius-sm))
+- Core Timing Curve      : all 0.4s cubic-bezier(0.16, 1, 0.3, 1)
+
+================================================================================
+3. SYSTEM PAGES MAP (WORKSPACE INDEX)
+================================================================================
+Every page in the directory is organized around modular layouts:
+
+- index.html            : Homepage featuring the hero header, dynamic study statistics,
+                          categories grid, trending premium courses, free library teaser,
+                          dual student/instructor visual pathways, student testimonial
+                          interactive review widget, and deep newsletter subscription.
+- courses.html          : Explore premium certification pathways. Employs a sidebar-driven
+                          desktop filtering system + a slide-up responsive mobile drawer
+                          panel, live catalog search, category checkbox filters, price radios,
+                          level radios, sort select dropdown, and full pagination metrics.
+- course-detail.html    : In-depth curriculum prospectus. Parses dynamic query URL properties
+                          (title, price, instructor, level) to compile layout headers, 
+                          accordions of lecture lists, instructor total ratings charts, 
+                          verified purchases feedback blocks, and a sticky pricing/enroll widget.
+- library.html          : Unrestricted teal free resource catalog. Custom search and category
+                          pills filter downloadable PDFs and streaming video guides with lock overlays.
+- resource-detail.html  : Streaming media hub for free guides. Integrates real-time comments, 
+                          view counts trackers, and dynamic recommendations.
+- login.html            : Split-screen glassmorphism portal. Integrates Supabase signInWithPassword()
+                          and OAuth Google login with mock fallbacks for administrator credentials.
+- signup.html           : Interactive wizard registration. Wizard transitions between role choice
+                          (Student/Instructor) and credentials form with dynamic password strength meters.
+- pricing.html          : Subscription grid comparing Free, PRO monthly, and On-Demand licenses.
+- about.html            : Core team milestone timeline and corporate value grids.
+- 404.html              : Volcanic themed catch-all redirect panel.
+- dashboard.html        : Student HUD. Manages active study minutes charts, progress bars, wishlists,
+                          and credentials verification certifications block.
+- teach.html            : Instructor Studio landing dashboard for potential content authors.
+- teach-verify.html     : Professional credentials upload application form.
+- verify-status.html    : Dynamic review tracking board for applicant instructors.
+- admin.html            : Custom secure administrative gateway dashboard.
+- admin-dashboard.html  : Central admin overview metrics.
+- admin-verify.html     : Queue system for reviewing pending instructor application portfolios.
+- admin-library.html    : Dynamic free resource content manager.
+- admin-upload.html     : High-speed developer video/PDF asset publisher.
+
+================================================================================
+4. JAVASCRIPT LOGIC & CONTROLLER SPECIFICATION (js/main.js)
+================================================================================
+All page-specific logic, controllers, state parameters, and database models are
+consolidated inside `js/main.js`. It parses the DOM state upon `DOMContentLoaded`:
+
+/* --- 1. DYNAMIC STATS COUNTING CONTROLLER (initStatsCounter) --- */
+Animates home page numeric counters smoothly when they are scrolled into view:
+- Observer      : IntersectionObserver (threshold: 0.05) bound to '.stats-section'.
+- Fail-Safe     : Runs a 400ms setTimeout fallback to trigger the count if the elements
+                  are already visible above the fold on initial load.
+- Animation Ticks: Loops 60fps ascending values using requestAnimationFrame.
+- Class Hooks   : Injects '.counting' (blur-glow shadow, scale zoom to 1.06) during
+                  animation, and swaps to '.count-complete' (satisfying spring pop keyframe
+                  scale effect) when values lock.
+- Formatters    : Formats integers with toLocaleString('en-US') and decimals via toFixed(1).
+
+/* --- 2. INTERACTIVE REVIEW STARS INPUT (initInteractiveRating) --- */
+Controls the interactive rating sandbox widget inside the student testimonial grid:
+- Event binds   : Hover elements fill stars to current index, reset to active selections
+                  on mouseout, and click actions permanently lock in score states, inyecting
+                  a scale pop animation on the newly selected star element.
+
+/* --- 3. COURSES CATLOG SEARCH & GRID ENGINE (initCoursesController) --- */
+Governs advanced search, filtering, and pagination dynamics on `courses.html`:
+- Database      : Dynamic client-side course record array `coursesData` (12 premium courses).
+- Filtering     : Concurrently parses search inputs, active category arrays, price pills,
+                  and difficulty levels to compile search results.
+- Pagination    : Computes 6 items per page, paginates indexes dynamically, and renders
+                  Prev/Next controls and page number pills.
+- Dynamic Thumbs: Automatically maps courses' category keys to high-fidelity assets:
+                  - 'web-dev' / 'mobile'  ➔ assets/thumbnails/nextjs_supabase.png
+                  - 'design'              ➔ assets/thumbnails/figma_uiux.png
+                  - 'data-science' / 'ai'➔ assets/thumbnails/pytorch_ai.png
+- Mobile Drawer : Coordinates open/close states on `.mobile-drawer-panel` and `.drawer-overlay`
+                  on mobile viewport filters clicks.
+
+/* --- 4. DETAILS PAGE PROSPECTUS SYSTEM (initCourseDetailController) --- */
+Injects URL search query string values dynamically into `course-detail.html`:
+- Logic         : Reads window.location.search params (title, price, instructor, level).
+- Decoupler     : Dynamically updates headers, category badges, levels, and initials.
+- Image Swapper : Uses raw element DOM overrides (`outerHTML`) to swap the static initials
+                  placeholder gradient `.course-card-thumbnail-gradient` with a matching
+                  high-fidelity category thumbnail dynamically.
+
+================================================================================
+5. STYLING ARCHITECTURE DETAILS (css/style.css)
+================================================================================
+The stylesheet contains global reset definitions, Bootstrap variables overrides,
+and premium custom component declarations:
+
+- Translucent Sticky Navbar (.bb-navbar) : fixed top positioning, backdrop blur 10px,
+  transitions to scrolled solid state (rgba(3,0,20,0.8), blur 20px) on window.scrollY > 20.
+- Background Aura Blobs (.bg-blob-*)     : Absolute positioned nodes containing wide radial
+  gradients in violet, teal, and pink, animated via infinite translate/scale 'blob-pulse'
+  keyframes to simulate floating dark nebula spaces.
+- Premium Buttons (.btn-bb-*)            : Customized primary pills utilizing accent-gradients,
+  box-shadow neon-glows, scale transformations on focus, and filter brightness scaling on hovers.
+- Frosted Glass Cards (.category-card, .course-card) : Built using linear-gradient borders,
+  backdrop blur 12px overlays, custom inset shadows, and smooth spring hovers (translateY(-6px)).
+- Thumbnail Images (.course-thumb-img)    : Handles standardized coverage bounds (object-fit: cover)
+  and triggers elegant transitions (cubic-bezier) scaling up to 1.06 on card hovers.
+- Keyframe Spring Pops (@keyframes count-pop) : Magnifies counting displays to scale(1.12)
+  and blasts a white neon center text-shadow during the stats complete events.
+
+================================================================================
+6. RESPONSIVE MEDIA QUERIES BREAKPOINTS
+================================================================================
+All custom layout responsiveness and overrides are bound within standard Bootstrap
+breakpoints:
+
+/* --- Tablet / Large Mobile Viewport (max-width: 991.98px) --- */
+- `.floating-widget` elements are forced to `display: none !important;` to eliminate
+  lateral clipping and prevent horizontal page overflow scrolls.
+- Header paddings in the hero wrapper scale back smoothly from 11rem down to 7.5rem.
+- Navbar menu dropdowns (`.navbar-collapse`) inject vertical margins to navigation items
+  and expand touch targets to standard 44px boundaries.
+- Navbar auth buttons dynamically stretch to full-width block rows, splitting screens symmetrically.
+
+/* --- Standard Phone Viewport (max-width: 767.98px) --- */
+- Responsive display typography reduces hero displays down to a tight `2.2rem` to prevent
+  ugly wraps and enforce clean visual hierarchies.
+- Stats counters scale down from `3rem` to `2.3rem` to fit within mobile column widths.
+- Padding inside cards (categories, courses, resources) decreases to `1.5rem` to optimize
+  tight mobile space.
+
+/* --- Extra-Small Viewports (max-width: 480px) --- */
+- Headline fonts scale to `1.95rem` and numbers down to `1.95rem`.
+- Buttons shrink padding slightly (`0.65rem 1.25rem`) for absolute viewport safety.
+
+================================================================================
+7. DATABASE SCHEMA & SUPABASE AUTH SPECIFICATION
+================================================================================
+The application links user profiles and auth sessions globally across page loads:
+
+/* --- 1. SESSION SYNC & SECURITY SYSTEM (js/supabase-config.js) --- */
+- DOMContentLoaded listener scans localStorage for cached credentials (`brainbyte_user`).
+- If none is active, it queries `supabaseClient.auth.getSession()` to check active sessions.
+- Injects dashboards active pills or swaps nav auth buttons to authenticated user menus
+  (e.g., Dashboard / Logout buttons) dynamically.
+- Handles centralized signOut, local storage purge, page opacity fadeouts, and redirect.
+- Intercepts all client links clicks, validates them against valid pages array, and
+  safeguards routing (auto-redirects invalid routing requests directly to 404.html).
+
+/* --- 2. BACKEND TABLE SPECS REFERENCE (Postgres Schema) --- */
+AI engines can recreate or refactor the backend database using these 16 core tables:
+1. `users` : Primary profile records (id, email, full_name, role [student|instructor|admin], bio).
+2. `instructor_profiles` : Instructor verifications application logs.
+3. `categories` : Subject taxonomy metadata (Web Dev, UI/UX, Data Science, AI & ML).
+4. `courses` : Core prospectus indexes linked to authors, pricing, and category.
+5. `course_sections` : Dynamic layout curriculum headers.
+6. `lessons` : Interactive curriculum modules (type [video|article|quiz]).
+7. `enrollments` : Subscribed student records linked to progress tracking.
+8. `lesson_progress` : Video watch timestamps and complete flags.
+9. `reviews` : Student rating scores and testimonials feedback logs.
+10. `certificates` : Secure smart PDF achievement hashes.
+11. `transactions` : Stripe purchase receipt logs.
+12. `wishlist` : Bookmarked courses indexes.
+13. `free_resources` : Streaming asset data (type [video|pdf]).
+14. `resource_ratings` : Helpful/rating metrics.
+15. `resource_comments` : Real-time feedback threads.
+16. `notifications` : User inbox alert notifications.
+================================================================================

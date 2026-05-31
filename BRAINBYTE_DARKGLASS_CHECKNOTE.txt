@@ -1,0 +1,494 @@
+================================================================
+  BRAINBYTE — DARK GLASS THEME CHECKNOTE
+  Ultra-Premium Dark-Glass (Glassmorphic Cyberpunk/Space)
+  Extracted from actual homepage screenshot
+================================================================
+  Theme     : Dark Glass / Cyberpunk / Space
+  Base      : Deep Space Dark Navy
+  Accent 1  : Purple-Pink Gradient (Premium Courses)
+  Accent 2  : Cyan (Free Library, Library nav)
+  Glass     : Frosted dark glass cards
+================================================================
+
+
+================================================================
+COLOR TOKENS  (replace ALL old violet/teal tokens with these)
+================================================================
+
+  /* ── BASE BACKGROUNDS ── */
+  --bg-primary       : #0D0E1A    /* main page background (deep space) */
+  --bg-secondary     : #12131F    /* slightly lighter sections */
+  --bg-tertiary      : #1A1B2E    /* cards, sidebars */
+  --bg-elevated      : #1E2035    /* elevated surfaces, dropdowns */
+
+  /* ── GLASS EFFECT ── */
+  --glass-bg         : rgba(255, 255, 255, 0.04)   /* glass card bg */
+  --glass-bg-hover   : rgba(255, 255, 255, 0.07)   /* glass hover */
+  --glass-border     : rgba(255, 255, 255, 0.08)   /* glass border */
+  --glass-border-hover: rgba(255, 255, 255, 0.15)  /* glass border hover */
+  --glass-blur       : blur(12px)                  /* backdrop blur */
+  --glass-shadow     : 0 8px 32px rgba(0,0,0,0.4) /* glass shadow */
+
+  /* ── PRIMARY ACCENT (Purple-Pink Gradient) ── */
+  --accent-purple    : #A855F7    /* pure purple */
+  --accent-pink      : #EC4899    /* pink end of gradient */
+  --accent-gradient  : linear-gradient(135deg, #A855F7, #EC4899)
+  --accent-glow      : rgba(168, 85, 247, 0.3)     /* purple glow */
+  --accent-glow-strong: rgba(168, 85, 247, 0.5)
+
+  /* ── SECONDARY ACCENT (Cyan) ── */
+  --cyan-primary     : #06B6D4    /* bright cyan (Free Library) */
+  --cyan-mid         : #22D3EE    /* lighter cyan */
+  --cyan-light       : rgba(6, 182, 212, 0.15)  /* cyan tint bg */
+  --cyan-glow        : rgba(6, 182, 212, 0.3)   /* cyan glow */
+
+  /* ── BUTTON COLORS ── */
+  --btn-primary      : #7C3AED    /* Get Started button (deep violet) */
+  --btn-primary-hover: #6D28D9    /* hover darken */
+  --btn-glow         : rgba(124, 58, 237, 0.4)  /* button glow shadow */
+
+  /* ── TEXT ── */
+  --text-primary     : #FFFFFF    /* main white text */
+  --text-secondary   : #E2E8F0    /* slightly muted white */
+  --text-muted       : #94A3B8    /* gray muted text */
+  --text-faint       : #475569    /* very faint labels */
+  --text-gradient    : linear-gradient(135deg, #A855F7, #EC4899)
+  --text-cyan        : #06B6D4    /* cyan text (Free Library) */
+
+  /* ── BORDERS ── */
+  --border-subtle    : rgba(255, 255, 255, 0.06)
+  --border-default   : rgba(255, 255, 255, 0.10)
+  --border-strong    : rgba(255, 255, 255, 0.20)
+  --border-purple    : rgba(168, 85, 247, 0.40)
+  --border-cyan      : rgba(6, 182, 212, 0.40)
+
+  /* ── STATUS COLORS (dark-adapted) ── */
+  --status-success   : #10B981    /* green - verified, published */
+  --status-warning   : #F59E0B    /* amber - pending, under review */
+  --status-error     : #EF4444    /* red - rejected, error */
+  --status-info      : #06B6D4    /* cyan - info, free */
+
+  /* ── NAVBAR ── */
+  --nav-bg           : rgba(13, 14, 26, 0.85)   /* semi-transparent dark */
+  --nav-blur         : blur(20px)
+  --nav-border       : rgba(255, 255, 255, 0.08)
+  --nav-active-bg    : rgba(255, 255, 255, 0.08) /* Explore active pill */
+  --nav-active-text  : #FFFFFF
+  --nav-link-text    : #94A3B8
+  --nav-link-hover   : #FFFFFF
+
+  /* ── SPECIAL ── */
+  --pro-badge        : #7C3AED    /* PRO badge on HUD */
+  --star-color       : #F59E0B    /* star ratings */
+  --overlay-dark     : rgba(13, 14, 26, 0.80)   /* modal overlays */
+
+
+================================================================
+TYPOGRAPHY  (same fonts, updated weights/sizing)
+================================================================
+
+  Display  : Plus Jakarta Sans — 700/800 weight
+  Body     : DM Sans — 400/500 weight
+  Mono     : DM Mono — 400/500 weight
+
+  /* Hero heading sizes */
+  --h1-size     : 80px      /* "Learn with" */
+  --h1-weight   : 800
+  --h1-tracking : -0.03em
+
+  /* Gradient text usage */
+  "Premium Courses" → background: var(--accent-gradient)
+                       -webkit-background-clip: text
+                       -webkit-text-fill-color: transparent
+  "Free Library"    → color: var(--cyan-primary)
+
+  /* Section headings */
+  --h2-size     : 44px
+  --h2-weight   : 700
+  --h2-tracking : -0.02em
+
+  /* Body */
+  --body-size   : 15px
+  --body-color  : var(--text-muted)
+  --body-leading: 1.7
+
+
+================================================================
+GLASS CARD MIXIN  (apply to ALL cards)
+================================================================
+
+  Standard glass card:
+    background    : var(--glass-bg)
+    backdrop-filter: var(--glass-blur)
+    -webkit-backdrop-filter: var(--glass-blur)
+    border        : 1px solid var(--glass-border)
+    border-radius : 16px
+    box-shadow    : var(--glass-shadow)
+    transition    : all 200ms ease-out
+
+  Glass card hover:
+    background    : var(--glass-bg-hover)
+    border-color  : var(--glass-border-hover)
+    box-shadow    : 0 12px 40px rgba(0,0,0,0.5),
+                    0 0 0 1px rgba(168,85,247,0.1)
+    transform     : translateY(-4px)
+
+  Purple glow card (featured/active):
+    border-color  : var(--border-purple)
+    box-shadow    : 0 0 20px var(--accent-glow),
+                    0 8px 32px rgba(0,0,0,0.4)
+
+  Cyan glow card (free content):
+    border-color  : var(--border-cyan)
+    box-shadow    : 0 0 20px var(--cyan-glow),
+                    0 8px 32px rgba(0,0,0,0.4)
+
+
+================================================================
+BUTTON STYLES
+================================================================
+
+  Primary (Get Started):
+    background    : var(--btn-primary)   /* #7C3AED */
+    color         : white
+    border-radius : 99px  (pill shape — as seen in screenshot)
+    padding       : 12px 28px
+    font-weight   : 600
+    box-shadow    : 0 0 20px var(--btn-glow)
+    hover         : background #6D28D9, shadow stronger
+
+  Gradient button (alternative):
+    background    : var(--accent-gradient)
+    border-radius : 99px
+    hover         : opacity 0.9 + stronger glow
+
+  Ghost/Outline:
+    background    : transparent
+    border        : 1px solid var(--border-default)
+    color         : var(--text-secondary)
+    border-radius : 99px
+    hover         : border var(--border-strong), color white
+
+  Tag pill (like "⚡ Elevate Your Tech Skills"):
+    background    : var(--glass-bg)
+    border        : 1px solid var(--border-default)
+    border-radius : 99px
+    color         : var(--text-secondary)
+    backdrop-filter: blur(8px)
+
+
+================================================================
+NAVBAR TOKENS  (matches screenshot)
+================================================================
+
+  Background  : rgba(13, 14, 26, 0.85) + backdrop-blur(20px)
+  Border-bottom: 1px solid rgba(255,255,255,0.08)
+  Logo        : white text, yellow/gold ⚡ bolt
+  Active link : pill with rgba(255,255,255,0.08) bg, white text
+  Library link: cyan color #06B6D4 + 🔒 lock icon (as in screenshot)
+  Other links : #94A3B8, hover → white
+  Sign In     : white text, no bg
+  Get Started : #7C3AED pill button with glow
+
+
+================================================================
+BACKGROUND EFFECTS  (critical for the space feel)
+================================================================
+
+  Page background: #0D0E1A (NOT pure black — deep navy)
+
+  Ambient glow blobs (position: fixed, z-index: 0, pointer-events: none):
+    Blob 1 — top-left:
+      width: 600px, height: 600px
+      background: radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 70%)
+      top: -200px, left: -200px
+
+    Blob 2 — top-right:
+      width: 500px, height: 500px
+      background: radial-gradient(circle, rgba(6,182,212,0.06) 0%, transparent 70%)
+      top: -100px, right: -100px
+
+    Blob 3 — center:
+      width: 800px, height: 400px
+      background: radial-gradient(ellipse, rgba(124,58,237,0.04) 0%, transparent 70%)
+      top: 50%, left: 50%, transform: translate(-50%,-50%)
+
+  All content: position: relative, z-index: 1
+
+
+================================================================
+LEARNING HUD CARD  (as seen in screenshot — right side hero)
+================================================================
+
+  The "BRAINBYTE LEARNING HUD" floating card uses:
+    Background  : rgba(22, 23, 45, 0.90)
+    Border      : 1px solid rgba(255,255,255,0.10)
+    Border-radius: 16px
+    Backdrop-blur: blur(20px)
+    Box-shadow  : 0 20px 60px rgba(0,0,0,0.5)
+
+  Header bar:
+    "BRAINBYTE LEARNING HUD" — text-xs, letter-spacing 0.1em, --text-muted
+    Traffic light dots: #FF5F57, #FFBD2E, #28CA41 (macOS style)
+    PRO badge: #7C3AED bg, white text, 8px radius
+
+  Course row inside HUD:
+    Background  : rgba(255,255,255,0.04)
+    Border      : 1px solid rgba(255,255,255,0.06)
+    Play button : #7C3AED circle
+
+  Stats cards (Study Minutes, Free Resources):
+    Same glass treatment
+    Number: white, large, bold
+    Label: --text-muted, small caps
+
+
+================================================================
+COLOR RULE  (UPDATED from old violet/teal)
+================================================================
+
+  OLD RULE (deprecated):
+    Violet = Paid | Teal = Free
+
+  NEW RULE (dark-glass theme):
+    PURPLE GRADIENT (#A855F7→#EC4899) = Premium/Paid courses
+    CYAN (#06B6D4)                    = Free Library content
+    DEEP VIOLET (#7C3AED)             = Primary action buttons
+    WHITE/MUTED                       = Neutral UI
+
+  Apply everywhere:
+    Course cards (paid)    → purple gradient border glow on hover
+    Free resource cards    → cyan border glow on hover
+    Enroll button          → #7C3AED with glow
+    Free badge             → cyan bg
+    Paid price badge       → purple gradient bg
+    Library nav link       → cyan color (as in screenshot)
+
+
+================================================================
+COMPONENT UPDATES  (what changes from old checknote)
+================================================================
+
+  Navbar:
+  [ ] bg: rgba(13,14,26,0.85) + backdrop-blur(20px)
+  [ ] Active link: glass pill (rgba white 0.08)
+  [ ] Library link: cyan + lock icon
+  [ ] Get Started: #7C3AED pill with glow shadow
+  [ ] Logo: white + yellow ⚡
+
+  CourseCard:
+  [ ] Glass card background (not white)
+  [ ] Dark thumbnail gradient
+  [ ] Hover: purple glow border
+  [ ] Price badge: gradient bg (paid) / cyan bg (free)
+  [ ] All text: white/muted-white
+
+  ResourceCard (Free Library):
+  [ ] Glass card background
+  [ ] Hover: cyan glow border
+  [ ] Type badge: cyan bg
+
+  Button (primary):
+  [ ] bg: #7C3AED pill shape, glow shadow
+  [ ] NOT flat — must have glow
+
+  Input:
+  [ ] bg: rgba(255,255,255,0.05)
+  [ ] border: rgba(255,255,255,0.10)
+  [ ] focus border: rgba(168,85,247,0.60)
+  [ ] text: white
+  [ ] placeholder: --text-faint
+
+  Sidebar:
+  [ ] bg: rgba(13,14,26,0.95)
+  [ ] Active item: glass pill + purple left border
+  [ ] border-right: var(--border-subtle)
+
+  StepIndicator:
+  [ ] Done: cyan circle with ✓
+  [ ] Active: purple gradient circle
+  [ ] Upcoming: rgba white 0.10 circle
+
+  ProgressBar:
+  [ ] Track: rgba(255,255,255,0.08)
+  [ ] Fill: linear-gradient(90deg, #7C3AED, #A855F7)
+
+  StarRating:
+  [ ] Stars: #F59E0B (amber — unchanged)
+
+  VerifiedBadge:
+  [ ] bg: rgba(168,85,247,0.20)
+  [ ] border: rgba(168,85,247,0.40)
+  [ ] checkmark: #A855F7
+
+  Badge (status):
+  [ ] Published  : rgba(16,185,129,0.15) bg + #10B981 text
+  [ ] Draft      : rgba(255,255,255,0.08) bg + muted text
+  [ ] Pending    : rgba(245,158,11,0.15) bg + #F59E0B text
+  [ ] Rejected   : rgba(239,68,68,0.15) bg + #EF4444 text
+
+  KPI Cards (Dashboard):
+  [ ] Glass card style
+  [ ] Number: white bold large
+  [ ] Icon: gradient or cyan colored
+  [ ] Border glow on hover
+
+  Charts (Recharts):
+  [ ] Chart bg: transparent
+  [ ] Grid lines: rgba(255,255,255,0.06)
+  [ ] Line/bar: #A855F7 or gradient fill
+  [ ] Tooltip: glass card style
+
+  Modal/Overlay:
+  [ ] Backdrop: rgba(13,14,26,0.80)
+  [ ] Modal card: glass card style (stronger blur)
+  [ ] Close button: glass circle
+
+
+================================================================
+PAGE-BY-PAGE PROMPT ADDITIONS
+================================================================
+
+  Add this to EVERY page prompt given to Antigravity:
+
+  "Use Ultra-Premium Dark-Glass theme:
+   - Page bg: #0D0E1A (deep space navy)
+   - All cards: glassmorphism (backdrop-blur 12px,
+     bg rgba white 0.04, border rgba white 0.08)
+   - Primary accent: purple gradient #A855F7→#EC4899
+   - Secondary accent: cyan #06B6D4 (free content only)
+   - Action buttons: #7C3AED pill with glow shadow
+   - All text: white (#FFFFFF) or muted (#94A3B8)
+   - Ambient glow blobs in background (purple + cyan)
+   - Hover effects: translateY(-4px) + glow border
+   - NO white backgrounds anywhere
+   - NO light mode colors"
+
+
+================================================================
+ANTIGRAVITY PROMPT — LOGIN PAGE  (updated for dark-glass)
+================================================================
+
+Build PAGE 04 — Login page at /login with Ultra-Premium Dark-Glass theme.
+
+THEME:
+  Page bg: #0D0E1A
+  Cards: glassmorphism (backdrop-blur 12px, bg rgba(255,255,255,0.04),
+         border 1px solid rgba(255,255,255,0.08))
+  Primary: purple gradient #A855F7 to #EC4899
+  Button: #7C3AED pill with box-shadow glow
+  Text: white + muted #94A3B8
+
+LAYOUT: Split screen (50/50 desktop, single col mobile)
+
+LEFT PANEL (brand):
+  bg: linear-gradient(135deg, #0D0E1A 0%, #1A1B2E 50%, #0D0E1A 100%)
+  + ambient purple glow blob top-right
+  + ambient cyan glow blob bottom-left
+  BrainByte logo: white + yellow ⚡
+  Quote: "Your next skill is one click away" — white, large, bold
+  3 floating glass course cards (decorative, slightly rotated)
+  Each card: glass style, course name + progress bar (purple gradient)
+
+RIGHT PANEL (form):
+  bg: rgba(13,14,26,0.60) + backdrop-blur
+  "Welcome back 👋" — white, Plus Jakarta Sans, 32px, 700
+  Subtext: "Continue your learning journey" — #94A3B8
+
+  Email input:
+    bg: rgba(255,255,255,0.05)
+    border: 1px solid rgba(255,255,255,0.10)
+    focus: border rgba(168,85,247,0.60) + glow
+    text: white, placeholder: #475569
+    label: #94A3B8
+
+  Password input: same + eye toggle icon (#94A3B8)
+
+  Forgot password: #A855F7, right-aligned, small
+
+  [Login] button:
+    bg: #7C3AED, pill shape (border-radius 99px)
+    full width, 48px tall
+    box-shadow: 0 0 20px rgba(124,58,237,0.4)
+    hover: bg #6D28D9, stronger glow
+    loading: spinner icon
+
+  Error message:
+    bg: rgba(239,68,68,0.10)
+    border: 1px solid rgba(239,68,68,0.30)
+    text: #EF4444
+    border-radius: 8px
+
+  Divider: "or continue with"
+    line: rgba(255,255,255,0.08)
+    text: #475569
+
+  [Continue with Google]:
+    bg: rgba(255,255,255,0.05)
+    border: 1px solid rgba(255,255,255,0.12)
+    text: white
+    Google logo icon left
+    hover: bg rgba(255,255,255,0.08)
+
+  "Don't have an account? Sign up":
+    text: #94A3B8, "Sign up" link: #A855F7
+
+AUTH:
+  Supabase signInWithPassword() for email
+  Supabase signInWithOAuth({ provider: 'google' }) for Google
+  On success: redirect to /dashboard
+  On error: show error card
+
+Mobile: single column, left panel hides, form full width
+
+
+================================================================
+NEXT PAGES PROMPT SNIPPETS
+================================================================
+
+SIGNUP PAGE prompt addition:
+  Same dark-glass theme as login
+  Role cards [Learn] [Teach]:
+    bg: rgba(255,255,255,0.04)
+    border: rgba(255,255,255,0.08)
+    selected: border rgba(168,85,247,0.60) + purple glow
+  Password strength bar:
+    weak: #EF4444, medium: #F59E0B, strong: #10B981
+    track: rgba(255,255,255,0.08)
+
+COURSE BROWSE prompt addition:
+  Sidebar: glass bg with subtle right border
+  Filter checkboxes: custom styled (purple when checked)
+  Course grid: glass CourseCards, purple hover glow (paid)
+  Search input: glass style
+
+STUDENT DASHBOARD prompt addition:
+  Sidebar: #0D0E1A bg, glass active pills
+  KPI cards: glass style, gradient numbers
+  ProgressBar: purple gradient fill
+  Charts: dark bg, purple/cyan lines
+
+================================================================
+BUILD ORDER  (unchanged, theme updated)
+================================================================
+
+  ✅ PAGE 01 — Homepage        (done — dark glass theme!)
+  ⏭️ PAGE 04 — Login           ← NEXT (use prompt above)
+  ⏭️ PAGE 05 — Signup
+  ⏭️ PAGE 02 — Course Browse
+  ⏭️ PAGE 03 — Course Detail
+  ⏭️ PAGE 06 — Free Library
+  ⏭️ PAGE 07 — Resource Detail
+  ⏭️ PAGE 09 — Student Dashboard
+  ⏭️ PAGE 10 — Instructor Studio
+  ⏭️ PAGE 11 — Verify Form
+  ⏭️ PAGE 12 — Verify Status
+  ⏭️ PAGE 13 — Admin Login
+  ⏭️ PAGE 14 — Admin Dashboard
+  ⏭️ PAGE 15 — Verifications
+  ⏭️ PAGE 16 — Library Manager
+  ⏭️ PAGE 17 — Upload Resource
+  ⏭️ PAGE 08 — 404 Page
+
+================================================================
+

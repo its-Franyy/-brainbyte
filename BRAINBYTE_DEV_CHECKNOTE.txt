@@ -1,0 +1,1271 @@
+
+================================================================
+  BRAINBYTE — COMPLETE DEVELOPER CHECKNOTE
+  Full Stack | Next.js + Supabase | Phone + PC | Any Browser
+================================================================
+  Platform  : Web (Chrome, Firefox, Safari, Edge — all)
+  Devices   : Mobile + Tablet + Desktop (fully responsive)
+  Database  : Supabase PostgreSQL (16 tables)
+  Auth      : Email/Password + Google OAuth
+  Hosting   : Vercel (free tier)
+  Domain    : brainbyte.in (~Rs.800/year)
+  Cost      : Rs.0/month to start
+================================================================
+
+
+================================================================
+PHASE 0 — ACCOUNTS & SERVICES SETUP
+================================================================
+  Before writing a single line of code, create these accounts:
+
+  [ ] GitHub account — github.com (free)
+        Used to: store code, connect with Vercel
+
+  [ ] Vercel account — vercel.com (free)
+        Sign up with GitHub for easy connection
+        Used to: host the website, auto-deploy on git push
+
+  [ ] Supabase account — supabase.com (free)
+        Used to: database, auth, file storage
+        Create new project: name "brainbyte", region "South Asia"
+        Note down: Project URL + Anon Key + Service Role Key
+
+  [ ] Google Cloud Console — console.cloud.google.com
+        Used to: Google OAuth login
+        Create new project → Enable OAuth 2.0
+        Add Authorized redirect URI:
+          https://[your-project].supabase.co/auth/v1/callback
+        Note down: Client ID + Client Secret
+
+  [ ] Namecheap (optional) — namecheap.com
+        Buy: brainbyte.in (~Rs.800/year)
+        Will connect to Vercel later
+
+  [ ] Figma (optional) — figma.com (free)
+        For UI reference while building
+
+
+================================================================
+PHASE 1 — PROJECT SETUP
+================================================================
+
+  STEP 1.1 — Create Next.js Project
+  ----------------------------------
+  Run this command in terminal:
+
+    npx create-next-app@latest brainbyte \
+      --typescript \
+      --tailwind \
+      --eslint \
+      --app \
+      --no-src-dir \
+      --import-alias "@/*"
+
+  Answer prompts:
+    Would you like to use App Router? YES
+    Would you like to customize default import alias? YES (@/*)
+
+  [ ] Project created successfully, no errors
+  [ ] cd brainbyte && npm run dev → opens localhost:3000
+
+  ----------------------------------
+  STEP 1.2 — Install All Dependencies
+  ----------------------------------
+  Run each command:
+
+    npm install @supabase/supabase-js @supabase/ssr
+    npm install lucide-react recharts framer-motion
+    npm install react-dropzone react-hot-toast
+    npm install date-fns clsx tailwind-merge
+    npm install @types/node --save-dev
+
+  [ ] All packages installed, no peer dependency errors
+  [ ] npm run dev still works after install
+
+  ----------------------------------
+  STEP 1.3 — Environment Variables
+  ----------------------------------
+  Create file: .env.local in project root
+
+    NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
+    SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
+    NEXT_PUBLIC_APP_URL=http://localhost:3000
+    NEXT_PUBLIC_APP_NAME=BrainByte
+    RAZORPAY_KEY_ID=rzp_test_xxx
+    RAZORPAY_KEY_SECRET=xxx
+
+  [ ] .env.local created with all keys filled in
+  [ ] .env.local added to .gitignore (check it's already there)
+  [ ] NEVER commit .env.local to GitHub
+
+  ----------------------------------
+  STEP 1.4 — Tailwind Config + CSS Variables
+  ----------------------------------
+  Update tailwind.config.ts:
+    Add custom colors under extend.colors:
+      violet: { primary: '#534AB7', mid: '#7F77DD', light: '#EEEDFE', dark: '#3C3489' }
+      teal: { primary: '#1D9E75', light: '#E1F5EE' }
+      brand-dark: '#2C2C2A'
+
+  Update app/globals.css:
+    Add :root variables:
+      --violet-primary: #534AB7;
+      --violet-mid: #7F77DD;
+      --violet-light: #EEEDFE;
+      --violet-dark: #3C3489;
+      --teal-primary: #1D9E75;
+      --teal-light: #E1F5EE;
+      --dark: #2C2C2A;
+      --text-primary: #1a1a2e;
+      --text-muted: #6B7280;
+      --bg: #FEFEFE;
+      --surface: #FFFFFF;
+      --border: #E5E7EB;
+      --error: #EF4444;
+      --success: #10B981;
+      --warning: #F59E0B;
+
+  [ ] Colors working in Tailwind classes
+  [ ] CSS variables defined in :root
+
+  ----------------------------------
+  STEP 1.5 — Google Fonts Setup
+  ----------------------------------
+  Update app/layout.tsx:
+    Import from next/font/google:
+      Plus_Jakarta_Sans (weights: 400, 500, 600, 700, 800)
+      DM_Sans (weights: 400, 500, 600)
+      DM_Mono (weights: 400, 500)
+    Apply as CSS variables:
+      --font-display: Plus Jakarta Sans
+      --font-body: DM Sans
+      --font-mono: DM Mono
+    Set body font-family to DM Sans
+    Set h1-h6 font-family to Plus Jakarta Sans
+
+  [ ] Fonts loading correctly in browser
+  [ ] No font flicker on page load
+
+  ----------------------------------
+  STEP 1.6 — Supabase Client Setup
+  ----------------------------------
+  Create lib/supabase/client.ts   → browser client (ANON key)
+  Create lib/supabase/server.ts   → server client (ANON key + cookies)
+  Create lib/supabase/admin.ts    → admin client (SERVICE ROLE key)
+    WARNING: admin.ts only import in API routes, never in components
+
+  Create lib/types/database.ts    → TypeScript types for all 16 tables
+
+  [ ] Supabase client files created
+  [ ] Types file created (copy from Supabase dashboard → TypeScript types)
+  [ ] No TypeScript errors
+
+  ----------------------------------
+  STEP 1.7 — Folder Structure
+  ----------------------------------
+  Create these empty folders:
+
+  app/
+    (public)/          public pages (no auth needed)
+    (dashboard)/       protected pages (login required)
+    admin/             admin pages (admin role required)
+    api/               backend API routes
+
+  components/
+    shared/            reusable across all pages
+    home/              homepage sections only
+    courses/           course pages only
+    dashboard/         student dashboard only
+    instructor/        instructor studio only
+    admin/             admin panel only
+
+  lib/
+    supabase/          db clients
+    hooks/             custom React hooks
+    utils/             helper functions
+    types/             TypeScript interfaces
+
+  [ ] All folders created
+  [ ] No errors on npm run dev
+
+
+================================================================
+PHASE 2 — DATABASE SETUP (Supabase)
+================================================================
+
+  Go to: Supabase Dashboard → SQL Editor → New Query
+  Run each SQL block one by one.
+
+  ----------------------------------
+  STEP 2.1 — Create All 16 Tables
+  ----------------------------------
+
+  Run this SQL:
+
+  -- TABLE 1: users
+  CREATE TABLE users (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    email text UNIQUE NOT NULL,
+    full_name text NOT NULL,
+    avatar_url text,
+    role text DEFAULT 'student' CHECK (role IN ('student','instructor','admin')),
+    bio text,
+    created_at timestamp DEFAULT now(),
+    updated_at timestamp DEFAULT now()
+  );
+
+  -- TABLE 2: instructor_profiles
+  CREATE TABLE instructor_profiles (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id uuid REFERENCES users(id) ON DELETE CASCADE,
+    linkedin_url text,
+    github_url text,
+    portfolio_url text,
+    youtube_url text,
+    category text,
+    experience text,
+    what_teach text,
+    why_brainbyte text,
+    verify_status text DEFAULT 'unverified'
+      CHECK (verify_status IN ('unverified','pending','needs_info','verified','rejected','suspended')),
+    admin_message text,
+    rejection_reason text,
+    applied_at timestamp,
+    reviewed_at timestamp,
+    created_at timestamp DEFAULT now()
+  );
+
+  -- TABLE 3: categories
+  CREATE TABLE categories (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name text NOT NULL,
+    slug text UNIQUE NOT NULL,
+    icon text,
+    course_count int DEFAULT 0
+  );
+
+  -- TABLE 4: courses
+  CREATE TABLE courses (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    instructor_id uuid REFERENCES users(id),
+    category_id uuid REFERENCES categories(id),
+    title text NOT NULL,
+    slug text UNIQUE NOT NULL,
+    short_desc text,
+    description text,
+    thumbnail_url text,
+    level text CHECK (level IN ('beginner','intermediate','advanced')),
+    language text DEFAULT 'Hindi/English',
+    price numeric(10,2) DEFAULT 0,
+    original_price numeric(10,2),
+    is_free boolean DEFAULT false,
+    status text DEFAULT 'draft'
+      CHECK (status IN ('draft','under_review','published','unpublished')),
+    total_lessons int DEFAULT 0,
+    total_duration int DEFAULT 0,
+    enrolled_count int DEFAULT 0,
+    avg_rating numeric(3,2) DEFAULT 0,
+    rating_count int DEFAULT 0,
+    created_at timestamp DEFAULT now(),
+    updated_at timestamp DEFAULT now()
+  );
+
+  -- TABLE 5: course_sections
+  CREATE TABLE course_sections (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    course_id uuid REFERENCES courses(id) ON DELETE CASCADE,
+    title text NOT NULL,
+    position int NOT NULL,
+    lesson_count int DEFAULT 0,
+    created_at timestamp DEFAULT now()
+  );
+
+  -- TABLE 6: lessons
+  CREATE TABLE lessons (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    section_id uuid REFERENCES course_sections(id) ON DELETE CASCADE,
+    course_id uuid REFERENCES courses(id) ON DELETE CASCADE,
+    title text NOT NULL,
+    type text CHECK (type IN ('video','article','quiz')),
+    video_url text,
+    content text,
+    duration int DEFAULT 0,
+    position int NOT NULL,
+    is_free_preview boolean DEFAULT false,
+    created_at timestamp DEFAULT now()
+  );
+
+  -- TABLE 7: enrollments
+  CREATE TABLE enrollments (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id uuid REFERENCES users(id),
+    course_id uuid REFERENCES courses(id),
+    enrolled_at timestamp DEFAULT now(),
+    completed_at timestamp,
+    last_accessed timestamp,
+    UNIQUE(student_id, course_id)
+  );
+
+  -- TABLE 8: lesson_progress
+  CREATE TABLE lesson_progress (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id uuid REFERENCES users(id),
+    lesson_id uuid REFERENCES lessons(id),
+    course_id uuid REFERENCES courses(id),
+    completed boolean DEFAULT false,
+    watch_seconds int DEFAULT 0,
+    completed_at timestamp,
+    UNIQUE(student_id, lesson_id)
+  );
+
+  -- TABLE 9: reviews
+  CREATE TABLE reviews (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    course_id uuid REFERENCES courses(id),
+    student_id uuid REFERENCES users(id),
+    rating int CHECK (rating >= 1 AND rating <= 5),
+    comment text,
+    created_at timestamp DEFAULT now(),
+    UNIQUE(student_id, course_id)
+  );
+
+  -- TABLE 10: certificates
+  CREATE TABLE certificates (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id uuid REFERENCES users(id),
+    course_id uuid REFERENCES courses(id),
+    issued_at timestamp DEFAULT now(),
+    certificate_url text,
+    UNIQUE(student_id, course_id)
+  );
+
+  -- TABLE 11: transactions
+  CREATE TABLE transactions (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id uuid REFERENCES users(id),
+    course_id uuid REFERENCES courses(id),
+    instructor_id uuid REFERENCES users(id),
+    amount numeric(10,2),
+    status text CHECK (status IN ('paid','pending','refunded')),
+    payment_method text,
+    created_at timestamp DEFAULT now()
+  );
+
+  -- TABLE 12: wishlist
+  CREATE TABLE wishlist (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id uuid REFERENCES users(id),
+    course_id uuid REFERENCES courses(id),
+    added_at timestamp DEFAULT now(),
+    UNIQUE(student_id, course_id)
+  );
+
+  -- TABLE 13: free_resources
+  CREATE TABLE free_resources (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    title text NOT NULL,
+    description text,
+    type text CHECK (type IN ('video','pdf')),
+    category_id uuid REFERENCES categories(id),
+    level text,
+    tags text[],
+    file_url text,
+    thumbnail_url text,
+    duration int,
+    page_count int,
+    file_size bigint,
+    view_count int DEFAULT 0,
+    download_count int DEFAULT 0,
+    is_published boolean DEFAULT false,
+    is_featured boolean DEFAULT false,
+    uploaded_by uuid REFERENCES users(id),
+    created_at timestamp DEFAULT now(),
+    updated_at timestamp DEFAULT now()
+  );
+
+  -- TABLE 14: resource_ratings
+  CREATE TABLE resource_ratings (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    resource_id uuid REFERENCES free_resources(id),
+    user_id uuid REFERENCES users(id),
+    is_helpful boolean,
+    rating int CHECK (rating >= 1 AND rating <= 5),
+    created_at timestamp DEFAULT now(),
+    UNIQUE(user_id, resource_id)
+  );
+
+  -- TABLE 15: resource_comments
+  CREATE TABLE resource_comments (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    resource_id uuid REFERENCES free_resources(id),
+    user_id uuid REFERENCES users(id),
+    comment text NOT NULL,
+    created_at timestamp DEFAULT now()
+  );
+
+  -- TABLE 16: notifications
+  CREATE TABLE notifications (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id uuid REFERENCES users(id),
+    type text NOT NULL,
+    title text,
+    message text,
+    is_read boolean DEFAULT false,
+    created_at timestamp DEFAULT now()
+  );
+
+  [ ] All 16 tables created with no SQL errors
+  [ ] Tables visible in Supabase Table Editor
+
+  ----------------------------------
+  STEP 2.2 — Seed Categories
+  ----------------------------------
+  INSERT INTO categories (name, slug, icon) VALUES
+    ('Web Development', 'web-development', '💻'),
+    ('UI/UX Design', 'design', '🎨'),
+    ('Data Science', 'data-science', '📊'),
+    ('Mobile Development', 'mobile', '📱'),
+    ('AI & Machine Learning', 'ai-ml', '🧠'),
+    ('Photography', 'photography', '📸'),
+    ('Digital Marketing', 'digital-marketing', '📈'),
+    ('General', 'general', '📚');
+
+  [ ] Categories seeded
+
+  ----------------------------------
+  STEP 2.3 — Auto-create User on Signup (Trigger)
+  ----------------------------------
+  Run this SQL to auto-create a users row when someone signs up:
+
+  CREATE OR REPLACE FUNCTION public.handle_new_user()
+  RETURNS trigger AS $$
+  BEGIN
+    INSERT INTO public.users (id, email, full_name, avatar_url)
+    VALUES (
+      new.id,
+      new.email,
+      COALESCE(new.raw_user_meta_data->>'full_name', 'User'),
+      new.raw_user_meta_data->>'avatar_url'
+    );
+    RETURN new;
+  END;
+  $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+  CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+  [ ] Trigger created successfully
+  [ ] Test: sign up a user → check users table has new row
+
+  ----------------------------------
+  STEP 2.4 — Row Level Security (RLS)
+  ----------------------------------
+  Enable RLS on all tables, then add policies.
+  Run in SQL Editor:
+
+  -- Enable RLS
+  ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE instructor_profiles ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE courses ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE course_sections ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE lessons ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE enrollments ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE lesson_progress ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE certificates ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE wishlist ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE free_resources ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE resource_ratings ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE resource_comments ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
+  -- POLICIES --
+
+  -- users: anyone can read, only own row update
+  CREATE POLICY "Public profiles" ON users FOR SELECT USING (true);
+  CREATE POLICY "Own profile update" ON users FOR UPDATE USING (auth.uid() = id);
+
+  -- categories: anyone can read
+  CREATE POLICY "Public categories" ON categories FOR SELECT USING (true);
+
+  -- courses: published courses public, instructor manages own
+  CREATE POLICY "Public published courses" ON courses FOR SELECT USING (status = 'published');
+  CREATE POLICY "Instructor manage own" ON courses FOR ALL USING (auth.uid() = instructor_id);
+
+  -- enrollments: own rows only
+  CREATE POLICY "Own enrollments" ON enrollments FOR ALL USING (auth.uid() = student_id);
+
+  -- lesson_progress: own rows only
+  CREATE POLICY "Own progress" ON lesson_progress FOR ALL USING (auth.uid() = student_id);
+
+  -- reviews: all can read, enrolled students can write
+  CREATE POLICY "Public reviews" ON reviews FOR SELECT USING (true);
+  CREATE POLICY "Enrolled review" ON reviews FOR INSERT WITH CHECK (
+    auth.uid() = student_id AND
+    EXISTS (SELECT 1 FROM enrollments WHERE student_id = auth.uid() AND course_id = reviews.course_id)
+  );
+  CREATE POLICY "Own review update" ON reviews FOR UPDATE USING (auth.uid() = student_id);
+
+  -- certificates: own only
+  CREATE POLICY "Own certs" ON certificates FOR SELECT USING (auth.uid() = student_id);
+
+  -- wishlist: own only
+  CREATE POLICY "Own wishlist" ON wishlist FOR ALL USING (auth.uid() = student_id);
+
+  -- free_resources: any logged-in user can read published
+  CREATE POLICY "Auth read resources" ON free_resources FOR SELECT USING (
+    is_published = true AND auth.role() = 'authenticated'
+  );
+
+  -- resource_comments: logged-in can read/write
+  CREATE POLICY "Auth comments" ON resource_comments FOR SELECT USING (auth.role() = 'authenticated');
+  CREATE POLICY "Auth add comment" ON resource_comments FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+  -- notifications: own only
+  CREATE POLICY "Own notifications" ON notifications FOR ALL USING (auth.uid() = user_id);
+
+  [ ] RLS enabled on all 16 tables
+  [ ] All policies created with no errors
+  [ ] Test: unauthenticated user cannot see enrollments
+
+  ----------------------------------
+  STEP 2.5 — Storage Buckets
+  ----------------------------------
+  In Supabase Dashboard → Storage → Create buckets:
+
+  [ ] Bucket: avatars        → Public access ON
+  [ ] Bucket: course-thumbs  → Public access ON
+  [ ] Bucket: pdfs           → Public access OFF (authenticated only)
+  [ ] Bucket: certificates   → Public access OFF (authenticated only)
+  [ ] Bucket: videos         → Public access OFF (authenticated only)
+
+  Add storage policies:
+    avatars: anyone can read, only owner can upload
+    course-thumbs: anyone can read, instructor can upload
+    pdfs: authenticated users can read, admin can upload
+    certificates: owner can read own, system can write
+    videos: authenticated users can read, instructor/admin can upload
+
+  [ ] All 5 buckets created
+  [ ] Storage policies set correctly
+
+  ----------------------------------
+  STEP 2.6 — Authentication Setup
+  ----------------------------------
+  In Supabase Dashboard → Authentication → Providers:
+
+  [ ] Email enabled → confirm email: ON
+  [ ] Google enabled:
+        Client ID: paste from Google Cloud Console
+        Client Secret: paste from Google Cloud Console
+  [ ] Redirect URLs: add
+        http://localhost:3000/auth/callback
+        https://brainbyte.vercel.app/auth/callback
+        https://brainbyte.in/auth/callback (after domain setup)
+
+  In Auth → Email Templates:
+  [ ] Confirm signup email: add BrainByte branding + logo
+  [ ] Password reset email: add BrainByte branding
+
+  [ ] Test signup with email → confirmation email arrives
+  [ ] Test Google login → redirects correctly
+
+
+================================================================
+PHASE 3 — SHARED COMPONENTS (Build First)
+================================================================
+
+  Build these in components/shared/ — used across all pages.
+
+  [ ] Button.tsx
+        Props: variant (primary|teal|ghost|outline|danger), size (sm|md|lg), loading, disabled
+        Loading: shows spinner icon, text fades
+        All variants have hover + focus + active states
+        Transition: 200ms ease-out
+        Keyboard accessible (Enter + Space trigger click)
+
+  [ ] Input.tsx
+        Props: type (text|password|email|search), label, error, helperText, icon
+        Password: eye toggle show/hide
+        Search: magnifier icon left, clear X button right
+        Error: red border + error message below
+        Focus: violet border, slight shadow
+
+  [ ] Avatar.tsx
+        Props: src, name, size (sm|md|lg|xl)
+        Shows image if src provided
+        Falls back to colored circle + initials (first letter of name)
+        Colors: deterministic from name (same name = same color)
+
+  [ ] Badge.tsx
+        Props: variant (price|level|status|free|type), text, color override
+        price: violet bg
+        free: teal bg
+        status: dynamic (green=published, gray=draft, orange=review, red=rejected)
+
+  [ ] VerifiedBadge.tsx
+        Violet circle with white checkmark
+        Sizes: sm (16px) md (20px)
+        Tooltip: "Verified Instructor" on hover
+        Appears INLINE next to instructor name
+
+  [ ] StarRating.tsx
+        Props: rating (0-5), count, size, interactive
+        Non-interactive: display only, supports half stars
+        Interactive: click to rate, hover preview
+
+  [ ] ProgressBar.tsx
+        Props: value (0-100), color, showLabel, animated
+        Default: violet fill
+        Animated fill on mount (framer-motion)
+        % label right-aligned or inside bar
+
+  [ ] StepIndicator.tsx
+        Props: steps (array of labels), currentStep
+        States: done (teal ✓ circle), active (violet filled), upcoming (gray)
+        Horizontal line connecting steps
+        Mobile: condensed version
+
+  [ ] UploadDropzone.tsx
+        Props: accept (file types), maxSize, onUpload
+        Dashed border → violet on drag-over
+        Shows file name + size after selection
+        Progress bar during upload (0-100%)
+        Success: green checkmark
+        Error: red message if wrong type or too large
+
+  [ ] VerificationBanner.tsx
+        Amber bg (#FEF3C7), warning icon, message, action button
+        Only renders if user.role=instructor AND verify_status != verified
+        Different messages per status (unverified/pending/needs_info/rejected/suspended)
+
+  [ ] CourseCard.tsx
+        Props: course (full course object from DB)
+        Thumbnail: gradient placeholder color based on category
+        Instructor name + VerifiedBadge
+        Title: 2-line clamp (overflow hidden)
+        StarRating + enrolled count
+        Badge: price (violet) or FREE (teal)
+        Hover: translateY(-4px), shadow-lg, "Enroll →" CTA button slides up
+        Link: wraps to /courses/[slug]
+
+  [ ] ResourceCard.tsx
+        Props: resource (from free_resources table)
+        Video card: thumbnail + ▶ overlay + teal duration badge
+        PDF card: violet icon bg + "PDF" badge + page count
+        Both: title + "BrainByte Team" + views/downloads + tags
+        Guest state: blur filter + lock icon overlay + tooltip
+        Hover: teal border lift effect
+
+  [ ] Navbar.tsx
+        Logo: Brain⚡Byte (lightning in yellow)
+        Links: Explore | Library (teal color) | Teach | Pricing | About
+        Right: Sign In (ghost) + Get Started (violet) OR avatar dropdown
+        Sticky: position:sticky top-0, z-50
+        Scroll: add backdrop-blur after 20px scroll (useState + useEffect)
+        Avatar dropdown: Dashboard | Settings | Logout
+        Mobile: hamburger → full screen slide-in drawer
+        Active link: violet underline
+
+  [ ] Footer.tsx
+        Dark bg (#2C2C2A), white text
+        4 columns: Product | Company | Resources | Legal
+        Each column: heading + 4-5 links
+        Social row: Twitter, GitHub, LinkedIn, Instagram icons
+        Bottom: divider + copyright + "Made with 💜"
+        Mobile: 2-column grid then 1-column
+
+  [ ] GuestLockOverlay.tsx
+        Semi-transparent backdrop over content
+        Center card: lock icon + message + [Login] [Create Account] buttons
+        Violet border card on dark blur background
+
+  [ ] Sidebar.tsx (Dashboard/Admin)
+        Props: items (nav links), user, bottomCard
+        Collapsible on mobile (slide-in drawer)
+        Active item: violet bg pill left-border
+        Badge support per item
+        Bottom: promo card slot
+
+  [ ] ALL shared components done — no TypeScript errors
+
+
+================================================================
+PHASE 4 — AUTH MIDDLEWARE
+================================================================
+
+  [ ] Create middleware.ts in project root
+
+  Logic:
+    Protected routes (/dashboard, /teach, /teach/verify):
+      If no session → redirect to /login
+    Admin routes (/admin/dashboard, /admin/verifications, /admin/library):
+      If no session OR role != admin → redirect to /admin (login)
+    Auth routes (/login, /signup):
+      If already logged in → redirect to /dashboard
+
+  [ ] middleware.ts handles all route protection
+  [ ] Test: visit /dashboard without login → redirected to /login
+  [ ] Test: visit /admin/dashboard as student → redirected to /admin
+  [ ] Test: visit /login while logged in → redirected to /dashboard
+
+  ----------------------------------
+  Create app/auth/callback/route.ts
+  ----------------------------------
+  Handles OAuth callback from Supabase (Google login)
+  Exchanges code for session
+  Redirects to /dashboard on success
+
+  [ ] Google login flow works end-to-end
+
+
+================================================================
+PHASE 5 — API ROUTES
+================================================================
+
+  Create under app/api/
+
+  [ ] app/api/courses/route.ts
+        GET: fetch published courses (with filters: category, price, level, search, sort)
+        POST: create new course (instructor only, verified)
+
+  [ ] app/api/courses/[id]/route.ts
+        GET: single course with sections + lessons + instructor
+        PUT: update course (own instructor only)
+        DELETE: delete course (own instructor only)
+
+  [ ] app/api/enrollments/route.ts
+        POST: enroll in course (student only)
+        GET: get my enrollments
+
+  [ ] app/api/enrollments/[courseId]/progress/route.ts
+        GET: lesson progress for enrolled course
+        POST: mark lesson complete / update watch time
+
+  [ ] app/api/reviews/route.ts
+        POST: submit review (enrolled students only)
+        GET: reviews for a course
+
+  [ ] app/api/verifications/route.ts
+        POST: submit verification application
+        GET: get own verification status
+
+  [ ] app/api/verifications/[id]/route.ts (admin only)
+        PUT: approve / reject / request-info
+        Uses admin Supabase client (service role)
+
+  [ ] app/api/library/route.ts
+        GET: fetch published free resources (auth required)
+        POST: upload new resource (admin only)
+
+  [ ] app/api/library/[id]/route.ts
+        GET: single resource + increment view_count
+        PUT: update resource (admin only)
+        DELETE: delete resource (admin only)
+
+  [ ] app/api/library/[id]/download/route.ts
+        GET: increment download_count + return file URL
+
+  [ ] app/api/upload/route.ts
+        POST: handles file uploads to Supabase Storage
+        Validates: file type + size
+        Returns: public URL
+
+  [ ] app/api/notifications/route.ts
+        GET: own notifications
+        PUT: mark as read
+
+  [ ] app/api/wishlist/route.ts
+        POST: add to wishlist
+        DELETE: remove from wishlist
+        GET: my wishlist
+
+  [ ] All API routes return proper HTTP status codes
+  [ ] All admin routes check auth.uid() role = 'admin'
+  [ ] All routes handle errors with try/catch + proper messages
+
+
+================================================================
+PHASE 6 — BUILD ALL 16 PAGES
+================================================================
+
+  Build in this order (easier to harder):
+
+  ----------------------------------------------------------------
+  PAGE 04 — Login  /login
+  ----------------------------------------------------------------
+  [ ] Split screen layout (50/50 desktop, single col mobile)
+  [ ] Left: violet gradient + logo + quote + floating cards
+  [ ] Email input + Password input (eye toggle)
+  [ ] [Login] button with loading state
+  [ ] Error message on wrong credentials
+  [ ] "or continue with" divider
+  [ ] [Continue with Google] button
+  [ ] "Don't have account? Sign up" link
+  [ ] On success: redirect to /dashboard
+  [ ] Call Supabase: supabase.auth.signInWithPassword()
+  [ ] Call Supabase: supabase.auth.signInWithOAuth({ provider: 'google' })
+
+  ----------------------------------------------------------------
+  PAGE 05 — Signup  /signup
+  ----------------------------------------------------------------
+  [ ] Same split screen layout
+  [ ] Role selection step: [Learn] [Teach] cards
+  [ ] "Teach" card shows verification note
+  [ ] Full Name + Email + Password (strength bar) + Confirm Password
+  [ ] Password strength bar: weak(red) → medium(amber) → strong(green)
+  [ ] Terms checkbox (required before submit)
+  [ ] [Create Account] + Google signup
+  [ ] On success: redirect to /dashboard (students) or /teach/verify (instructors)
+  [ ] Call Supabase: supabase.auth.signUp() with metadata {role, full_name}
+
+  ----------------------------------------------------------------
+  PAGE 01 — Homepage  /
+  ----------------------------------------------------------------
+  [ ] Navbar (shared)
+  [ ] Hero: tag pill + H1 (72px) + subhead + 2 CTAs + trust bar + floating cards
+  [ ] Stats bar: dark band + 4 stats (50K Learners etc.)
+  [ ] Category cards: 6 cards, horizontal scroll mobile
+  [ ] Trending courses: fetch 3 published from DB, CourseCard component
+  [ ] Free Library section: fetch 3 featured free_resources from DB
+  [ ] How It Works: violet col (learner 3 steps) + teal col (instructor 3 steps)
+  [ ] Testimonials: 3 hardcoded cards (no DB needed)
+  [ ] Instructor CTA: dark violet band + earnings card
+  [ ] Footer (shared)
+
+  ----------------------------------------------------------------
+  PAGE 02 — Course Browse  /courses
+  ----------------------------------------------------------------
+  [ ] Sidebar filters (category/price/rating/level checkboxes)
+  [ ] Filters stored in URL params (e.g. ?category=design&price=free)
+  [ ] Fetch courses from API with filter params
+  [ ] 3-col grid of CourseCard components
+  [ ] Sort dropdown (updates URL params)
+  [ ] Result count: "Showing X courses"
+  [ ] Pagination (offset-based, 9 per page)
+  [ ] Empty state
+  [ ] Mobile: filter button → bottom drawer (framer-motion animate)
+
+  ----------------------------------------------------------------
+  PAGE 03 — Course Detail  /courses/[slug]
+  ----------------------------------------------------------------
+  [ ] Fetch course by slug from API
+  [ ] Breadcrumb
+  [ ] Left: title + desc + instructor row + VerifiedBadge + tabs
+  [ ] Tab Overview: checklist + requirements
+  [ ] Tab Curriculum: accordion sections + lessons (locked/unlocked)
+  [ ] Tab Instructor: stats + bio + report button
+  [ ] Tab Reviews: rating bars + review cards
+  [ ] Right sticky: thumbnail + price + countdown + enroll button
+  [ ] Enroll button: calls /api/enrollments (POST)
+  [ ] If already enrolled: shows [Continue Learning] instead
+  [ ] Free preview lessons: clickable for all users
+  [ ] Paid lessons: locked if not enrolled
+
+  ----------------------------------------------------------------
+  PAGE 06 — Free Library  /library
+  ----------------------------------------------------------------
+  [ ] Fetch free_resources from /api/library
+  [ ] Hero band (teal) + search bar
+  [ ] Filter pills (All/Videos/PDFs/categories/levels)
+  [ ] Resource grid: ResourceCard components
+  [ ] Guest state: all cards blurred + GuestLockOverlay
+  [ ] [Load More] button (load 9 more)
+  [ ] Empty state
+
+  ----------------------------------------------------------------
+  PAGE 07 — Resource Detail  /library/[id]
+  ----------------------------------------------------------------
+  [ ] Fetch resource by ID from /api/library/[id]
+  [ ] Guest: full page GuestLockOverlay
+  [ ] Video: HTML5 player OR YouTube iframe
+  [ ] Custom controls (if HTML5): play/pause, scrubber, volume, speed, fullscreen
+  [ ] PDF: embedded viewer (<embed> with PDF.js fallback)
+  [ ] [Download PDF] button: calls /api/library/[id]/download
+  [ ] Tabs: Notes / Transcript
+  [ ] Helpful rating: 👍 👎 + stars
+  [ ] Comments: fetch + display + add (logged-in only)
+  [ ] Sidebar: 5 more resources + 2 paid course upsells
+
+  ----------------------------------------------------------------
+  PAGE 08 — 404  /not-found.tsx
+  ----------------------------------------------------------------
+  [ ] Centered layout, full height
+  [ ] "404" violet gradient text (80px)
+  [ ] Floating astronaut CSS/SVG animation
+  [ ] Message + 2 buttons
+
+  ----------------------------------------------------------------
+  PAGE 09 — Student Dashboard  /dashboard
+  ----------------------------------------------------------------
+  [ ] Sidebar with nav links (useRouter for active state)
+  [ ] Fetch user data + enrollments + progress from DB
+
+  Overview tab:
+  [ ] Dynamic greeting (good morning/afternoon/evening)
+  [ ] 3 KPI cards: fetch enrolled count, sum lesson watch time, cert count
+  [ ] Continue Learning: 2 most recent enrollments + progress bars
+  [ ] Recently Viewed: last 3 viewed courses
+
+  My Courses tab:
+  [ ] Filter tabs (All/In Progress/Completed)
+  [ ] Course list with ProgressBar per course
+  [ ] Progress = completed lessons / total lessons * 100
+
+  Certificates tab:
+  [ ] Grid of certificate cards
+  [ ] [Download PDF] calls Supabase Storage URL
+  [ ] [Share LinkedIn] → linkedin.com share URL
+
+  Wishlist tab:
+  [ ] Grid of CourseCards
+  [ ] Remove button calls /api/wishlist DELETE
+
+  Settings tab:
+  [ ] Photo upload → Supabase Storage avatars bucket
+  [ ] Edit name + bio → PUT /api/users/[id]
+  [ ] Change password → supabase.auth.updateUser()
+  [ ] Notification toggles (save to users table)
+
+  ----------------------------------------------------------------
+  PAGE 10 — Instructor Studio  /teach
+  ----------------------------------------------------------------
+  [ ] Check verify_status → show VerificationBanner if not 'verified'
+  [ ] Sidebar with nav
+
+  Dashboard tab:
+  [ ] 4 KPI cards: fetch from transactions + enrollments + reviews
+  [ ] Recharts LineChart: monthly earnings (group by month)
+  [ ] Recent enrollments table: join enrollments + users + courses
+
+  My Courses tab:
+  [ ] Fetch own courses from DB
+  [ ] Table with status badges + actions
+  [ ] Edit → pre-fills create course form
+  [ ] Delete → confirm dialog → DELETE /api/courses/[id]
+
+  Create Course tab (LOCKED if not verified):
+  [ ] StepIndicator 1-4
+  [ ] Step 1: title + category + level + desc → save to state
+  [ ] Step 2: sections + lessons (drag handle = manual position reorder)
+  [ ] Step 3: Free toggle + price + original price + expiry
+  [ ] Step 4: thumbnail UploadDropzone + preview card + submit
+  [ ] [Save Draft]: POST /api/courses with status=draft
+  [ ] [Submit for Review]: POST /api/courses with status=under_review
+
+  Earnings tab:
+  [ ] Recharts BarChart: monthly revenue
+  [ ] Transaction table with status badges
+
+  Reviews tab:
+  [ ] Fetch own course reviews
+  [ ] Flag button: creates notification to admin
+
+  ----------------------------------------------------------------
+  PAGE 11 — Verification Form  /teach/verify
+  ----------------------------------------------------------------
+  [ ] StepIndicator 1-4
+  [ ] Step 1: profile photo upload + category + bio
+  [ ] Step 2: LinkedIn URL (validate format) + GitHub + portfolio
+  [ ] Step 3: what_teach + why_brainbyte + experience + youtube_url
+  [ ] Step 4: summary review + terms checkbox + submit
+  [ ] Save form to localStorage (prevent data loss)
+  [ ] On submit: POST /api/verifications
+  [ ] Success screen with animation
+
+  ----------------------------------------------------------------
+  PAGE 12 — Verification Status  /teach/verify/status
+  ----------------------------------------------------------------
+  [ ] Fetch own instructor_profiles row
+  [ ] Status timeline component
+  [ ] Render correct state card based on verify_status
+  [ ] NEEDS_INFO: show admin_message + textarea to respond
+  [ ] [Send Response]: PUT /api/verifications with response
+
+  ----------------------------------------------------------------
+  PAGE 13 — Admin Login  /admin
+  ----------------------------------------------------------------
+  [ ] Dark theme (bg: #2C2C2A)
+  [ ] Email + Password only (no Google)
+  [ ] On success: check role = 'admin' → else redirect out
+  [ ] Error if not admin role
+
+  ----------------------------------------------------------------
+  PAGE 14 — Admin Dashboard  /admin/dashboard
+  ----------------------------------------------------------------
+  [ ] Admin sidebar
+  [ ] 6 KPI cards: fetch counts from all major tables
+  [ ] Activity feed: recent signups + verifications
+
+  ----------------------------------------------------------------
+  PAGE 15 — Admin Verifications  /admin/verifications
+  ----------------------------------------------------------------
+  [ ] Fetch all instructor_profiles with user join
+  [ ] Filter tabs + search
+  [ ] Table with clickable rows
+  [ ] Review modal: show full application + links
+  [ ] Approve: PUT /api/verifications/[id] { status: 'verified' }
+  [ ] Reject modal: dropdown reason + PUT { status: 'rejected', reason }
+  [ ] Request Info modal: message + PUT { status: 'needs_info', message }
+  [ ] Send notification to instructor after each action
+
+  ----------------------------------------------------------------
+  PAGE 16 — Admin Library  /admin/library
+  ----------------------------------------------------------------
+  [ ] Fetch all free_resources
+  [ ] Stats cards
+  [ ] Table with publish/unpublish toggle
+  [ ] Delete: DELETE /api/library/[id]
+  [ ] [+ Upload New Resource] → goes to upload page
+
+  Upload Page /admin/library/upload:
+  [ ] Tabs: Video / PDF
+  [ ] Video: toggle Upload File vs Paste Link
+  [ ] Upload: UploadDropzone → /api/upload → get URL
+  [ ] Paste link: fetch YouTube info (title + thumbnail via oEmbed)
+  [ ] Details form: title + category + level + tags + description
+  [ ] Thumbnail upload or auto-generate
+  [ ] Featured toggle + Publish toggle
+  [ ] POST /api/library
+
+  ----------------------------------------------------------------
+  ALL 16 PAGES DONE
+  ----------------------------------------------------------------
+  [ ] All pages build without errors
+  [ ] All pages fetch real data from Supabase
+  [ ] No hardcoded data on any dynamic page
+
+
+================================================================
+PHASE 7 — MOBILE RESPONSIVENESS
+================================================================
+
+  Go through EVERY page on these widths:
+  [ ] 375px — iPhone SE (smallest phone)
+  [ ] 390px — iPhone 14
+  [ ] 430px — iPhone Plus
+  [ ] 768px — iPad portrait
+  [ ] 1024px — iPad landscape / small laptop
+  [ ] 1280px — standard laptop
+  [ ] 1440px — large desktop
+
+  Checklist per page:
+  [ ] No horizontal overflow (no side scroll on mobile)
+  [ ] All text readable (min 14px)
+  [ ] All buttons tappable (min 44px height)
+  [ ] Navbar collapses to hamburger on mobile
+  [ ] Sidebars become slide-in drawers on mobile
+  [ ] Grids reduce: 3-col → 2-col → 1-col
+  [ ] Tables scroll horizontally (overflow-x: auto)
+  [ ] Filter sidebars become bottom sheets
+  [ ] Modals become full screen on mobile
+  [ ] Forms have 100% width inputs on mobile
+  [ ] Images never overflow container
+
+
+================================================================
+PHASE 8 — SECURITY HARDENING
+================================================================
+
+  [ ] SUPABASE_SERVICE_ROLE_KEY only in API routes (lib/supabase/admin.ts)
+      NEVER import admin client in any component file
+  [ ] All API routes check auth session before doing anything
+  [ ] Admin API routes additionally check role = 'admin'
+  [ ] All file uploads validate:
+        Type: only allowed extensions
+        Size: under limit (PDFs 50MB, videos 500MB, images 5MB)
+  [ ] All form inputs sanitized (no raw HTML injection)
+  [ ] .env.local is in .gitignore
+  [ ] No sensitive keys in any component or client-side code
+  [ ] Verify instructor_id matches auth.uid() before course update/delete
+  [ ] Rate limiting: Supabase handles auth rate limits automatically
+  [ ] HTTPS: Vercel enforces automatically
+
+
+================================================================
+PHASE 9 — TESTING
+================================================================
+
+  AUTH:
+  [ ] Sign up with email → verify email → login works
+  [ ] Sign up with Google → redirect works → user created in DB
+  [ ] Login with wrong password → shows error
+  [ ] Forgot password → email arrives → can reset
+
+  STUDENT FLOW:
+  [ ] Browse courses → filter works → search works
+  [ ] Open course detail → tabs work → curriculum accordion works
+  [ ] Enroll in free course → redirected to lesson
+  [ ] Complete lesson → progress bar updates
+  [ ] Finish course → certificate appears in dashboard
+
+  INSTRUCTOR FLOW:
+  [ ] Sign up as instructor → verification banner shows
+  [ ] Submit verification form → status shows "pending"
+  [ ] Create course (locked until verified)
+
+  ADMIN FLOW:
+  [ ] Login to admin panel
+  [ ] See pending verification → open modal → approve
+  [ ] Instructor gets notified → can now create course
+  [ ] Upload free resource → appears in library
+
+  FREE LIBRARY:
+  [ ] Guest visits /library → sees locked/blurred cards
+  [ ] After login → all cards unlock
+  [ ] Open video resource → player works → speed controls work
+  [ ] Open PDF resource → viewer shows → download button works
+
+  EDGE CASES:
+  [ ] Empty states: no courses / no enrollments / no resources
+  [ ] Very long titles: clamp works, no overflow
+  [ ] Special characters in names: no display bugs
+  [ ] Slow network: loading states show correctly
+  [ ] 404: visiting /courses/fake-slug → 404 page shows
+
+
+================================================================
+PHASE 10 — DEPLOYMENT
+================================================================
+
+  STEP 10.1 — Push to GitHub
+  ----------------------------------
+  git init
+  git add .
+  git commit -m "Initial BrainByte commit"
+  git branch -M main
+  git remote add origin https://github.com/USERNAME/brainbyte.git
+  git push -u origin main
+
+  [ ] Code pushed to GitHub (no .env.local in commit)
+
+  ----------------------------------
+  STEP 10.2 — Deploy on Vercel
+  ----------------------------------
+  [ ] Go to vercel.com → New Project
+  [ ] Import brainbyte from GitHub
+  [ ] Framework: Next.js (auto-detected)
+  [ ] Add ALL environment variables from .env.local
+      (change NEXT_PUBLIC_APP_URL to actual Vercel URL)
+  [ ] Click Deploy
+  [ ] Wait ~2 minutes → green checkmark
+
+  [ ] Site live at: brainbyte.vercel.app
+  [ ] Test all pages on live URL
+
+  ----------------------------------
+  STEP 10.3 — Update Supabase Redirect URLs
+  ----------------------------------
+  [ ] In Supabase → Auth → URL Configuration:
+        Add: https://brainbyte.vercel.app/auth/callback
+  [ ] In Google Cloud Console → OAuth:
+        Add: https://brainbyte.vercel.app/auth/callback as redirect URI
+  [ ] Test Google login on live site
+
+  ----------------------------------
+  STEP 10.4 — Custom Domain (optional)
+  ----------------------------------
+  [ ] Buy brainbyte.in on Namecheap
+  [ ] In Vercel → Settings → Domains → Add: brainbyte.in
+  [ ] Vercel gives you DNS records (2 records)
+  [ ] In Namecheap → Advanced DNS → Add both records
+  [ ] Wait 24-48 hours for DNS propagation
+  [ ] HTTPS auto-configured by Vercel (Let's Encrypt)
+  [ ] Update NEXT_PUBLIC_APP_URL in Vercel to https://brainbyte.in
+  [ ] Add brainbyte.in to Supabase redirect URLs
+  [ ] Add brainbyte.in to Google OAuth redirect URIs
+
+  ----------------------------------
+  STEP 10.5 — Auto Deploy Setup
+  ----------------------------------
+  [ ] Every push to main → Vercel auto-deploys (already set up)
+  [ ] Create dev branch for new features:
+        git checkout -b feature/new-feature
+        (Vercel gives preview URL for each branch)
+
+
+================================================================
+PHASE 11 — FINAL QUALITY PASS
+================================================================
+
+  PERFORMANCE:
+  [ ] Images: use Next.js <Image> component everywhere
+  [ ] Lazy load: below-fold components use dynamic imports
+  [ ] API responses: add caching headers where appropriate
+  [ ] Fonts: preloaded in layout.tsx
+
+  SEO:
+  [ ] Each page has unique <title> and <meta description>
+  [ ] Course pages: add structured data (JSON-LD)
+  [ ] og:image for social sharing
+  [ ] robots.txt and sitemap.xml
+
+  ACCESSIBILITY:
+  [ ] All images have alt text
+  [ ] All buttons have accessible labels
+  [ ] Forms have proper label associations
+  [ ] Color contrast ratio: min 4.5:1 for all text
+  [ ] Keyboard navigation works on all interactive elements
+
+  BROWSER TESTING:
+  [ ] Chrome (latest)       — desktop + mobile
+  [ ] Firefox (latest)      — desktop
+  [ ] Safari (latest)       — desktop + iOS
+  [ ] Edge (latest)         — desktop
+  [ ] Samsung Internet      — Android phones
+
+  FINAL CHECKS:
+  [ ] Zero console errors on all pages
+  [ ] Zero TypeScript errors
+  [ ] All environment variables set in Vercel
+  [ ] All real data loads from Supabase (no hardcoded data)
+  [ ] Prices displayed in ₹ everywhere
+  [ ] Color rule: VIOLET = paid | TEAL = free — consistent
+  [ ] VerifiedBadge shows on all verified instructor names
+  [ ] Admin panel requires admin login — no bypass possible
+
+
+================================================================
+TECH STACK SUMMARY
+================================================================
+
+  Frontend   :  Next.js 14 (App Router) + TypeScript
+  Styling    :  Tailwind CSS + CSS Variables
+  Animations :  Framer Motion
+  Icons      :  Lucide React
+  Charts     :  Recharts
+  Database   :  Supabase PostgreSQL (16 tables)
+  Auth       :  Supabase Auth (Email + Google OAuth)
+  Storage    :  Supabase Storage (5 buckets)
+  Videos     :  YouTube embed (long) + Supabase (short)
+  Hosting    :  Vercel (free tier)
+  Domain     :  brainbyte.in (~Rs.800/year, optional)
+  Cost/month :  Rs.0 (free tiers of Vercel + Supabase)
+
+================================================================
+BUILD ORDER SUMMARY
+================================================================
+
+  Phase 0  :  Create accounts (GitHub, Vercel, Supabase, Google)
+  Phase 1  :  Project setup + config + env variables
+  Phase 2  :  Database tables + RLS + storage + auth
+  Phase 3  :  All 14 shared components
+  Phase 4  :  Auth middleware + route protection
+  Phase 5  :  All API routes (backend)
+  Phase 6  :  All 16 pages (frontend)
+  Phase 7  :  Mobile responsiveness pass
+  Phase 8  :  Security hardening
+  Phase 9  :  Full testing
+  Phase 10 :  Deploy to Vercel + custom domain
+  Phase 11 :  Final quality + SEO + browser testing
+
+  Estimated time: 3-4 weeks for a focused developer
+
+================================================================
+END OF CHECKNOTE — BRAINBYTE
+================================================================
+
