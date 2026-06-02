@@ -1,6 +1,6 @@
-/*
+﻿/*
 ================================================================
-  BRAINBYTE — INTERACTIVE LOGIC
+  BRAINBYTE â€” INTERACTIVE LOGIC
   Smooth Transitions, Floating Micro-interactions, and Counters
 ================================================================
 */
@@ -223,9 +223,9 @@ function initInteractiveRating() {
       transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     `;
 
-    let emoji = '⭐️';
-    if (rating === 5) emoji = '🔥';
-    if (rating <= 2) emoji = '⚠️';
+    let emoji = 'â­ï¸';
+    if (rating === 5) emoji = 'ðŸ”¥';
+    if (rating <= 2) emoji = 'âš ï¸';
 
     toast.innerHTML = `
       <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(139, 92, 246, 0.15); display: flex; align-items: center; justify-content: center; color: #FBBF24; font-size: 1.15rem;">
@@ -303,7 +303,355 @@ function initLoginController() {
   const submitBtn = document.getElementById('submit-login-btn');
   const googleBtn = document.getElementById('btn-oauth-google');
   
-  if (!loginForm) return; // Only execute on the login page
+  if (!loginForm) return;
+
+  // === HELPER: Show/Hide OTP Steps ===
+  const loginStep1 = document.getElementById('login-step-1');
+  const loginStep2 = document.getElementById('login-step-2');
+  
+  // Track active OTP channel for login ('email' or 'phone')
+  let loginOtpChannel = 'email';
+
+  // Wire channel tab buttons for login OTP
+  const loginTabEmail = document.getElementById('login-otp-tab-email');
+  const loginTabPhone = document.getElementById('login-otp-tab-phone');
+  const wireLoginChannelTabs = (email, phone) => {
+    const tabs = [loginTabEmail, loginTabPhone];
+    tabs.forEach(tab => {
+      if (!tab) return;
+      tab.onclick = () => {
+        tabs.forEach(t => t && t.classList.remove('active'));
+        tab.classList.add('active');
+        loginOtpChannel = tab.dataset.channel || 'email';
+        const recipient = loginOtpChannel === 'phone' ? phone : email;
+        if (!recipient) return;
+        BrainByteOTP.sendOTP(recipient, loginOtpChannel);
+        const recipientEl = document.getElementById('login-otp-recipient');
+        if (recipientEl) recipientEl.textContent = BrainByteOTP.getMasked(recipient, loginOtpChannel);
+        // Clear OTP boxes
+        for (let i = 1; i <= 6; i++) {
+          const b = document.getElementById(login-otp-d);
+          if (b) { b.value = ''; b.classList.remove('filled','error','success'); }
+        }
+        document.getElementById('login-otp-d1')?.focus();
+        startResendTimer('login');
+      };
+    });
+  };
+
+  const showOTPPanel = (email, phone) => {
+    // Default channel is email; send OTP on email first
+    loginOtpChannel = 'email';
+    BrainByteOTP.sendOTP(email, 'email');
+    
+    // Wire channel tabs
+    wireLoginChannelTabs(email, phone || '');
+
+    // Update recipient display
+    const recipientEl = document.getElementById('login-otp-recipient');
+    if (recipientEl) recipientEl.textContent = BrainByteOTP.getMasked(email, 'email');
+    // Reset tab state
+    if (loginTabEmail) loginTabEmail.classList.add('active');
+    if (loginTabPhone) loginTabPhone.classList.remove('active');
+    
+    // Transition step 1 â†’ step 2
+    if (loginStep1) {
+      loginStep1.style.transition = 'opacity 0.25s ease';
+      loginStep1.style.opacity = '0';
+      setTimeout(() => {
+        loginStep1.style.display = 'none';
+        if (loginStep2) {
+          loginStep2.style.display = 'block';
+          loginStep2.classList.add('active');
+        }
+        // Auto-focus first digit box
+        const d1 = document.getElementById('login-otp-d1');
+        if (d1) setTimeout(() => d1.focus(), 100);
+        
+        // Start resend timer
+        startResendTimer('login');
+      }, 250);
+    }
+  };
+  
+  // === HELPER: OTP Digit-box keyboard navigation ===
+  const bindOTPDigitBoxes = (prefix) => {
+    const boxes = [];
+    for (let i = 1; i <= 6; i++) {
+      const el = document.getElementById(`${prefix}-otp-d${i}`);
+      if (el) boxes.push(el);
+    }
+    
+    boxes.forEach((box, idx) => {
+      box.addEventListener('input', (e) => {
+        // Keep only last typed digit
+        let val = e.target.value.toString().replace(/\D/g, '').slice(-1);
+        box.value = val;
+        
+        if (val) {
+          box.classList.add('filled');
+          box.classList.remove('error');
+          if (idx < boxes.length - 1) boxes[idx + 1].focus();
+        } else {
+          box.classList.remove('filled');
+        }
+      });
+      
+      box.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !box.value && idx > 0) {
+          boxes[idx - 1].focus();
+          boxes[idx - 1].value = '';
+          boxes[idx - 1].classList.remove('filled');
+        }
+        if (e.key === 'ArrowLeft' && idx > 0) boxes[idx - 1].focus();
+        if (e.key === 'ArrowRight' && idx < boxes.length - 1) boxes[idx + 1].focus();
+      });
+      
+      // Handle paste of full 6-digit code
+      box.addEventListener('paste', (e) => {
+        const pasteData = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').substring(0, 6);
+        if (pasteData.length > 0) {
+          e.preventDefault();
+          boxes.forEach((b, i) => {
+            b.value = pasteData[i] || '';
+            if (b.value) b.classList.add('filled'); else b.classList.remove('filled');
+          });
+          boxes[Math.min(pasteData.length, boxes.length) - 1].focus();
+        }
+      });
+    });
+  };
+  
+  // === HELPER: Collect OTP value from digit boxes ===
+  const collectOTPValue = (prefix) => {
+    let code = '';
+    for (let i = 1; i <= 6; i++) {
+      const el = document.getElementById(`${prefix}-otp-d${i}`);
+      code += el ? (el.value || '') : '';
+    }
+    return code;
+  };
+  
+  // === HELPER: Show OTP error ===
+  const showOTPError = (prefix, msg) => {
+    const errEl = document.getElementById(`${prefix}-otp-error`);
+    if (errEl) {
+      errEl.textContent = 'âš ï¸ ' + msg;
+      errEl.classList.add('visible');
+    }
+    // Shake all boxes
+    for (let i = 1; i <= 6; i++) {
+      const b = document.getElementById(`${prefix}-otp-d${i}`);
+      if (b) { b.classList.add('error'); setTimeout(() => b.classList.remove('error'), 500); }
+    }
+  };
+  
+  const hideOTPError = (prefix) => {
+    const errEl = document.getElementById(`${prefix}-otp-error`);
+    if (errEl) errEl.classList.remove('visible');
+  };
+  
+  // === HELPER: Resend timer ===
+  let resendTimerInterval = null;
+  const startResendTimer = (prefix) => {
+    const btn = document.getElementById(`btn-${prefix}-resend-otp`);
+    const timerEl = document.getElementById(`${prefix}-otp-timer`);
+    if (resendTimerInterval) clearInterval(resendTimerInterval);
+    resendTimerInterval = BrainByteOTP.startResendTimer(btn, timerEl, () => {
+      console.log(`[OTP] Resend timer complete for ${prefix}`);
+    });
+  };
+  
+  // 1. Password Visibility Eye Toggle
+  if (togglePassBtn && passwordInput) {
+    togglePassBtn.addEventListener('click', () => {
+      const isPassword = passwordInput.getAttribute('type') === 'password';
+      passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+      const icon = togglePassBtn.querySelector('i');
+      if (icon) icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+    });
+  }
+
+  // 2. Login Form Submit â†’ Validate â†’ Show OTP
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value.trim();
+    const password = passwordInput.value.trim();
+    
+    errorAlert.classList.add('d-none');
+    
+    if (!email || !password) {
+      showError("Please enter both your email address and password.");
+      return;
+    }
+    
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="alert-spinner"></span> <span>Verifying...</span>`;
+    
+    try {
+      // --- Admin shortcut (mock) ---
+      if (email.toLowerCase() === 'admin@brainbyte.in' && password === 'admin123') {
+        localStorage.setItem('brainbyte_user', JSON.stringify({
+          id: 'mock-admin-uuid', full_name: 'Super Admin',
+          email: 'admin@brainbyte.in', role: 'admin', isLoggedIn: true
+        }));
+        submitBtn.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Redirecting...</span>`;
+        submitBtn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+        setTimeout(() => { window.location.href = 'admin-dashboard.html'; }, 1000);
+        return;
+      }
+      
+      // --- Try Supabase auth ---
+      let supabaseSuccess = false;
+      let supabaseProfile = null;
+      const client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+      
+      if (client) {
+        const { data, error } = await client.auth.signInWithPassword({ email, password });
+        if (!error && data && data.user) {
+          supabaseSuccess = true;
+          let profile = null;
+          const { data: pData } = await client.from('users').select('*').eq('id', data.user.id).single();
+          profile = pData || { id: data.user.id, email, full_name: data.user.user_metadata?.full_name || email.split('@')[0], role: data.user.user_metadata?.role || 'student' };
+          supabaseProfile = profile;
+        }
+      }
+      
+      // --- Fallback: localStorage mock users ---
+      if (!supabaseSuccess) {
+        const mockUsers = JSON.parse(localStorage.getItem('bb_mock_users') || '[]');
+        const found = mockUsers.find(u => u.email === email && u.password === password);
+        if (!found) {
+          throw new Error('Invalid email or password. Please check your credentials.');
+        }
+        supabaseProfile = found;
+      }
+      
+      // Store profile temporarily for after OTP (also store entered email for channel tab use)
+      const loginPhoneNum = ''; // Phone not collected on login page — use email OTP
+      sessionStorage.setItem('bb_pending_login', JSON.stringify({ ...supabaseProfile, isLoggedIn: true, phone: loginPhoneNum }));
+      
+      // Restore button
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
+      
+      // Bind OTP boxes & show OTP panel
+      bindOTPDigitBoxes('login');
+      const pendingPhone = (sessionStorage.getItem('bb_pending_login') ? JSON.parse(sessionStorage.getItem('bb_pending_login')).phone || '' : '');
+      showOTPPanel(email, pendingPhone);
+      
+    } catch (err) {
+      console.error("[Login] Failure:", err);
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
+      showError(err.message || 'Invalid email or password');
+    }
+  });
+
+  // 3. OTP Verify Button
+  const btnVerifyOTP = document.getElementById('btn-login-verify-otp');
+  if (btnVerifyOTP) {
+    btnVerifyOTP.addEventListener('click', () => {
+      const code = collectOTPValue('login');
+      hideOTPError('login');
+      
+      if (code.length < 6) {
+        showOTPError('login', 'Please enter all 6 digits.');
+        return;
+      }
+      
+      const result = BrainByteOTP.verifyOTP(code);
+      if (!result.success) {
+        showOTPError('login', result.error);
+        return;
+      }
+      
+      // All 6 boxes turn green
+      for (let i = 1; i <= 6; i++) {
+        const b = document.getElementById(`login-otp-d${i}`);
+        if (b) b.classList.add('success');
+      }
+      
+      btnVerifyOTP.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Verified! Signing in...</span>`;
+      btnVerifyOTP.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+      btnVerifyOTP.disabled = true;
+      
+      // Retrieve pending profile and login
+      const pendingProfile = JSON.parse(sessionStorage.getItem('bb_pending_login') || '{}');
+      localStorage.setItem('brainbyte_user', JSON.stringify(pendingProfile));
+      sessionStorage.removeItem('bb_pending_login');
+      BrainByteOTP.clearOTP();
+      
+      const role = pendingProfile.role || 'student';
+      setTimeout(() => {
+        if (role === 'admin') {
+          window.location.href = 'admin-dashboard.html';
+        } else if (role === 'instructor' || role === 'teach') {
+          window.location.href = 'teach.html';
+        } else {
+          window.location.href = 'dashboard.html';
+        }
+      }, 1000);
+    });
+  }
+
+  // 4. Resend OTP
+  const btnResend = document.getElementById('btn-login-resend-otp');
+  if (btnResend) {
+    btnResend.addEventListener('click', () => {
+      const email = document.getElementById('email') ? document.getElementById('email').value.trim() : '';
+      if (email) {
+        BrainByteOTP.sendOTP(email, 'email');
+        startResendTimer('login');
+        hideOTPError('login');
+        // Clear boxes
+        for (let i = 1; i <= 6; i++) {
+          const b = document.getElementById(`login-otp-d${i}`);
+          if (b) { b.value = ''; b.classList.remove('filled', 'error', 'success'); }
+        }
+        document.getElementById('login-otp-d1')?.focus();
+      }
+    });
+  }
+  
+  // 5. Back to form from OTP
+  const btnBackToForm = document.getElementById('btn-login-back-to-form');
+  if (btnBackToForm) {
+    btnBackToForm.addEventListener('click', () => {
+      if (loginStep2) { loginStep2.style.display = 'none'; loginStep2.classList.remove('active'); }
+      if (loginStep1) { loginStep1.style.display = 'block'; loginStep1.style.opacity = '1'; }
+      BrainByteOTP.clearOTP();
+    });
+  }
+
+  // 6. Google OAuth Trigger
+  if (googleBtn) {
+    googleBtn.addEventListener('click', async () => {
+      const orig = googleBtn.innerHTML;
+      googleBtn.disabled = true;
+      googleBtn.innerHTML = `<span class="alert-spinner"></span> <span>Connecting to Google...</span>`;
+      try {
+        const client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        if (!client) throw new Error('Supabase not initialized');
+        const { error } = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/dashboard.html' } });
+        if (error) throw error;
+      } catch (err) {
+        googleBtn.disabled = false;
+        googleBtn.innerHTML = orig;
+        showError(err.message || 'Could not connect to Google OAuth.');
+      }
+    });
+  }
+
+  function showError(msg) {
+    if (errorAlert && errorMessageText) {
+      errorMessageText.textContent = msg;
+      errorAlert.classList.remove('d-none');
+    }
+  }
+}
 
   // 1. Password Visibility Eye Toggle
   if (togglePassBtn && passwordInput) {
@@ -609,7 +957,7 @@ function initSignupController() {
         // Update top wizard indicator state to Step 2
         if (indicatorStepText) indicatorStepText.textContent = "Step 2";
         if (indicatorStepDots) {
-          indicatorStepDots.innerHTML = `<span style="color: var(--violet-primary);">●●●</span><span style="color: rgba(255,255,255,0.12);">○</span>`;
+          indicatorStepDots.innerHTML = `<span style="color: var(--violet-primary);">â—â—â—</span><span style="color: rgba(255,255,255,0.12);">â—‹</span>`;
         }
         
         // Update subheader messages
@@ -624,7 +972,7 @@ function initSignupController() {
             instructorEmailBox.classList.remove('d-none');
             const infoText = instructorEmailBox.querySelector('span');
             if (infoText) {
-              infoText.innerHTML = "⚡ Verification required before publishing courses";
+              infoText.innerHTML = "âš¡ Verification required before publishing courses";
             }
           } else {
             instructorEmailBox.classList.add('d-none');
@@ -657,7 +1005,7 @@ function initSignupController() {
         // Revert top indicators to Step 1
         if (indicatorStepText) indicatorStepText.textContent = "Step 1";
         if (indicatorStepDots) {
-          indicatorStepDots.innerHTML = `<span style="color: var(--violet-primary);">●●</span><span style="color: rgba(255,255,255,0.12);">○○</span>`;
+          indicatorStepDots.innerHTML = `<span style="color: var(--violet-primary);">â—â—</span><span style="color: rgba(255,255,255,0.12);">â—‹â—‹</span>`;
         }
         
         const subhead = document.getElementById('signup-subtext-header');
@@ -770,6 +1118,9 @@ function initSignupController() {
       const email = emailInput.value.trim();
       const password = passwordInput.value;
       const confirm = confirmPasswordInput.value;
+      const phoneCountry = document.getElementById('phone-country-code') ? document.getElementById('phone-country-code').value : '+91';
+      const phoneRaw = document.getElementById('phone-number') ? document.getElementById('phone-number').value.trim().replace(/\s+/g,'') : '';
+      const phone = phoneRaw ? (phoneCountry + phoneRaw) : '';
       
       errorAlert.classList.add('d-none');
       
@@ -853,26 +1204,18 @@ function initSignupController() {
           isLoggedIn: true
         }));
         
-        // 5. Show success message in green glass card
-        submitBtn.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Account created successfully! 🎉</span>`;
-        submitBtn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
-        submitBtn.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.4)';
+        // 5. Store pending signup details for OTP step
+        sessionStorage.setItem('bb_pending_signup', JSON.stringify({
+          id: data.user.id, email, full_name: name, phone: phone,
+          role: selectedRole || 'student', password: password, isLoggedIn: true
+        }));
         
-        console.log("%c[Supabase Auth] Success: Account registered for " + email, 'color: #10B981; font-weight: bold;');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
         
-        // 6. Redirect after 2 seconds
-        setTimeout(() => {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = originalText;
-          submitBtn.style.background = '';
-          submitBtn.style.boxShadow = '';
-          
-          if (selectedRole === 'instructor' || selectedRole === 'teach') {
-            window.location.href = 'teach-verify.html'; 
-          } else {
-            window.location.href = 'dashboard.html';
-          }
-        }, 2000);
+        // 6. Go to Step 3 OTP
+        initSignupOTPStep(email, name, selectedRole, phone);
+        return;
 
       } catch (err) {
         console.error("[Supabase Auth] SignUp failure:", err);
@@ -918,16 +1261,236 @@ function initSignupController() {
     if (errorAlert && errorTextDisplay) {
       errorTextDisplay.textContent = msg;
       errorAlert.classList.remove('d-none');
-      
-      // Alert wiggle animation
       errorAlert.classList.add('scale-pop');
       setTimeout(() => errorAlert.classList.remove('scale-pop'), 200);
+    }
+  }
+  
+  // ================================================================
+  // STEP 3: OTP VERIFICATION FOR SIGNUP
+  // ================================================================
+  function initSignupOTPStep(email, name, role, phone) {
+    const step2 = document.getElementById('step-2-container');
+    const step3 = document.getElementById('step-3-container');
+    if (!step3) {
+      // Fallback: no step 3 â€” just redirect
+      const dest = (role === 'instructor' || role === 'teach') ? 'teach-verify.html' : 'dashboard.html';
+      window.location.href = dest;
+      return;
+    }
+    
+    // Track active OTP channel for signup
+    let signupOtpChannel = 'email';
+    BrainByteOTP.sendOTP(email, 'email');
+
+    // Wire channel tabs
+    const signupTabEmail = document.getElementById('signup-otp-tab-email');
+    const signupTabPhone = document.getElementById('signup-otp-tab-phone');
+    const wireSignupChannelTabs = () => {
+      const tabs = [signupTabEmail, signupTabPhone];
+      tabs.forEach(tab => {
+        if (!tab) return;
+        tab.onclick = () => {
+          tabs.forEach(t => t && t.classList.remove('active'));
+          tab.classList.add('active');
+          signupOtpChannel = tab.dataset.channel || 'email';
+          const recipient = signupOtpChannel === 'phone' ? (phone || '') : email;
+          if (!recipient) {
+            // No phone provided — show message
+            const recipientEl = document.getElementById('signup-otp-recipient');
+            if (recipientEl) recipientEl.textContent = 'No phone number provided';
+            return;
+          }
+          BrainByteOTP.sendOTP(recipient, signupOtpChannel);
+          const recipientEl = document.getElementById('signup-otp-recipient');
+          if (recipientEl) recipientEl.textContent = BrainByteOTP.getMasked(recipient, signupOtpChannel);
+          // Clear OTP boxes
+          for (let i = 1; i <= 6; i++) {
+            const b = document.getElementById(signup-otp-d);
+            if (b) { b.value = ''; b.classList.remove('filled','error','success'); }
+          }
+          document.getElementById('signup-otp-d1')?.focus();
+        };
+      });
+      // If no phone number entered, disable the phone tab
+      if (!phone) {
+        if (signupTabPhone) {
+          signupTabPhone.disabled = true;
+          signupTabPhone.title = 'Enter phone number in Step 2 to use SMS OTP';
+          signupTabPhone.style.opacity = '0.45';
+          signupTabPhone.style.cursor = 'not-allowed';
+        }
+      }
+    };
+    wireSignupChannelTabs();
+    
+    // Update recipient
+    const recipientEl = document.getElementById('signup-otp-recipient');
+    if (recipientEl) recipientEl.textContent = BrainByteOTP.getMasked(email, 'email');
+    
+    // Update step indicators
+    const indicatorStepText = document.getElementById('indicator-step-text');
+    const indicatorStepDots = document.getElementById('indicator-step-dots');
+    if (indicatorStepText) indicatorStepText.textContent = 'Step 3';
+    if (indicatorStepDots) {
+      indicatorStepDots.innerHTML = `<span style="color: var(--violet-primary);">&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;</span>`;
+    }
+    
+    // Transition step 2 â†’ step 3
+    if (step2) {
+      step2.style.transition = 'opacity 0.25s ease';
+      step2.style.opacity = '0';
+      setTimeout(() => {
+        step2.classList.remove('active');
+        step2.style.display = 'none';
+        step3.classList.add('active');
+        step3.style.display = 'block';
+        
+        // Bind digit boxes & focus first
+        bindSignupOTPBoxes();
+        const d1 = document.getElementById('signup-otp-d1');
+        if (d1) setTimeout(() => d1.focus(), 100);
+        
+        // Start resend timer
+        startSignupResendTimer(email);
+      }, 250);
+    }
+    
+    // â”€â”€ Digit box behavior â”€â”€
+    function bindSignupOTPBoxes() {
+      const boxes = [];
+      for (let i = 1; i <= 6; i++) {
+        const el = document.getElementById(`signup-otp-d${i}`);
+        if (el) boxes.push(el);
+      }
+      boxes.forEach((box, idx) => {
+        box.addEventListener('input', (e) => {
+          let val = e.target.value.toString().replace(/\D/g, '').slice(-1);
+          box.value = val;
+          if (val) { box.classList.add('filled'); box.classList.remove('error'); if (idx < boxes.length - 1) boxes[idx+1].focus(); }
+          else { box.classList.remove('filled'); }
+        });
+        box.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !box.value && idx > 0) { boxes[idx-1].focus(); boxes[idx-1].value=''; boxes[idx-1].classList.remove('filled'); }
+          if (e.key === 'ArrowLeft' && idx > 0) boxes[idx-1].focus();
+          if (e.key === 'ArrowRight' && idx < boxes.length-1) boxes[idx+1].focus();
+        });
+        box.addEventListener('paste', (e) => {
+          const p = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'').substring(0,6);
+          if (p.length > 0) {
+            e.preventDefault();
+            boxes.forEach((b,i) => { b.value = p[i]||''; if(b.value) b.classList.add('filled'); else b.classList.remove('filled'); });
+            boxes[Math.min(p.length,boxes.length)-1].focus();
+          }
+        });
+      });
+    }
+    
+    // â”€â”€ Resend timer â”€â”€
+    let signupTimerInterval = null;
+    function startSignupResendTimer(email) {
+      const btn = document.getElementById('btn-signup-resend-otp');
+      const timerEl = document.getElementById('signup-otp-timer');
+      if (signupTimerInterval) clearInterval(signupTimerInterval);
+      signupTimerInterval = BrainByteOTP.startResendTimer(btn, timerEl);
+      
+      if (btn) {
+        btn.onclick = () => {
+          BrainByteOTP.sendOTP(email, 'email');
+          startSignupResendTimer(email);
+          const errEl = document.getElementById('signup-otp-error');
+          if (errEl) errEl.classList.remove('visible');
+          for (let i = 1; i <= 6; i++) {
+            const b = document.getElementById(`signup-otp-d${i}`);
+            if (b) { b.value=''; b.classList.remove('filled','error','success'); }
+          }
+          document.getElementById('signup-otp-d1')?.focus();
+        };
+      }
+    }
+    
+    // â”€â”€ Verify button â”€â”€
+    const btnVerify = document.getElementById('btn-signup-verify-otp');
+    if (btnVerify) {
+      btnVerify.onclick = () => {
+        let code = '';
+        for (let i = 1; i <= 6; i++) {
+          const el = document.getElementById(`signup-otp-d${i}`);
+          code += el ? (el.value || '') : '';
+        }
+        
+        const errEl = document.getElementById('signup-otp-error');
+        if (errEl) errEl.classList.remove('visible');
+        
+        if (code.length < 6) {
+          if (errEl) { errEl.textContent = '&#x26A0;&#xFE0F; Please enter all 6 digits.'; errEl.classList.add('visible'); }
+          return;
+        }
+        
+        const result = BrainByteOTP.verifyOTP(code);
+        if (!result.success) {
+          if (errEl) { errEl.textContent = '&#x26A0;&#xFE0F; ' + result.error; errEl.classList.add('visible'); }
+          for (let i = 1; i <= 6; i++) {
+            const b = document.getElementById(`signup-otp-d${i}`);
+            if (b) { b.classList.add('error'); setTimeout(() => b.classList.remove('error'), 500); }
+          }
+          return;
+        }
+        
+        // Success!
+        for (let i = 1; i <= 6; i++) {
+          const b = document.getElementById(`signup-otp-d${i}`);
+          if (b) b.classList.add('success');
+        }
+        btnVerify.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Account verified! Welcome ðŸŽ‰</span>`;
+        btnVerify.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+        btnVerify.disabled = true;
+        
+        // Finalize signup
+        const pending = JSON.parse(sessionStorage.getItem('bb_pending_signup') || '{}');
+        const finalUser = { ...pending, isLoggedIn: true, emailVerified: true };
+        localStorage.setItem('brainbyte_user', JSON.stringify(finalUser));
+        
+        // Also register in mock users list for future logins
+        const mockUsers = JSON.parse(localStorage.getItem('bb_mock_users') || '[]');
+        const exists = mockUsers.find(u => u.email === finalUser.email);
+        if (!exists) mockUsers.push(finalUser);
+        localStorage.setItem('bb_mock_users', JSON.stringify(mockUsers));
+        
+        sessionStorage.removeItem('bb_pending_signup');
+        BrainByteOTP.clearOTP();
+        
+        console.log('%c[BrainByte Signup] Account verified and created!', 'color: #10B981; font-weight: bold;');
+        
+        setTimeout(() => {
+          if (role === 'instructor' || role === 'teach') {
+            window.location.href = 'teach-verify.html';
+          } else {
+            window.location.href = 'dashboard.html';
+          }
+        }, 1200);
+      };
+    }
+    
+    // â”€â”€ Back to step 2 â”€â”€
+    const btnBack2 = document.getElementById('btn-signup-back-to-step2');
+    if (btnBack2) {
+      btnBack2.onclick = () => {
+        BrainByteOTP.clearOTP();
+        step3.classList.remove('active');
+        step3.style.display = 'none';
+        if (step2) { step2.classList.add('active'); step2.style.display = 'block'; }
+        const indicatorStepText = document.getElementById('indicator-step-text');
+        const indicatorStepDots = document.getElementById('indicator-step-dots');
+        if (indicatorStepText) indicatorStepText.textContent = 'Step 2';
+        if (indicatorStepDots) indicatorStepDots.innerHTML = `<span style="color: var(--violet-primary);">&#9679;&#9679;&#9679;&#9679;</span><span style="color: rgba(255,255,255,0.12);">&#9675;&#9675;</span>`;
+      };
     }
   }
 }
 
 /**
- * PAGE 02 — Course Browse Page Controller
+ * PAGE 02 â€” Course Browse Page Controller
  * Full dynamic search/filtering engine with 12 mock courses, pagination, 
  * synchronized mobile/desktop filter controls, and dynamic detail redirects.
  */
@@ -1429,7 +1992,7 @@ function initCoursesController() {
     gridContainer.innerHTML = '';
 
     courses.forEach(course => {
-      const priceText = course.price === 0 ? "FREE" : `₹${course.price}`;
+      const priceText = course.price === 0 ? "FREE" : `â‚¹${course.price}`;
       const priceClass = course.price === 0 ? "free" : "paid";
       const isVerified = course.verified ? `<i class="bi bi-patch-check-fill text-primary ms-1" style="color: var(--violet-mid) !important;" title="Verified Author"></i>` : '';
 
@@ -1653,7 +2216,7 @@ function initCoursesController() {
 }
 
 /**
- * PAGE 03 — Course Detail Page Controller
+ * PAGE 03 â€” Course Detail Page Controller
  * Dynamically parses URL search query metadata to populate headings, prices, levels,
  * category badges, and gradient thumbnails. Programmatically controls tabs switching,
  * collapsible syllabus accordions, and click-enroll loaders.
@@ -1787,7 +2350,7 @@ function initCourseDetailController() {
 
   const isFree = (priceVal === '0' || priceVal.toLowerCase() === 'free');
   if (cardPrice) {
-    cardPrice.textContent = isFree ? "FREE" : `₹${priceVal}`;
+    cardPrice.textContent = isFree ? "FREE" : `â‚¹${priceVal}`;
   }
 
   if (isFree) {
@@ -1800,7 +2363,7 @@ function initCourseDetailController() {
     if (cardOriginal) {
       cardOriginal.classList.remove('d-none');
       const origPrice = parseInt(priceVal) * 10;
-      cardOriginal.textContent = `₹${origPrice.toLocaleString()}`;
+      cardOriginal.textContent = `â‚¹${origPrice.toLocaleString()}`;
     }
     if (cardDiscount) cardDiscount.classList.remove('d-none');
     if (cardGuarantee) {
@@ -1933,7 +2496,7 @@ function initCourseDetailController() {
 }
 
 /**
- * PAGE 06 — Free Learning Library Controller
+ * PAGE 06 â€” Free Learning Library Controller
  * Full dynamic catalog filter engine for videos & PDFs, scrollable pills,
  * real-time session switchers (blurring/locking cards in guest state), 
  * incremental load-more offsets, and stub page integrations.
@@ -2282,7 +2845,7 @@ function initLibraryController() {
       
       // Card metadata query parameters
       const statsValue = isVideo ? `${(item.views/1000).toFixed(1)}K Views` : `${(item.downloads/1000).toFixed(1)}K Downloads`;
-      const queryParams = `?title=${encodeURIComponent(item.title)}&type=${item.type}&metrics=${encodeURIComponent(statsValue + ' &bull; ' + (isVideo ? item.rating.toFixed(1) + '★' : item.size))}`;
+      const queryParams = `?title=${encodeURIComponent(item.title)}&type=${item.type}&metrics=${encodeURIComponent(statsValue + ' &bull; ' + (isVideo ? item.rating.toFixed(1) + 'â˜…' : item.size))}`;
       
       const clickTarget = sessionLogged ? `href="resource-detail.html${queryParams}"` : `href="login.html"`;
 
@@ -2293,7 +2856,7 @@ function initLibraryController() {
         cardClass = 'free';
         thumbnailHTML = `
           <div class="course-card-thumbnail-container">
-            <span class="course-card-category-badge" style="background: rgba(6,182,212,0.20) !important; border-color: rgba(6,182,212,0.30) !important; color: #06B6D4 !important;">📹 Video</span>
+            <span class="course-card-category-badge" style="background: rgba(6,182,212,0.20) !important; border-color: rgba(6,182,212,0.30) !important; color: #06B6D4 !important;">ðŸ“¹ Video</span>
             <span class="badge position-absolute" style="top: 12px; right: 12px; z-index: 5; background: rgba(0,0,0,0.60); color: white; font-size: 0.7rem; font-weight: bold; border: none; padding: 0.3rem 0.5rem;">${item.duration}</span>
             <div class="video-play-center-btn">
               <i class="bi bi-play-fill" style="margin-left: 2px;"></i>
@@ -2307,7 +2870,7 @@ function initLibraryController() {
         cardClass = 'paid'; // Style matching purple gradient hover borders
         thumbnailHTML = `
           <div class="course-card-thumbnail-container" style="height: 180px;">
-            <span class="course-card-category-badge" style="background: rgba(139, 92, 246, 0.15) !important; border-color: rgba(139, 92, 246, 0.3) !important; color: #A78BFA !important;">📄 PDF</span>
+            <span class="course-card-category-badge" style="background: rgba(139, 92, 246, 0.15) !important; border-color: rgba(139, 92, 246, 0.3) !important; color: #A78BFA !important;">ðŸ“„ PDF</span>
             <span class="badge position-absolute" style="top: 12px; right: 12px; z-index: 5; background: rgba(0,0,0,0.60); color: white; font-size: 0.7rem; font-weight: bold; border: none; padding: 0.3rem 0.5rem;">${item.pages}</span>
             <div class="pdf-thumbnail-icon-box">
               <i class="bi bi-file-earmark-pdf-fill"></i>
@@ -2404,7 +2967,7 @@ function initLibraryController() {
 }
 
 /**
- * PAGE 07 — Resource Detail Page Controller
+ * PAGE 07 â€” Resource Detail Page Controller
  * Handles locked vs unlocked views, dynamic URL parameter parsing for title/type/metrics,
  * HTML5 video custom play/pause/scrubber controls, PDF embed rendering & fallback toggles,
  * helpful ratings selectors (thumbs + gold stars), and community comments adding & liking.
@@ -2417,7 +2980,7 @@ function initResourceDetailController() {
   const params = new URLSearchParams(window.location.search);
   const title = params.get('title') || "Mastering CSS Grid & Subgrid in Production Architectures";
   const type = params.get('type') || "video"; // "video" or "pdf"
-  const metrics = params.get('metrics') || "12.4K Views &bull; 4.8★";
+  const metrics = params.get('metrics') || "12.4K Views &bull; 4.8â˜…";
 
   // Determine category and level based on title or defaults
   let categoryLabel = "Web Dev";
@@ -2461,10 +3024,10 @@ function initResourceDetailController() {
   const lvlBadge = document.getElementById('detail-badge-level');
   const metBadge = document.getElementById('detail-badge-metrics');
 
-  if (typeBadge) typeBadge.innerHTML = type === 'video' ? '📹 Video' : '📄 PDF';
+  if (typeBadge) typeBadge.innerHTML = type === 'video' ? 'ðŸ“¹ Video' : 'ðŸ“„ PDF';
   if (catBadge) catBadge.innerHTML = categoryLabel;
   if (lvlBadge) lvlBadge.innerHTML = levelLabel;
-  if (metBadge) metBadge.innerHTML = metrics.replace('&bull;', '•');
+  if (metBadge) metBadge.innerHTML = metrics.replace('&bull;', 'â€¢');
 
   // 2. Conditional Display of Video Player vs PDF Viewer
   const videoWrapper = document.getElementById('video-player-wrapper');
@@ -2717,14 +3280,14 @@ function initResourceDetailController() {
       if (!sessionLogged) return;
       rateUpBtn.classList.toggle('active-teal');
       rateDownBtn.classList.remove('active-red');
-      console.log("%c[BrainByte Feedback] Helpful 👍 selected", "color: #06B6D4; font-weight: bold;");
+      console.log("%c[BrainByte Feedback] Helpful ðŸ‘ selected", "color: #06B6D4; font-weight: bold;");
     });
 
     rateDownBtn.addEventListener('click', () => {
       if (!sessionLogged) return;
       rateDownBtn.classList.toggle('active-red');
       rateUpBtn.classList.remove('active-teal');
-      console.log("%c[BrainByte Feedback] Not helpful 👎 selected", "color: #EF4444; font-weight: bold;");
+      console.log("%c[BrainByte Feedback] Not helpful ðŸ‘Ž selected", "color: #EF4444; font-weight: bold;");
     });
   }
 
@@ -2844,7 +3407,7 @@ function initResourceDetailController() {
       {
         title: "Mastering CSS Grid & Subgrid in Production Architectures",
         type: "video",
-        metrics: "12.4K Views &bull; 4.8★",
+        metrics: "12.4K Views &bull; 4.8â˜…",
         initials: "CSS",
         gradient: "linear-gradient(135deg, #667eea, #764ba2)"
       },
@@ -2858,7 +3421,7 @@ function initResourceDetailController() {
       {
         title: "Supabase Row-Level Security (RLS) & Security Protocols",
         type: "video",
-        metrics: "8.9K Views &bull; 4.9★",
+        metrics: "8.9K Views &bull; 4.9â˜…",
         initials: "SB",
         gradient: "linear-gradient(135deg, #667eea, #764ba2)"
       },
@@ -2872,7 +3435,7 @@ function initResourceDetailController() {
       {
         title: "Introduction to PyTorch Models & Deep Learning Nodes",
         type: "video",
-        metrics: "32.5K Views &bull; 5.0★",
+        metrics: "32.5K Views &bull; 5.0â˜…",
         initials: "AI",
         gradient: "linear-gradient(135deg, #fa709a, #fee140)"
       },
@@ -2906,7 +3469,7 @@ function initResourceDetailController() {
         <div class="flex-grow-1 overflow-hidden" style="display: flex; flex-direction: column; justify-content: space-between;">
           <h5 class="text-white fw-bold m-0 text-truncate" style="font-size: 0.8rem;">${item.title}</h5>
           <div class="d-flex justify-content-between align-items-center">
-            <span class="badge" style="background: ${isVid ? 'rgba(6, 182, 212, 0.12)' : 'rgba(168, 85, 247, 0.12)'}; border: 1px solid ${isVid ? 'rgba(6, 182, 212, 0.25)' : 'rgba(168, 85, 247, 0.25)'}; color: ${isVid ? '#06B6D4' : '#C084FC'}; font-size: 0.62rem;">${isVid ? '📹 Video' : '📄 PDF'}</span>
+            <span class="badge" style="background: ${isVid ? 'rgba(6, 182, 212, 0.12)' : 'rgba(168, 85, 247, 0.12)'}; border: 1px solid ${isVid ? 'rgba(6, 182, 212, 0.25)' : 'rgba(168, 85, 247, 0.25)'}; color: ${isVid ? '#06B6D4' : '#C084FC'}; font-size: 0.62rem;">${isVid ? 'ðŸ“¹ Video' : 'ðŸ“„ PDF'}</span>
             <span class="text-muted" style="font-size: 0.68rem;">${item.metrics.split('&bull;')[0]}</span>
           </div>
         </div>
@@ -2917,7 +3480,7 @@ function initResourceDetailController() {
 }
 
 /**
- * PAGE 09 — Student Dashboard Controller
+ * PAGE 09 â€” Student Dashboard Controller
  * Governs sticky left sidebar tab switching, responsive overlay drawers, 
  * time-based dynamic greetings, courses progress filters, certifications shares, 
  * heart-triggers wishlist deletions, profile avatar picker mocks, and logout callbacks.
@@ -2958,7 +3521,7 @@ function initDashboardController() {
     } else if (hours >= 17) {
       salutation = "Good evening";
     }
-    greetingTitle.textContent = `${salutation}, ${user.full_name || 'Student'} 👋`;
+    greetingTitle.textContent = `${salutation}, ${user.full_name || 'Student'} ðŸ‘‹`;
   }
 
   // Populate sidebar name
@@ -3141,14 +3704,11 @@ function initDashboardController() {
   // ================================================================
   const avatarUploadFrame = document.getElementById('avatar-upload-frame');
   const settingsFileInput = document.getElementById('settings-avatar-input');
-  
+
   let newAvatarUrl = user.avatar_url || '';
 
   if (avatarUploadFrame && settingsFileInput) {
-    avatarUploadFrame.addEventListener('click', () => {
-      settingsFileInput.click();
-    });
-
+    avatarUploadFrame.addEventListener('click', () => { settingsFileInput.click(); });
     settingsFileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
@@ -3156,7 +3716,7 @@ function initDashboardController() {
         reader.onload = (event) => {
           newAvatarUrl = event.target.result;
           renderAvatars(newAvatarUrl);
-          console.log("%c[BrainByte Settings] Local profile avatar loaded for saving.", "color: #10B981; font-weight: bold;");
+          console.log('%c[BrainByte Settings] Avatar loaded.', 'color: #10B981; font-weight: bold;');
         };
         reader.readAsDataURL(file);
       }
@@ -3164,86 +3724,67 @@ function initDashboardController() {
   }
 
   // ================================================================
-  // 7. PROFILE SETTINGS SAVE HANDLER (Supabase Connect)
+  // 7. PROFILE SETTINGS SAVE HANDLER (localStorage + Supabase)
   // ================================================================
   const btnSettingsSave = document.getElementById('btn-settings-save');
   if (btnSettingsSave) {
     btnSettingsSave.addEventListener('click', async () => {
+      const newName = fullNameInput ? fullNameInput.value.trim() : '';
+      const newBio = bioTextarea ? bioTextarea.value.trim() : '';
+      
+      if (!newName) {
+        showSettingsToast('error', 'bi-exclamation-circle-fill', 'Full name cannot be empty.');
+        return;
+      }
+      
       const originalText = btnSettingsSave.innerHTML;
       btnSettingsSave.disabled = true;
       btnSettingsSave.innerHTML = `<span class="alert-spinner"></span> <span>Saving...</span>`;
       
-      const newName = fullNameInput ? fullNameInput.value.trim() : '';
-      const newBio = bioTextarea ? bioTextarea.value.trim() : '';
-      
       try {
-        const client = window.supabaseClient || supabaseClient;
-        if (!client) {
-          throw new Error("Supabase client is not initialized.");
-        }
-        
-        // Update user profile in public.users table in Supabase
-        const { error } = await client
-          .from('users')
-          .update({
-            full_name: newName,
-            bio: newBio,
-            avatar_url: newAvatarUrl
-          })
-          .eq('id', user.id);
-
-        if (error) throw error;
-
-        // Update local storage backup
-        const updatedUser = {
-          ...user,
-          full_name: newName,
-          bio: newBio,
-          avatar_url: newAvatarUrl
-        };
+        // 1. Always update localStorage first (works without Supabase)
+        const updatedUser = { ...user, full_name: newName, bio: newBio, avatar_url: newAvatarUrl };
         localStorage.setItem('brainbyte_user', JSON.stringify(updatedUser));
+        user = updatedUser;
         
-        // Update live greeting titles and sidebars
+        // 2. Update live UI immediately
         if (greetingTitle) {
-          const hours = new Date().getHours();
-          let salutation = "Good morning";
-          if (hours >= 12 && hours < 17) {
-            salutation = "Good afternoon";
-          } else if (hours >= 17) {
-            salutation = "Good evening";
-          }
-          greetingTitle.textContent = `${salutation}, ${newName || 'Student'} 👋`;
+          const h = new Date().getHours();
+          const salutation = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+          greetingTitle.textContent = `${salutation}, ${newName} ðŸ‘‹`;
         }
-        if (sidebarName) {
-          sidebarName.textContent = newName || 'Student';
+        if (sidebarName) sidebarName.textContent = newName;
+        
+        // Also update sidebar avatar initials if no image
+        if (!newAvatarUrl) {
+          const newInitials = newName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+          if (sidebarAvatar) sidebarAvatar.innerHTML = newInitials;
+          if (settingsAvatarPreview) settingsAvatarPreview.innerHTML = newInitials;
         }
         
-        btnSettingsSave.innerHTML = `<i class="bi bi-check-circle-fill"></i> Saved!`;
-        btnSettingsSave.style.backgroundColor = '#10B981';
-        btnSettingsSave.style.borderColor = '#10B981';
-        btnSettingsSave.style.color = '#FFFFFF';
+        // 3. Try Supabase update (optional, non-blocking)
+        const client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        if (client && user.id) {
+          client.from('users').update({ full_name: newName, bio: newBio, avatar_url: newAvatarUrl }).eq('id', user.id)
+            .then(({ error }) => { if (error) console.warn('[Settings] Supabase update warning:', error.message); });
+        }
         
-        console.log("%c[Supabase Settings] Profile saved successfully to Supabase DB.", "color: #10B981; font-weight: bold;");
-        
-        setTimeout(() => {
-          btnSettingsSave.disabled = false;
-          btnSettingsSave.innerHTML = originalText;
-          btnSettingsSave.style.backgroundColor = '';
-          btnSettingsSave.style.borderColor = '';
-          btnSettingsSave.style.color = '';
-        }, 1500);
-
-      } catch (err) {
-        console.error("[Supabase Settings] Save changes error:", err);
         btnSettingsSave.disabled = false;
         btnSettingsSave.innerHTML = originalText;
-        alert(err.message || "Could not save profile changes. Please try again.");
+        showSettingsToast('success', 'bi-check-circle-fill', 'Profile updated successfully!');
+        console.log('%c[BrainByte Settings] Profile saved.', 'color: #10B981; font-weight: bold;');
+        
+      } catch (err) {
+        console.error('[Settings] Save error:', err);
+        btnSettingsSave.disabled = false;
+        btnSettingsSave.innerHTML = originalText;
+        showSettingsToast('error', 'bi-exclamation-circle-fill', 'Could not save changes. Try again.');
       }
     });
   }
 
   // ================================================================
-  // 8. SETTINGS DYNAMIC PASSWORD STRENGTH METERS
+  // 8. SETTINGS PASSWORD STRENGTH METER
   // ================================================================
   const newPassInput = document.getElementById('new-password');
   const strengthBar = document.getElementById('settings-strength-bar');
@@ -3270,31 +3811,121 @@ function initDashboardController() {
       strengthLabel.className = 'strength-label';
 
       if (score === 1 || val.length < 6) {
-        strengthBar.style.width = '33%';
-        strengthBar.classList.add('weak');
-        strengthLabel.classList.add('weak');
-        strengthLabel.textContent = 'Weak';
+        strengthBar.style.width = '33%'; strengthBar.classList.add('weak');
+        strengthLabel.classList.add('weak'); strengthLabel.textContent = 'Weak';
       } else if (score === 2) {
-        strengthBar.style.width = '66%';
-        strengthBar.classList.add('medium');
-        strengthLabel.classList.add('medium');
-        strengthLabel.textContent = 'Medium';
+        strengthBar.style.width = '66%'; strengthBar.classList.add('medium');
+        strengthLabel.classList.add('medium'); strengthLabel.textContent = 'Medium';
       } else {
-        strengthBar.style.width = '100%';
-        strengthBar.classList.add('strong');
-        strengthLabel.classList.add('strong');
-        strengthLabel.textContent = 'Strong (Excellent)';
+        strengthBar.style.width = '100%'; strengthBar.classList.add('strong');
+        strengthLabel.classList.add('strong'); strengthLabel.textContent = 'Strong âœ“';
       }
     });
   }
 
   // ================================================================
-  // 8. LOGOUT SESSIONS CLEARING CALLBACKS
+  // 9. CHANGE PASSWORD HANDLER
+  // ================================================================
+  const btnUpdatePassword = document.getElementById('btn-update-password');
+  const currPassInput = document.getElementById('curr-password');
+  const confPassInput = document.getElementById('conf-password');
+  
+  if (btnUpdatePassword) {
+    btnUpdatePassword.addEventListener('click', async () => {
+      const currPass = currPassInput ? currPassInput.value : '';
+      const newPass = newPassInput ? newPassInput.value : '';
+      const confPass = confPassInput ? confPassInput.value : '';
+      
+      // Validation
+      if (!currPass) { showSettingsToast('error', 'bi-shield-x-fill', 'Please enter your current password.'); return; }
+      if (newPass.length < 8) { showSettingsToast('error', 'bi-shield-x-fill', 'New password must be at least 8 characters.'); return; }
+      if (newPass !== confPass) { showSettingsToast('error', 'bi-shield-x-fill', 'New passwords do not match.'); return; }
+      
+      // Verify current password against stored mock user data
+      const storedUser = JSON.parse(localStorage.getItem('brainbyte_user') || '{}');
+      if (storedUser.password && storedUser.password !== currPass) {
+        showSettingsToast('error', 'bi-shield-x-fill', 'Current password is incorrect.');
+        if (currPassInput) { currPassInput.style.borderColor = '#EF4444'; setTimeout(() => { currPassInput.style.borderColor = ''; }, 2000); }
+        return;
+      }
+      
+      const originalText = btnUpdatePassword.innerHTML;
+      btnUpdatePassword.disabled = true;
+      btnUpdatePassword.innerHTML = `<span class="alert-spinner"></span> <span>Updating...</span>`;
+      
+      try {
+        // 1. Update localStorage
+        const updatedUser = { ...storedUser, password: newPass };
+        localStorage.setItem('brainbyte_user', JSON.stringify(updatedUser));
+        
+        // Also update in mock users list
+        const mockUsers = JSON.parse(localStorage.getItem('bb_mock_users') || '[]');
+        const idx = mockUsers.findIndex(u => u.email === storedUser.email);
+        if (idx !== -1) { mockUsers[idx].password = newPass; localStorage.setItem('bb_mock_users', JSON.stringify(mockUsers)); }
+        
+        // 2. Try Supabase update (non-blocking)
+        const client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        if (client) {
+          client.auth.updateUser({ password: newPass })
+            .then(({ error }) => { if (error) console.warn('[Password] Supabase update warning:', error.message); });
+        }
+        
+        // 3. Clear inputs
+        if (currPassInput) currPassInput.value = '';
+        if (newPassInput) { newPassInput.value = ''; newPassInput.dispatchEvent(new Event('input')); }
+        if (confPassInput) confPassInput.value = '';
+        
+        btnUpdatePassword.disabled = false;
+        btnUpdatePassword.innerHTML = originalText;
+        showSettingsToast('success', 'bi-shield-fill-check', 'Password updated successfully!');
+        console.log('%c[BrainByte Settings] Password changed successfully.', 'color: #10B981; font-weight: bold;');
+        
+      } catch (err) {
+        console.error('[Settings] Password update error:', err);
+        btnUpdatePassword.disabled = false;
+        btnUpdatePassword.innerHTML = originalText;
+        showSettingsToast('error', 'bi-shield-x-fill', 'Could not update password. Try again.');
+      }
+    });
+  }
+
+  // ================================================================
+  // 10. SETTINGS TOAST HELPER
+  // ================================================================
+  function showSettingsToast(type, iconClass, message) {
+    // Remove existing toast
+    const existing = document.getElementById('settings-toast-el');
+    if (existing) existing.remove();
+    
+    const iconColors = { success: '#34D399', error: '#F87171', info: '#C084FC' };
+    const toast = document.createElement('div');
+    toast.id = 'settings-toast-el';
+    toast.className = `settings-toast toast-${type}`;
+    toast.innerHTML = `
+      <span class="settings-toast-icon" style="color: ${iconColors[type] || '#fff'};"><i class="bi ${iconClass}"></i></span>
+      <span class="settings-toast-text">${message}</span>
+    `;
+    document.body.appendChild(toast);
+    
+    // Animate in
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => toast.classList.add('show'));
+    });
+    
+    // Auto-dismiss after 3.5s
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 400);
+    }, 3500);
+  }
+
+  // ================================================================
+  // 11. LOGOUT SESSIONS CLEARING CALLBACKS
   // ================================================================
 }
 
 /**
- * PAGE 10 — Instructor Studio Controller
+ * PAGE 10 â€” Instructor Studio Controller
  * Governs sticky left sidebar tab switching, warning verification banners,
  * verified vs unverified session toggles, multi-step course wizarding prev/next page
  * updates, syllabus builders section & lesson additions, reviews reports, and logout session clears.
@@ -3755,7 +4386,7 @@ function initInstructorController() {
 
 /**
  * ================================================================
- * PAGE 11 & 12 — INSTRUCTOR VERIFICATION CONTROLLER
+ * PAGE 11 & 12 â€” INSTRUCTOR VERIFICATION CONTROLLER
  * ================================================================
  */
 function initVerificationController() {
@@ -4134,7 +4765,7 @@ function initVerificationController() {
 
     // Category + experience
     if (summaryCategoryExp && fields.category && fields.experience) {
-      summaryCategoryExp.innerText = `${fields.category.value} • ${fields.experience.value}`;
+      summaryCategoryExp.innerText = `${fields.category.value} â€¢ ${fields.experience.value}`;
     }
 
     // LinkedIn

@@ -3,20 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login — BrainByte</title>
+  <title>Login &mdash; BrainByte</title>
   <meta name="description" content="Access your developer portal at BrainByte. Log in to continue your full-stack, design, and AI coding courses.">
   
-  <!-- Preload and load Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  
-  <!-- Bootstrap 5 CSS CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-  
-  <!-- Bootstrap Icons CDN -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
   
-  <!-- Custom Premium Theme CSS -->
+  <style>
+    /* OTP channel toggle tabs */
+    .otp-channel-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      background: rgba(255,255,255,0.04);
+      border-radius: 12px;
+      padding: 4px;
+    }
+    .otp-channel-tab {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+      border-radius: 9px;
+      border: none;
+      background: transparent;
+      color: #94A3B8;
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: var(--font-display, 'Inter', sans-serif);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .otp-channel-tab.active {
+      background: rgba(168,85,247,0.15);
+      color: #C084FC;
+      border: 1px solid rgba(168,85,247,0.3);
+    }
+    .otp-channel-tab:hover:not(.active) {
+      background: rgba(255,255,255,0.06);
+      color: #FFFFFF;
+    }
+  </style>
+
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="login-body">
@@ -24,20 +58,15 @@
   <div class="container-fluid p-0">
     <div class="row g-0 login-wrapper">
       
-      <!-- ================================================================
-        LEFT PANEL (Brand side - Hidden on Mobile)
-      ================================================================ -->
+      <!-- LEFT PANEL -->
       <div class="col-lg-6 login-brand-side d-none d-lg-flex">
-        <!-- Glow backdrops -->
         <div class="glow-purple"></div>
         <div class="glow-cyan"></div>
         
-        <!-- Logo -->
         <a class="navbar-brand d-flex align-items-center mb-5 position-relative" style="z-index: 5;" href="index.html" id="login-brand-logo">
           <span class="text-white">Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
         </a>
         
-        <!-- Impact quote -->
         <div class="position-relative" style="z-index: 5; max-width: 440px;">
           <h2 class="text-white fw-bold mb-3" style="font-size: 2.5rem; line-height: 1.25; font-family: var(--font-display);">
             Your next skill is <span class="text-gradient-violet">one click</span> away
@@ -47,136 +76,176 @@
           </p>
         </div>
         
-        <!-- Perspective decorative floating cards -->
         <div class="perspective-container position-relative" style="z-index: 5;">
-          
-          <!-- Decorative Card 1 -->
           <div class="floating-glass-card">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <span class="badge" style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3); color: var(--violet-mid); font-size: 0.7rem; font-weight: 700;">REACT FRONTEND</span>
               <span class="text-white-50" style="font-size: 0.75rem; font-weight: 500;">84% Done</span>
             </div>
-            <h4 class="text-white fw-bold m-0" style="font-size: 0.95rem;">Next.js & Supabase Certification</h4>
-            <div class="course-progress-track">
-              <div class="course-progress-bar-glow" style="width: 84%;"></div>
-            </div>
+            <h4 class="text-white fw-bold m-0" style="font-size: 0.95rem;">Next.js &amp; Supabase Certification</h4>
+            <div class="course-progress-track"><div class="course-progress-bar-glow" style="width: 84%;"></div></div>
           </div>
-          
-          <!-- Decorative Card 2 -->
           <div class="floating-glass-card">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <span class="badge" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); color: var(--teal-mid); font-size: 0.7rem; font-weight: 700;">UI/UX DESIGN</span>
               <span class="text-white-50" style="font-size: 0.75rem; font-weight: 500;">95% Done</span>
             </div>
             <h4 class="text-white fw-bold m-0" style="font-size: 0.95rem;">Figma UI/UX Advanced Prototyping</h4>
-            <div class="course-progress-track">
-              <div class="course-progress-bar-glow" style="width: 95%; background: linear-gradient(90deg, var(--teal-primary) 0%, var(--teal-mid) 100%); box-shadow: 0 0 8px rgba(6, 182, 212, 0.5);"></div>
-            </div>
+            <div class="course-progress-track"><div class="course-progress-bar-glow" style="width: 95%; background: linear-gradient(90deg, var(--teal-primary) 0%, var(--teal-mid) 100%);"></div></div>
           </div>
-          
-          <!-- Decorative Card 3 -->
           <div class="floating-glass-card">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <span class="badge" style="background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.3); color: var(--brand-pink); font-size: 0.7rem; font-weight: 700;">AI DEEP LEARNING</span>
               <span class="text-white-50" style="font-size: 0.75rem; font-weight: 500;">42% Done</span>
             </div>
-            <h4 class="text-white fw-bold m-0" style="font-size: 0.95rem;">Deep Learning & PyTorch Systems</h4>
-            <div class="course-progress-track">
-              <div class="course-progress-bar-glow" style="width: 42%; background: linear-gradient(90deg, var(--brand-pink) 0%, #a855f7 100%); box-shadow: 0 0 8px rgba(236, 72, 153, 0.5);"></div>
-            </div>
+            <h4 class="text-white fw-bold m-0" style="font-size: 0.95rem;">Deep Learning &amp; PyTorch Systems</h4>
+            <div class="course-progress-track"><div class="course-progress-bar-glow" style="width: 42%; background: linear-gradient(90deg, var(--brand-pink) 0%, #a855f7 100%);"></div></div>
           </div>
-          
         </div>
       </div>
       
-      <!-- ================================================================
-        RIGHT PANEL (Forms authentication side)
-      ================================================================ -->
+      <!-- RIGHT PANEL -->
       <div class="col-lg-6 col-12 login-form-side">
         <div class="login-form-container">
           
-          <!-- Brand indicator on Mobile -->
+          <!-- Mobile brand -->
           <div class="d-lg-none text-center mb-4">
             <a class="navbar-brand d-inline-flex align-items-center" href="index.html">
               <span class="text-white">Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
             </a>
           </div>
           
-          <!-- Greeting Header -->
-          <div class="mb-4 text-center text-lg-start">
-            <h1 class="fw-bold text-white mb-2" style="font-size: 2rem; font-family: var(--font-display);" id="login-title">Welcome back 👋</h1>
-            <p style="color: #94A3B8; font-size: 0.95rem;">Continue your learning journey</p>
-          </div>
-          
-          <!-- Error alert panel (hidden by default) -->
-          <div class="bb-error-alert d-none" role="alert" id="login-error-alert">
-            <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
-            <div id="error-message-text">Incorrect credentials. Please verify your email and password.</div>
-          </div>
-          
-          <!-- Login Form Form -->
-          <form id="login-form" novalidate>
-            
-            <!-- Email Input -->
-            <div class="glass-input-wrapper">
-              <label for="email" class="glass-input-label">Email Address</label>
-              <input type="email" class="glass-input" id="email" placeholder="name@domain.com" required>
+          <!-- ================================================================
+            STEP 1: LOGIN CREDENTIALS FORM
+          ================================================================ -->
+          <div id="login-step-1">
+            <div class="mb-4 text-center text-lg-start">
+              <h1 class="fw-bold text-white mb-2" style="font-size: 2rem; font-family: var(--font-display);" id="login-title">Welcome back &#x1F44B;</h1>
+              <p style="color: #94A3B8; font-size: 0.95rem;">Continue your learning journey</p>
             </div>
             
-            <!-- Password Input -->
-            <div class="glass-input-wrapper">
-              <div class="d-flex justify-content-between align-items-center mb-1">
-                <label for="password" class="glass-input-label m-0">Password</label>
-                <a href="#" class="small text-decoration-none" style="color: #A855F7; font-weight: 600; font-size: 0.8rem;" id="link-forgot-pass">Forgot password?</a>
+            <div class="bb-error-alert d-none" role="alert" id="login-error-alert">
+              <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+              <div id="error-message-text">Incorrect credentials. Please verify your email and password.</div>
+            </div>
+            
+            <form id="login-form" novalidate>
+              <div class="glass-input-wrapper">
+                <label for="email" class="glass-input-label">Email Address</label>
+                <input type="email" class="glass-input" id="email" placeholder="name@domain.com" required>
               </div>
-              <input type="password" class="glass-input" id="password" placeholder="••••••••" required>
-              <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility" id="toggle-password-btn">
-                <i class="bi bi-eye"></i>
+              
+              <div class="glass-input-wrapper">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label for="password" class="glass-input-label m-0">Password</label>
+                  <a href="#" class="small text-decoration-none" style="color: #A855F7; font-weight: 600; font-size: 0.8rem;" id="link-forgot-pass">Forgot password?</a>
+                </div>
+                <input type="password" class="glass-input" id="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required>
+                <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility" id="toggle-password-btn">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
+              
+              <button type="submit" class="btn-bb-login mt-2" id="submit-login-btn">
+                <span>Sign In</span>
+              </button>
+            </form>
+            
+            <div class="login-divider">or continue with</div>
+            
+            <button type="button" class="btn-bb-google mb-4" id="btn-oauth-google">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z" fill="#4285F4"/>
+                <path d="M9 18C11.43 18 13.4673 17.1941 14.9564 15.8195L12.0477 13.5614C11.2418 14.1014 10.2109 14.4205 9 14.4205C6.65591 14.4205 4.67182 12.8373 3.96409 10.71H0.957275V13.0418C2.43818 15.9832 5.48182 18 9 18Z" fill="#34A853"/>
+                <path d="M3.96409 10.71C3.78409 10.17 3.68182 9.59727 3.68182 9C3.68182 8.40273 3.78409 7.83 3.96409 7.29V4.95818H0.957275C0.347727 6.17318 0 7.55182 0 9C0 10.4482 0.347727 11.8268 0.957275 13.0418L3.96409 10.71Z" fill="#FBBC05"/>
+                <path d="M9 3.57955C10.3214 3.57955 11.5077 4.03364 12.4405 4.92545L15.0218 2.34409C13.4632 0.891818 11.4259 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.16273 6.65591 3.57955 9 3.57955Z" fill="#EA4335"/>
+              </svg>
+              <span>Continue with Google</span>
+            </button>
+            
+            <div class="text-center">
+              <span style="color: #94A3B8; font-size: 0.88rem; font-weight: 500;">
+                Don't have an account? <a href="signup.html" style="color: #A855F7; font-weight: 700; text-decoration: none;" id="link-signup">Sign up</a>
+              </span>
+            </div>
+          </div>
+
+          <!-- ================================================================
+            STEP 2: OTP VERIFICATION PANEL (Email OR Phone)
+          ================================================================ -->
+          <div id="login-step-2" class="otp-panel">
+            <!-- Shield badge -->
+            <div class="otp-icon-badge">
+              <i class="bi bi-shield-lock-fill"></i>
+            </div>
+
+            <div class="text-center mb-3">
+              <h2 class="fw-bold text-white mb-2" style="font-size: 1.75rem; font-family: var(--font-display);">Verify it's you &#x1F510;</h2>
+              <p style="color: #94A3B8; font-size: 0.85rem; margin-bottom: 0;">Choose how you want to receive your code</p>
+            </div>
+
+            <!-- Channel toggle tabs -->
+            <div class="otp-channel-tabs" id="login-otp-channel-tabs">
+              <button type="button" class="otp-channel-tab active" id="login-otp-tab-email" data-channel="email">
+                <i class="bi bi-envelope-fill"></i> Email
+              </button>
+              <button type="button" class="otp-channel-tab" id="login-otp-tab-phone" data-channel="phone">
+                <i class="bi bi-phone-fill"></i> Phone SMS
               </button>
             </div>
-            
-            <!-- Submit Pill Button -->
-            <button type="submit" class="btn-bb-login mt-2" id="submit-login-btn">
-              <span>Sign In</span>
+
+            <!-- Recipient display -->
+            <p class="otp-recipient-line text-center mb-1">
+              Code sent to: <strong id="login-otp-recipient">your email</strong>
+            </p>
+            <p style="font-size: 0.72rem; color: #475569; text-align: center; margin-bottom: 0.5rem; font-family: 'Fira Code', monospace;">
+              <i class="bi bi-terminal-fill me-1" style="color: #A855F7;"></i>
+              Check browser console (F12) for your OTP code
+            </p>
+
+            <!-- 6-digit OTP boxes -->
+            <div class="otp-digits-row" id="login-otp-digits-row">
+              <input type="number" class="otp-digit-box" maxlength="1" id="login-otp-d1" min="0" max="9" autocomplete="off">
+              <input type="number" class="otp-digit-box" maxlength="1" id="login-otp-d2" min="0" max="9" autocomplete="off">
+              <input type="number" class="otp-digit-box" maxlength="1" id="login-otp-d3" min="0" max="9" autocomplete="off">
+              <input type="number" class="otp-digit-box" maxlength="1" id="login-otp-d4" min="0" max="9" autocomplete="off">
+              <input type="number" class="otp-digit-box" maxlength="1" id="login-otp-d5" min="0" max="9" autocomplete="off">
+              <input type="number" class="otp-digit-box" maxlength="1" id="login-otp-d6" min="0" max="9" autocomplete="off">
+            </div>
+
+            <!-- Error message -->
+            <div class="otp-error-msg" id="login-otp-error"></div>
+
+            <!-- Verify Button -->
+            <button type="button" class="btn-bb-login mt-3 btn-otp-verify" id="btn-login-verify-otp">
+              <span>Verify &amp; Sign In</span>
             </button>
-          </form>
-          
-          <!-- Divider -->
-          <div class="login-divider">or continue with</div>
-          
-          <!-- Continue with Google Button -->
-          <button type="button" class="btn-bb-google mb-4" id="btn-oauth-google">
-            <!-- Inline SVG Google logo -->
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z" fill="#4285F4"/>
-              <path d="M9 18C11.43 18 13.4673 17.1941 14.9564 15.8195L12.0477 13.5614C11.2418 14.1014 10.2109 14.4205 9 14.4205C6.65591 14.4205 4.67182 12.8373 3.96409 10.71H0.957275V13.0418C2.43818 15.9832 5.48182 18 9 18Z" fill="#34A853"/>
-              <path d="M3.96409 10.71C3.78409 10.17 3.68182 9.59727 3.68182 9C3.68182 8.40273 3.78409 7.83 3.96409 7.29V4.95818H0.957275C0.347727 6.17318 0 7.55182 0 9C0 10.4482 0.347727 11.8268 0.957275 13.0418L3.96409 10.71Z" fill="#FBBC05"/>
-              <path d="M9 3.57955C10.3214 3.57955 11.5077 4.03364 12.4405 4.92545L15.0218 2.34409C13.4632 0.891818 11.4259 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.16273 6.65591 3.57955 9 3.57955Z" fill="#EA4335"/>
-            </svg>
-            <span>Continue with Google</span>
-          </button>
-          
-          <!-- Redirect / Sign Up footer link -->
-          <div class="text-center">
-            <span style="color: #94A3B8; font-size: 0.88rem; font-weight: 500;">
-              Don't have an account? <a href="signup.html" style="color: #A855F7; font-weight: 700; text-decoration: none;" id="link-signup">Sign up</a>
-            </span>
+
+            <!-- Resend row -->
+            <div class="d-flex align-items-center justify-content-center gap-2 mt-3 flex-wrap">
+              <span style="color: #94A3B8; font-size: 0.82rem;">Didn't get the code?</span>
+              <button type="button" class="btn btn-link p-0 text-decoration-none fw-bold" style="color: #A855F7; font-size: 0.82rem;" id="btn-login-resend-otp">Resend</button>
+              <span class="otp-resend-timer" id="login-otp-timer" style="display:none;"></span>
+            </div>
+
+            <!-- Back link -->
+            <div class="text-center mt-3">
+              <button type="button" class="btn btn-link p-0 text-decoration-none" style="color: #94A3B8; font-size: 0.8rem;" id="btn-login-back-to-form">
+                <i class="bi bi-arrow-left me-1"></i>Back to login
+              </button>
+            </div>
           </div>
-          
+
         </div>
       </div>
       
     </div>
   </div>
 
-  <!-- Bootstrap 5 JS Bundle CDN -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-
-<!-- Supabase CDN -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- Supabase Config -->
-<script src="js/supabase-config.js"></script>
-<!-- Main JS -->
-<script src="js/main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/otp-engine.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>
