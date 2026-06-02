@@ -294,1206 +294,806 @@ function initSmoothScroll() {
  * Login Screen Controller (PAGE 04)
  * Handles simulated Supabase authentication workflows, toggles, loading alerts, and redirects
  */
+/**
+ * ================================================================
+ *  LOGIN CONTROLLER â€” Email + Password â†’ Email OTP â†’ Dashboard
+ *  Uses: AuthEngine (js/auth-engine.js)
+ *  HTML IDs: li-* (login.html)
+ * ================================================================
+ */
 function initLoginController() {
-  const loginForm = document.getElementById('login-form');
-  const togglePassBtn = document.getElementById('toggle-password-btn');
-  const passwordInput = document.getElementById('password');
-  const errorAlert = document.getElementById('login-error-alert');
-  const errorMessageText = document.getElementById('error-message-text');
-  const submitBtn = document.getElementById('submit-login-btn');
-  const googleBtn = document.getElementById('btn-oauth-google');
-  
-  if (!loginForm) return;
+  const liForm     = document.getElementById('li-form');
+  const liStep1    = document.getElementById('li-step-1');
+  const liStep2    = document.getElementById('li-step-2');
+  if (!liForm) return;
 
-  // === HELPER: Show/Hide OTP Steps ===
-  const loginStep1 = document.getElementById('login-step-1');
-  const loginStep2 = document.getElementById('login-step-2');
-  
-  // Track active OTP channel for login ('email' or 'phone')
-  let loginOtpChannel = 'email';
-
-  // Wire channel tab buttons for login OTP
-  const loginTabEmail = document.getElementById('login-otp-tab-email');
-  const loginTabPhone = document.getElementById('login-otp-tab-phone');
-  const wireLoginChannelTabs = (email, phone) => {
-    const tabs = [loginTabEmail, loginTabPhone];
-    tabs.forEach(tab => {
-      if (!tab) return;
-      tab.onclick = () => {
-        tabs.forEach(t => t && t.classList.remove('active'));
-        tab.classList.add('active');
-        loginOtpChannel = tab.dataset.channel || 'email';
-        const recipient = loginOtpChannel === 'phone' ? phone : email;
-        if (!recipient) return;
-        BrainByteOTP.sendOTP(recipient, loginOtpChannel);
-        const recipientEl = document.getElementById('login-otp-recipient');
-        if (recipientEl) recipientEl.textContent = BrainByteOTP.getMasked(recipient, loginOtpChannel);
-        // Clear OTP boxes
-        for (let i = 1; i <= 6; i++) {
-          const b = document.getElementById(login-otp-d);
-          if (b) { b.value = ''; b.classList.remove('filled','error','success'); }
-        }
-        document.getElementById('login-otp-d1')?.focus();
-        startResendTimer('login');
-      };
+  // â”€â”€ Toggle password visibility â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const liTogglePw = document.getElementById('li-toggle-pw');
+  const liPwInput  = document.getElementById('li-password');
+  if (liTogglePw && liPwInput) {
+    liTogglePw.addEventListener('click', () => {
+      const isHidden = liPwInput.type === 'password';
+      liPwInput.type = isHidden ? 'text' : 'password';
+      liTogglePw.querySelector('i').className = isHidden ? 'bi bi-eye-slash' : 'bi bi-eye';
     });
+  }
+
+  // â”€â”€ UI helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const liShowError = (msg) => {
+    const el = document.getElementById('li-error');
+    const txt = document.getElementById('li-error-text');
+    if (el && txt) { txt.textContent = msg; el.classList.add('show'); }
+  };
+  const liHideError = () => {
+    const el = document.getElementById('li-error');
+    if (el) el.classList.remove('show');
   };
 
-  const showOTPPanel = (email, phone) => {
-    // Default channel is email; send OTP on email first
-    loginOtpChannel = 'email';
-    BrainByteOTP.sendOTP(email, 'email');
-    
-    // Wire channel tabs
-    wireLoginChannelTabs(email, phone || '');
-
-    // Update recipient display
-    const recipientEl = document.getElementById('login-otp-recipient');
-    if (recipientEl) recipientEl.textContent = BrainByteOTP.getMasked(email, 'email');
-    // Reset tab state
-    if (loginTabEmail) loginTabEmail.classList.add('active');
-    if (loginTabPhone) loginTabPhone.classList.remove('active');
-    
-    // Transition step 1 â†’ step 2
-    if (loginStep1) {
-      loginStep1.style.transition = 'opacity 0.25s ease';
-      loginStep1.style.opacity = '0';
-      setTimeout(() => {
-        loginStep1.style.display = 'none';
-        if (loginStep2) {
-          loginStep2.style.display = 'block';
-          loginStep2.classList.add('active');
-        }
-        // Auto-focus first digit box
-        const d1 = document.getElementById('login-otp-d1');
-        if (d1) setTimeout(() => d1.focus(), 100);
-        
-        // Start resend timer
-        startResendTimer('login');
-      }, 250);
+  const setLoading = (btn, loading, label = '') => {
+    if (!btn) return;
+    if (loading) {
+      btn.classList.add('loading');
+      btn.innerHTML = `<span class="spinner-ring"></span> <span style="margin-left:0.5rem;">${label || 'Please waitâ€¦'}</span>`;
+    } else {
+      btn.classList.remove('loading');
     }
   };
-  
-  // === HELPER: OTP Digit-box keyboard navigation ===
-  const bindOTPDigitBoxes = (prefix) => {
-    const boxes = [];
-    for (let i = 1; i <= 6; i++) {
-      const el = document.getElementById(`${prefix}-otp-d${i}`);
-      if (el) boxes.push(el);
-    }
-    
-    boxes.forEach((box, idx) => {
-      box.addEventListener('input', (e) => {
-        // Keep only last typed digit
-        let val = e.target.value.toString().replace(/\D/g, '').slice(-1);
-        box.value = val;
-        
-        if (val) {
-          box.classList.add('filled');
-          box.classList.remove('error');
-          if (idx < boxes.length - 1) boxes[idx + 1].focus();
-        } else {
-          box.classList.remove('filled');
-        }
-      });
-      
-      box.addEventListener('keydown', (e) => {
-        if (e.key === 'Backspace' && !box.value && idx > 0) {
-          boxes[idx - 1].focus();
-          boxes[idx - 1].value = '';
-          boxes[idx - 1].classList.remove('filled');
-        }
-        if (e.key === 'ArrowLeft' && idx > 0) boxes[idx - 1].focus();
-        if (e.key === 'ArrowRight' && idx < boxes.length - 1) boxes[idx + 1].focus();
-      });
-      
-      // Handle paste of full 6-digit code
-      box.addEventListener('paste', (e) => {
-        const pasteData = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').substring(0, 6);
-        if (pasteData.length > 0) {
-          e.preventDefault();
-          boxes.forEach((b, i) => {
-            b.value = pasteData[i] || '';
-            if (b.value) b.classList.add('filled'); else b.classList.remove('filled');
-          });
-          boxes[Math.min(pasteData.length, boxes.length) - 1].focus();
-        }
-      });
+
+  const goToOTPStep = () => {
+    liStep1.classList.remove('active');
+    liStep2.classList.add('active');
+    // Update step nodes
+    const n1 = document.getElementById('li-node-1');
+    const c1 = document.getElementById('li-conn-1');
+    const n2 = document.getElementById('li-node-2');
+    if (n1) { n1.classList.remove('active'); n1.classList.add('done'); n1.textContent = 'âœ“'; }
+    if (c1) c1.classList.add('done');
+    if (n2) n2.classList.add('active');
+  };
+
+  const goBackToStep1 = () => {
+    liStep2.classList.remove('active');
+    liStep1.classList.add('active');
+    const n1 = document.getElementById('li-node-1');
+    const c1 = document.getElementById('li-conn-1');
+    const n2 = document.getElementById('li-node-2');
+    if (n1) { n1.classList.add('active'); n1.classList.remove('done'); n1.textContent = '1'; }
+    if (c1) c1.classList.remove('done');
+    if (n2) n2.classList.remove('active');
+    AuthEngine.stopTimer('li-expiry');
+    AuthEngine.stopTimer('li-resend');
+  };
+
+  // â”€â”€ Brute-force lockout banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const liEmail = document.getElementById('li-email');
+  if (liEmail) {
+    liEmail.addEventListener('blur', () => {
+      const email = liEmail.value.trim();
+      if (!email) return;
+      const bf = AuthEngine.checkBruteForce(email);
+      const lockBar  = document.getElementById('li-lockout-bar');
+      const lockText = document.getElementById('li-lockout-text');
+      if (bf.locked && lockBar && lockText) {
+        lockText.textContent = bf.message;
+        lockBar.classList.add('show');
+      } else if (lockBar) {
+        lockBar.classList.remove('show');
+      }
     });
-  };
-  
-  // === HELPER: Collect OTP value from digit boxes ===
-  const collectOTPValue = (prefix) => {
-    let code = '';
-    for (let i = 1; i <= 6; i++) {
-      const el = document.getElementById(`${prefix}-otp-d${i}`);
-      code += el ? (el.value || '') : '';
+  }
+
+  // â”€â”€ STEP 1: Form submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  liForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    liHideError();
+
+    const email    = (liEmail?.value || '').trim();
+    const password = (liPwInput?.value || '');
+
+    if (!AuthEngine.validateEmail(email)) {
+      liShowError('Please enter a valid email address.'); return;
     }
-    return code;
-  };
-  
-  // === HELPER: Show OTP error ===
-  const showOTPError = (prefix, msg) => {
-    const errEl = document.getElementById(`${prefix}-otp-error`);
-    if (errEl) {
-      errEl.textContent = 'âš ï¸ ' + msg;
-      errEl.classList.add('visible');
+    if (password.length < 6) {
+      liShowError('Please enter your password.'); return;
     }
+
+    const btn = document.getElementById('li-btn-submit');
+    setLoading(btn, true, 'Verifying credentialsâ€¦');
+
+    try {
+      await AuthEngine.loginWithPassword(email, password);
+
+      // Send Email OTP
+      setLoading(btn, true, 'Sending OTP to emailâ€¦');
+      await AuthEngine.sendOTP(email, 'email');
+
+      // Update OTP panel UI
+      const display = document.getElementById('li-otp-email-display');
+      if (display) display.textContent = AuthEngine.maskEmail(email);
+
+      goToOTPStep();
+
+      // Wire OTP boxes
+      liBindOTPBoxes();
+
+      // Start expiry countdown
+      const timerEl = document.getElementById('li-otp-timer');
+      AuthEngine.startExpiryCountdown('li-expiry', {
+        displayEl: timerEl,
+        onExpire: () => {
+          if (timerEl) timerEl.classList.add('urgent');
+          liShowOTPError('OTP expired. Click "Resend OTP" to get a new code.');
+          document.getElementById('li-btn-verify').disabled = true;
+        }
+      });
+
+      // Start resend timer
+      liStartResend(email);
+
+      // Focus first box
+      setTimeout(() => document.getElementById('li-d1')?.focus(), 120);
+
+      // Reset attempt counter
+      const ac = document.getElementById('li-attempt-count');
+      if (ac) ac.textContent = '0';
+
+    } catch (err) {
+      liShowError(err.message || 'Login failed. Please try again.');
+      // Show lockout if applicable
+      const bf = AuthEngine.checkBruteForce(email);
+      if (bf.locked) {
+        const lockBar  = document.getElementById('li-lockout-bar');
+        const lockText = document.getElementById('li-lockout-text');
+        if (lockBar && lockText) { lockText.textContent = bf.message; lockBar.classList.add('show'); }
+      }
+    } finally {
+      btn.classList.remove('loading');
+      btn.innerHTML = '<span>Continue <i class="bi bi-arrow-right-short fs-5"></i></span>';
+    }
+  });
+
+  // â”€â”€ STEP 2: OTP helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const liShowOTPError = (msg) => {
+    const el  = document.getElementById('li-otp-error');
+    const txt = document.getElementById('li-otp-error-text');
+    if (el && txt) { txt.textContent = msg; el.classList.add('show'); }
     // Shake all boxes
     for (let i = 1; i <= 6; i++) {
-      const b = document.getElementById(`${prefix}-otp-d${i}`);
-      if (b) { b.classList.add('error'); setTimeout(() => b.classList.remove('error'), 500); }
+      const b = document.getElementById(`li-d${i}`);
+      if (b) { b.classList.remove('error'); void b.offsetWidth; b.classList.add('error'); }
     }
   };
-  
-  const hideOTPError = (prefix) => {
-    const errEl = document.getElementById(`${prefix}-otp-error`);
-    if (errEl) errEl.classList.remove('visible');
+  const liHideOTPError = () => {
+    const el = document.getElementById('li-otp-error');
+    if (el) el.classList.remove('show');
+    for (let i = 1; i <= 6; i++) {
+      const b = document.getElementById(`li-d${i}`);
+      if (b) b.classList.remove('error');
+    }
   };
-  
-  // === HELPER: Resend timer ===
-  let resendTimerInterval = null;
-  const startResendTimer = (prefix) => {
-    const btn = document.getElementById(`btn-${prefix}-resend-otp`);
-    const timerEl = document.getElementById(`${prefix}-otp-timer`);
-    if (resendTimerInterval) clearInterval(resendTimerInterval);
-    resendTimerInterval = BrainByteOTP.startResendTimer(btn, timerEl, () => {
-      console.log(`[OTP] Resend timer complete for ${prefix}`);
-    });
-  };
-  
-  // 1. Password Visibility Eye Toggle
-  if (togglePassBtn && passwordInput) {
-    togglePassBtn.addEventListener('click', () => {
-      const isPassword = passwordInput.getAttribute('type') === 'password';
-      passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
-      const icon = togglePassBtn.querySelector('i');
-      if (icon) icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
-    });
-  }
 
-  // 2. Login Form Submit â†’ Validate â†’ Show OTP
-  loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const email = document.getElementById('email').value.trim();
-    const password = passwordInput.value.trim();
-    
-    errorAlert.classList.add('d-none');
-    
-    if (!email || !password) {
-      showError("Please enter both your email address and password.");
-      return;
+  // OTP digit box binding
+  function liBindOTPBoxes() {
+    const boxes = [];
+    for (let i = 1; i <= 6; i++) {
+      const b = document.getElementById(`li-d${i}`);
+      if (b) { b.value = ''; b.classList.remove('filled','error','success'); boxes.push(b); }
     }
-    
-    const originalText = submitBtn.innerHTML;
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = `<span class="alert-spinner"></span> <span>Verifying...</span>`;
-    
-    try {
-      // --- Admin shortcut (mock) ---
-      if (email.toLowerCase() === 'admin@brainbyte.in' && password === 'admin123') {
-        localStorage.setItem('brainbyte_user', JSON.stringify({
-          id: 'mock-admin-uuid', full_name: 'Super Admin',
-          email: 'admin@brainbyte.in', role: 'admin', isLoggedIn: true
-        }));
-        submitBtn.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Redirecting...</span>`;
-        submitBtn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
-        setTimeout(() => { window.location.href = 'admin-dashboard.html'; }, 1000);
-        return;
-      }
-      
-      // --- Try Supabase auth ---
-      let supabaseSuccess = false;
-      let supabaseProfile = null;
-      const client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
-      
-      if (client) {
-        const { data, error } = await client.auth.signInWithPassword({ email, password });
-        if (!error && data && data.user) {
-          supabaseSuccess = true;
-          let profile = null;
-          const { data: pData } = await client.from('users').select('*').eq('id', data.user.id).single();
-          profile = pData || { id: data.user.id, email, full_name: data.user.user_metadata?.full_name || email.split('@')[0], role: data.user.user_metadata?.role || 'student' };
-          supabaseProfile = profile;
-        }
-      }
-      
-      // --- Fallback: localStorage mock users ---
-      if (!supabaseSuccess) {
-        const mockUsers = JSON.parse(localStorage.getItem('bb_mock_users') || '[]');
-        const found = mockUsers.find(u => u.email === email && u.password === password);
-        if (!found) {
-          throw new Error('Invalid email or password. Please check your credentials.');
-        }
-        supabaseProfile = found;
-      }
-      
-      // Store profile temporarily for after OTP (also store entered email for channel tab use)
-      const loginPhoneNum = ''; // Phone not collected on login page — use email OTP
-      sessionStorage.setItem('bb_pending_login', JSON.stringify({ ...supabaseProfile, isLoggedIn: true, phone: loginPhoneNum }));
-      
-      // Restore button
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = originalText;
-      
-      // Bind OTP boxes & show OTP panel
-      bindOTPDigitBoxes('login');
-      const pendingPhone = (sessionStorage.getItem('bb_pending_login') ? JSON.parse(sessionStorage.getItem('bb_pending_login')).phone || '' : '');
-      showOTPPanel(email, pendingPhone);
-      
-    } catch (err) {
-      console.error("[Login] Failure:", err);
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = originalText;
-      showError(err.message || 'Invalid email or password');
-    }
-  });
 
-  // 3. OTP Verify Button
-  const btnVerifyOTP = document.getElementById('btn-login-verify-otp');
-  if (btnVerifyOTP) {
-    btnVerifyOTP.addEventListener('click', () => {
-      const code = collectOTPValue('login');
-      hideOTPError('login');
-      
-      if (code.length < 6) {
-        showOTPError('login', 'Please enter all 6 digits.');
-        return;
-      }
-      
-      const result = BrainByteOTP.verifyOTP(code);
-      if (!result.success) {
-        showOTPError('login', result.error);
-        return;
-      }
-      
-      // All 6 boxes turn green
-      for (let i = 1; i <= 6; i++) {
-        const b = document.getElementById(`login-otp-d${i}`);
-        if (b) b.classList.add('success');
-      }
-      
-      btnVerifyOTP.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Verified! Signing in...</span>`;
-      btnVerifyOTP.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
-      btnVerifyOTP.disabled = true;
-      
-      // Retrieve pending profile and login
-      const pendingProfile = JSON.parse(sessionStorage.getItem('bb_pending_login') || '{}');
-      localStorage.setItem('brainbyte_user', JSON.stringify(pendingProfile));
-      sessionStorage.removeItem('bb_pending_login');
-      BrainByteOTP.clearOTP();
-      
-      const role = pendingProfile.role || 'student';
-      setTimeout(() => {
-        if (role === 'admin') {
-          window.location.href = 'admin-dashboard.html';
-        } else if (role === 'instructor' || role === 'teach') {
-          window.location.href = 'teach.html';
-        } else {
-          window.location.href = 'dashboard.html';
-        }
-      }, 1000);
-    });
-  }
-
-  // 4. Resend OTP
-  const btnResend = document.getElementById('btn-login-resend-otp');
-  if (btnResend) {
-    btnResend.addEventListener('click', () => {
-      const email = document.getElementById('email') ? document.getElementById('email').value.trim() : '';
-      if (email) {
-        BrainByteOTP.sendOTP(email, 'email');
-        startResendTimer('login');
-        hideOTPError('login');
-        // Clear boxes
-        for (let i = 1; i <= 6; i++) {
-          const b = document.getElementById(`login-otp-d${i}`);
-          if (b) { b.value = ''; b.classList.remove('filled', 'error', 'success'); }
-        }
-        document.getElementById('login-otp-d1')?.focus();
-      }
-    });
-  }
-  
-  // 5. Back to form from OTP
-  const btnBackToForm = document.getElementById('btn-login-back-to-form');
-  if (btnBackToForm) {
-    btnBackToForm.addEventListener('click', () => {
-      if (loginStep2) { loginStep2.style.display = 'none'; loginStep2.classList.remove('active'); }
-      if (loginStep1) { loginStep1.style.display = 'block'; loginStep1.style.opacity = '1'; }
-      BrainByteOTP.clearOTP();
-    });
-  }
-
-  // 6. Google OAuth Trigger
-  if (googleBtn) {
-    googleBtn.addEventListener('click', async () => {
-      const orig = googleBtn.innerHTML;
-      googleBtn.disabled = true;
-      googleBtn.innerHTML = `<span class="alert-spinner"></span> <span>Connecting to Google...</span>`;
-      try {
-        const client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
-        if (!client) throw new Error('Supabase not initialized');
-        const { error } = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/dashboard.html' } });
-        if (error) throw error;
-      } catch (err) {
-        googleBtn.disabled = false;
-        googleBtn.innerHTML = orig;
-        showError(err.message || 'Could not connect to Google OAuth.');
-      }
-    });
-  }
-
-  function showError(msg) {
-    if (errorAlert && errorMessageText) {
-      errorMessageText.textContent = msg;
-      errorAlert.classList.remove('d-none');
-    }
-  }
-}
-
-  // 1. Password Visibility Eye Toggle
-  if (togglePassBtn && passwordInput) {
-    togglePassBtn.addEventListener('click', () => {
-      const isPassword = passwordInput.getAttribute('type') === 'password';
-      passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
-      
-      const icon = togglePassBtn.querySelector('i');
-      if (icon) {
-        icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
-      }
-    });
-  }
-
-  // 2. Real Supabase Auth Email Login Flow
-  loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const email = document.getElementById('email').value.trim();
-    const password = passwordInput.value.trim();
-    
-    // Hide previous error state
-    errorAlert.classList.add('d-none');
-    
-    // Quick validation
-    if (!email || !password) {
-      showError("Please enter both your email address and password.");
-      return;
-    }
-    
-    // Start Submit Loading Indicator State
-    const originalText = submitBtn.innerHTML;
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = `<span class="alert-spinner"></span> <span>Verifying...</span>`;
-    
-    try {
-      const client = window.supabaseClient || supabaseClient;
-      if (!client) {
-        throw new Error("Supabase client is not initialized.");
-      }
-
-      // Live Supabase SignIn
-      const { data, error } = await client.auth.signInWithPassword({
-        email: email,
-        password: password
+    boxes.forEach((box, idx) => {
+      box.addEventListener('input', (ev) => {
+        const val = ev.target.value.replace(/\D/g, '').slice(-1);
+        box.value = val;
+        box.classList.toggle('filled', !!val);
+        if (val && boxes[idx + 1]) boxes[idx + 1].focus();
       });
-
-      if (error) {
-        // Fallback mock admin account direct checking to preserve sandbox administration access if live user is not configured
-        if (email.toLowerCase() === 'admin@brainbyte.in' && password === 'admin123') {
-          submitBtn.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Success! Redirecting...</span>`;
-          submitBtn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
-          submitBtn.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.4)';
-          
-          localStorage.setItem('brainbyte_user', JSON.stringify({
-            id: 'mock-admin-uuid',
-            full_name: "Super Admin",
-            email: "admin@brainbyte.in",
-            role: "admin",
-            isLoggedIn: true
-          }));
-          
-          setTimeout(() => {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
-            submitBtn.style.background = '';
-            submitBtn.style.boxShadow = '';
-            window.location.href = 'admin-dashboard.html';
-          }, 1200);
-          return;
-        }
-        
-        throw new Error("Invalid email or password");
-      }
-
-      if (!data || !data.user) {
-        throw new Error("Invalid email or password");
-      }
-
-      // Fetch user profile
-      const { data: profile, error: profileErr } = await client
-        .from('users')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
-
-      if (profileErr || !profile) {
-        console.warn("[Login] User Auth exists but Profile database entry not found. Auto-generating dynamic default profile row.");
-        
-        // Auto-generation fallback so that signUp profile sync issues don't lock accounts!
-        const defaultName = data.user.user_metadata?.full_name || email.split('@')[0];
-        const defaultRole = data.user.user_metadata?.role || 'student';
-        
-        await client.from('users').insert({
-          id: data.user.id,
-          email: email,
-          full_name: defaultName,
-          role: defaultRole
+      box.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Backspace' && !box.value && boxes[idx - 1]) boxes[idx - 1].focus();
+        if (ev.key === 'ArrowLeft'  && boxes[idx - 1]) boxes[idx - 1].focus();
+        if (ev.key === 'ArrowRight' && boxes[idx + 1]) boxes[idx + 1].focus();
+      });
+      box.addEventListener('paste', (ev) => {
+        ev.preventDefault();
+        const pasted = (ev.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+        pasted.split('').forEach((ch, i) => {
+          if (boxes[i]) { boxes[i].value = ch; boxes[i].classList.add('filled'); }
         });
-
-        // Retrying fetch
-        const { data: retriedProfile } = await client
-          .from('users')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-          
-        var activeProfile = retriedProfile || {
-          id: data.user.id,
-          email: email,
-          full_name: defaultName,
-          role: defaultRole,
-          avatar_url: null,
-          bio: ''
-        };
-      } else {
-        var activeProfile = profile;
-      }
-
-      // Save to localStorage
-      localStorage.setItem('brainbyte_user', JSON.stringify({
-        id: activeProfile.id,
-        email: activeProfile.email,
-        full_name: activeProfile.full_name,
-        role: activeProfile.role,
-        avatar_url: activeProfile.avatar_url,
-        bio: activeProfile.bio || '',
-        isLoggedIn: true
-      }));
-
-      submitBtn.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Success! Redirecting...</span>`;
-      submitBtn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
-      submitBtn.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.4)';
-      
-      console.log("%c[Supabase Auth] Success: Session established for " + email, 'color: #10B981; font-weight: bold;');
-      
-      const role = activeProfile.role || 'student';
-      
-      setTimeout(() => {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
-        submitBtn.style.background = '';
-        submitBtn.style.boxShadow = '';
-        
-        if (role === 'admin' || email.toLowerCase() === 'admin@brainbyte.in') {
-          window.location.href = 'admin-dashboard.html';
-        } else if (role === 'instructor' || role === 'teach') {
-          window.location.href = 'teach.html';
-        } else {
-          window.location.href = 'dashboard.html';
-        }
-      }, 1200);
-
-    } catch (err) {
-      console.error("[Supabase Auth] Login failure:", err);
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = originalText;
-      showError(err.message || "Invalid email or password");
-    }
-  });
-
-  // 3. Real Google OAuth Trigger
-  if (googleBtn) {
-    googleBtn.addEventListener('click', async () => {
-      const originalGoogleContent = googleBtn.innerHTML;
-      googleBtn.disabled = true;
-      googleBtn.innerHTML = `<span class="alert-spinner"></span> <span>Connecting to Google...</span>`;
-      
-      try {
-        const client = window.supabaseClient || supabaseClient;
-        if (!client) {
-          throw new Error("Supabase client is not initialized.");
-        }
-        
-        const { error } = await client.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: window.location.origin + '/dashboard.html'
-          }
-        });
-
-        if (error) throw error;
-        
-      } catch (err) {
-        console.error("[Supabase OAuth] Google login error:", err);
-        googleBtn.disabled = false;
-        googleBtn.innerHTML = originalGoogleContent;
-        showError(err.message || "Could not connect to Google OAuth.");
-      }
+        const next = boxes[Math.min(pasted.length, 5)];
+        if (next) next.focus();
+      });
     });
   }
 
-  function showError(msg) {
-    if (errorAlert && errorMessageText) {
-      errorMessageText.textContent = msg;
-      errorAlert.classList.remove('d-none');
+  function liGetOTPCode() {
+    let code = '';
+    for (let i = 1; i <= 6; i++) {
+      const b = document.getElementById(`li-d${i}`);
+      code += (b?.value || '');
     }
+    return code;
+  }
+
+  // Resend timer
+  function liStartResend(email) {
+    const btn      = document.getElementById('li-btn-resend');
+    const timerRow = document.getElementById('li-resend-timer');
+    const secEl    = document.getElementById('li-resend-sec');
+
+    AuthEngine.startResendTimer('li-resend', {
+      btn,
+      timerEl: { style: {}, textContent: '' }, // handled manually below
+      onExpire: null
+    });
+
+    // Manual countdown display
+    if (timerRow) timerRow.style.display = 'inline';
+    let sec = 30;
+    if (secEl) secEl.textContent = sec;
+
+    const interval = setInterval(() => {
+      sec--;
+      if (secEl) secEl.textContent = sec;
+      if (sec <= 0) {
+        clearInterval(interval);
+        if (timerRow) timerRow.style.display = 'none';
+      }
+    }, 1000);
+
+    if (btn) {
+      btn.onclick = async () => {
+        clearInterval(interval);
+        try {
+          await AuthEngine.sendOTP(email, 'email');
+          liHideOTPError();
+          // Reset expiry countdown
+          AuthEngine.stopTimer('li-expiry');
+          const timerEl = document.getElementById('li-otp-timer');
+          if (timerEl) { timerEl.classList.remove('urgent'); }
+          AuthEngine.startExpiryCountdown('li-expiry', {
+            displayEl: timerEl,
+            onExpire: () => {
+              if (timerEl) timerEl.classList.add('urgent');
+              liShowOTPError('OTP expired. Click "Resend OTP" for a new code.');
+              document.getElementById('li-btn-verify').disabled = true;
+            }
+          });
+          document.getElementById('li-btn-verify').disabled = false;
+          const ac = document.getElementById('li-attempt-count');
+          if (ac) ac.textContent = '0';
+          liStartResend(email);
+          liBindOTPBoxes();
+          document.getElementById('li-d1')?.focus();
+        } catch (err) {
+          liShowOTPError('Failed to resend. Please try again.');
+        }
+      };
+    }
+  }
+
+  // â”€â”€ STEP 2: Verify OTP button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const liVerifyBtn = document.getElementById('li-btn-verify');
+  if (liVerifyBtn) {
+    liVerifyBtn.addEventListener('click', async () => {
+      liHideOTPError();
+      const code  = liGetOTPCode();
+      const email = (liEmail?.value || '').trim();
+
+      if (code.length !== 6) {
+        liShowOTPError('Please enter all 6 digits.'); return;
+      }
+
+      setLoading(liVerifyBtn, true, 'Verifyingâ€¦');
+
+      const result = await AuthEngine.verifyOTP(email, 'email', code);
+
+      if (!result.success) {
+        const ac = document.getElementById('li-attempt-count');
+        if (ac) {
+          const cur = parseInt(ac.textContent) || 0;
+          ac.textContent = cur + 1;
+        }
+        liShowOTPError(result.error);
+        liVerifyBtn.classList.remove('loading');
+        liVerifyBtn.innerHTML = '<span>Verify &amp; Sign In</span>';
+
+        if (result.maxAttempts || result.remainingAttempts === 0) {
+          liVerifyBtn.disabled = true;
+        }
+        return;
+      }
+
+      // Success â€” complete login
+      const pending = JSON.parse(sessionStorage.getItem('bb_pending_login') || '{}');
+      await AuthEngine.completeLogin(pending);
+
+      // All boxes green
+      for (let i = 1; i <= 6; i++) {
+        const b = document.getElementById(`li-d${i}`);
+        if (b) { b.classList.remove('error'); b.classList.add('success'); }
+      }
+      AuthEngine.stopTimer('li-expiry');
+      AuthEngine.stopTimer('li-resend');
+
+      liVerifyBtn.innerHTML = '<span>&#x2705; Verified! Redirectingâ€¦</span>';
+      liVerifyBtn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+
+      setTimeout(() => {
+        const role = pending.role || 'student';
+        window.location.href = (role === 'instructor' || role === 'teach') ? 'teach-verify.html' : 'dashboard.html';
+      }, 900);
+    });
+  }
+
+  // â”€â”€ Back to step 1 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const liBackBtn = document.getElementById('li-btn-back');
+  if (liBackBtn) {
+    liBackBtn.addEventListener('click', () => {
+      liHideOTPError();
+      goBackToStep1();
+      sessionStorage.removeItem('bb_pending_login');
+    });
+  }
+
+  // â”€â”€ Google OAuth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const liGoogleBtn = document.getElementById('li-btn-google');
+  if (liGoogleBtn) {
+    liGoogleBtn.addEventListener('click', async () => {
+      try {
+        const client = window.supabaseClient;
+        if (client) {
+          await client.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: window.location.origin + '/dashboard.html' }
+          });
+        }
+      } catch (e) { liShowError('Google sign-in unavailable. Please use email login.'); }
+    });
   }
 }
 
 /**
- * Signup Screen Controller (PAGE 05)
- * Handles role selection, password strength meters, multi-step wizarding, and redirects
+ * ================================================================
+ *  SIGNUP CONTROLLER â€” Role â†’ Details â†’ Phone OTP â†’ Success
+ *  Uses: AuthEngine (js/auth-engine.js)
+ *  HTML IDs: su-* (signup.html)
+ * ================================================================
  */
 function initSignupController() {
-  const step1 = document.getElementById('step-1-container');
-  const step2 = document.getElementById('step-2-container');
-  
-  if (!step1 || !step2) return; // Only execute on the signup page
+  const suStep1   = document.getElementById('su-step-1');
+  const suStep2   = document.getElementById('su-step-2');
+  const suStep3   = document.getElementById('su-step-3');
+  const suSuccess = document.getElementById('su-step-success');
+  if (!suStep1 || !suStep2) return;
 
-  const roleStudent = document.getElementById('role-card-student');
-  const roleInstructor = document.getElementById('role-card-instructor');
-  const btnContinue = document.getElementById('btn-signup-continue');
-  const btnBack = document.getElementById('btn-signup-back');
-  const instructorNote = document.getElementById('instructor-verify-note');
-  const instructorEmailBox = document.getElementById('instructor-email-info-box');
-  
-  const signupForm = document.getElementById('signup-form');
-  const fullNameInput = document.getElementById('fullname');
-  const emailInput = document.getElementById('email');
-  const passwordInput = document.getElementById('password');
-  const confirmPasswordInput = document.getElementById('confirm-password');
-  
-  const togglePassBtn = document.getElementById('toggle-password-btn');
-  const toggleConfirmBtn = document.getElementById('toggle-confirm-btn');
-  const strengthBar = document.getElementById('strength-bar-bar');
-  const strengthLabel = document.getElementById('strength-bar-label');
-  const matchErrorText = document.getElementById('match-error-text');
-  
-  const termsCheck = document.getElementById('terms-check');
-  const submitBtn = document.getElementById('submit-signup-btn');
-  const errorAlert = document.getElementById('signup-error-alert');
-  const errorTextDisplay = document.getElementById('signup-error-text');
-  const googleBtn = document.getElementById('btn-oauth-signup-google');
-  
-  const indicatorStepText = document.getElementById('indicator-step-text');
-  const indicatorStepDots = document.getElementById('indicator-step-dots');
-  
-  let selectedRole = ''; // Can be 'student' or 'teach'
+  let selectedRole  = '';
+  let pendingPhone  = '';
+  let attemptCount  = 0;
 
-  // ================================================================
-  // STEP 1 - ROLE SELECTION CONTROLLER (Support card selection and fades)
-  // ================================================================
+  // â”€â”€ UI helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const setNodeState = (nodeId, state /* 'active'|'done'|'idle' */) => {
+    const n = document.getElementById(nodeId);
+    if (!n) return;
+    n.classList.remove('active', 'done');
+    if (state === 'active') n.classList.add('active');
+    if (state === 'done')   { n.classList.add('done'); n.textContent = 'âœ“'; }
+  };
+  const setConnDone = (id, done) => {
+    const c = document.getElementById(id);
+    if (c) c.classList.toggle('done', done);
+  };
+
+  const showGlobalError = (msg) => {
+    const el  = document.getElementById('su-global-error');
+    const txt = document.getElementById('su-global-error-text');
+    if (el && txt) { txt.textContent = msg; el.classList.add('show'); }
+  };
+  const hideGlobalError = () => {
+    const el = document.getElementById('su-global-error');
+    if (el) el.classList.remove('show');
+  };
+
+  const showFieldError = (fieldId, msg) => {
+    const el = document.getElementById(fieldId);
+    if (!el) return;
+    el.classList.remove('d-none');
+    const sp = el.querySelector('span') || el;
+    sp.textContent = msg;
+  };
+  const hideFieldError = (fieldId) => {
+    const el = document.getElementById(fieldId);
+    if (el) el.classList.add('d-none');
+  };
+
+  const setLoading = (btn, loading, label = '') => {
+    if (!btn) return;
+    if (loading) {
+      btn.classList.add('loading');
+      btn.innerHTML = `<span class="spinner-ring"></span> <span style="margin-left:0.5rem;">${label}</span>`;
+    } else {
+      btn.classList.remove('loading');
+    }
+  };
+
+  const transition = (fromEl, toEl) => {
+    if (fromEl) fromEl.classList.remove('active');
+    if (toEl)   toEl.classList.add('active');
+  };
+
+  // â”€â”€ STEP 1: Role selection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const roleCards = document.querySelectorAll('.role-card');
-  const continueBtn = document.getElementById('btn-signup-continue');
-  const backBtn = document.getElementById('btn-signup-back');
-
-  // Enforce initially disabled Continue button styling
-  if (continueBtn) {
-    continueBtn.disabled = true;
-    continueBtn.style.opacity = '0.4';
-    continueBtn.style.transition = 'all 0.3s ease';
-  }
-
   roleCards.forEach(card => {
     card.addEventListener('click', () => {
       roleCards.forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
-      selectedRole = card.dataset.role || ''; // 'student' or 'teach'
-      
-      if (continueBtn) {
-        continueBtn.disabled = false;
-        continueBtn.style.opacity = '1';
-        continueBtn.style.boxShadow = '0 0 20px rgba(168, 85, 247, 0.4)'; // glowing state
-      }
+      selectedRole = card.dataset.role || 'student';
 
-      // Sync specific instructor warning note view
-      if (instructorNote) {
-        if (selectedRole === 'teach') {
-          instructorNote.classList.remove('d-none');
-        } else {
-          instructorNote.classList.add('d-none');
-        }
-      }
+      const note = document.getElementById('su-instructor-note');
+      if (note) note.classList.toggle('show', selectedRole === 'teach');
 
-      console.log(`%c[BrainByte Signup] Selected Role: ${selectedRole}`, 'color: #A855F7; font-weight: bold;');
+      const continueBtn = document.getElementById('su-btn-continue-1');
+      if (continueBtn) continueBtn.disabled = false;
     });
   });
 
-  // Next Wizard Page Transition (Smooth fadeOut -> fadeIn)
-  if (continueBtn) {
-    continueBtn.addEventListener('click', () => {
-      if (!selectedRole) return;
+  document.getElementById('su-btn-continue-1')?.addEventListener('click', () => {
+    if (!selectedRole) return;
 
-      // Smooth transition: fadeOut step 1 -> fadeIn step 2
-      step1.style.transition = 'opacity 0.25s ease';
-      step1.style.opacity = '0';
-      
-      setTimeout(() => {
-        step1.style.display = 'none';
-        step1.classList.remove('active');
-        
-        step2.style.display = 'block';
-        step2.style.opacity = '0';
-        step2.style.transition = 'opacity 0.25s ease';
-        
-        // Trigger reflow
-        step2.offsetHeight;
-        
-        step2.style.opacity = '1';
-        step2.classList.add('active');
-        
-        // Update top wizard indicator state to Step 2
-        if (indicatorStepText) indicatorStepText.textContent = "Step 2";
-        if (indicatorStepDots) {
-          indicatorStepDots.innerHTML = `<span style="color: var(--violet-primary);">â—â—â—</span><span style="color: rgba(255,255,255,0.12);">â—‹</span>`;
+    setNodeState('su-node-1', 'done');
+    setConnDone('su-conn-1', true);
+    setNodeState('su-node-2', 'active');
+
+    // Update step 2 heading for instructor
+    const title = document.getElementById('su-step2-title');
+    const sub   = document.getElementById('su-step2-sub');
+    if (title) title.textContent = selectedRole === 'teach' ? 'Set up your instructor profile' : 'Set up your profile';
+    if (sub)   sub.textContent   = 'Fill in your account details below';
+
+    transition(suStep1, suStep2);
+  });
+
+  // â”€â”€ STEP 2: Password toggle + strength â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const suTogglePw = document.getElementById('su-toggle-pw');
+  const suPwInput  = document.getElementById('su-password');
+  if (suTogglePw && suPwInput) {
+    suTogglePw.addEventListener('click', () => {
+      const hide = suPwInput.type === 'password';
+      suPwInput.type = hide ? 'text' : 'password';
+      suTogglePw.querySelector('i').className = hide ? 'bi bi-eye-slash' : 'bi bi-eye';
+    });
+    suPwInput.addEventListener('input', () => {
+      const { score, label } = AuthEngine.validatePassword(suPwInput.value);
+      const bar    = document.getElementById('su-pw-bar');
+      const lbl    = document.getElementById('su-pw-label');
+      const colors = ['#EF4444','#EF4444','#F59E0B','#06B6D4','#10B981'];
+      const widths = ['10%','35%','60%','80%','100%'];
+      const classes = ['','weak','fair','good','strong'];
+      if (bar) { bar.style.width = widths[score] || '0%'; bar.style.background = colors[score] || ''; }
+      if (lbl) { lbl.className = `pw-strength-label ${classes[score] || ''}`; lbl.textContent = score === 0 ? 'Password strength' : label; }
+    });
+  }
+
+  const suToggleConfirm = document.getElementById('su-toggle-confirm');
+  const suConfirmInput  = document.getElementById('su-confirm');
+  if (suToggleConfirm && suConfirmInput) {
+    suToggleConfirm.addEventListener('click', () => {
+      const hide = suConfirmInput.type === 'password';
+      suConfirmInput.type = hide ? 'text' : 'password';
+      suToggleConfirm.querySelector('i').className = hide ? 'bi bi-eye-slash' : 'bi bi-eye';
+    });
+  }
+
+  // Enable submit when terms checked
+  const suTerms = document.getElementById('su-terms');
+  const suSubmit = document.getElementById('su-btn-submit');
+  if (suTerms && suSubmit) {
+    suTerms.addEventListener('change', () => { suSubmit.disabled = !suTerms.checked; });
+  }
+
+  // Back to step 1
+  document.getElementById('su-btn-back-1')?.addEventListener('click', () => {
+    transition(suStep2, suStep1);
+    setNodeState('su-node-1', 'active');
+    setConnDone('su-conn-1', false);
+    setNodeState('su-node-2', 'idle');
+    hideGlobalError();
+  });
+
+  // â”€â”€ STEP 2: Form submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  document.getElementById('su-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideGlobalError();
+    hideFieldError('su-err-name');
+    hideFieldError('su-err-email');
+    hideFieldError('su-err-phone');
+    hideFieldError('su-err-confirm');
+
+    const fullName = (document.getElementById('su-fullname')?.value || '').trim();
+    const email    = (document.getElementById('su-email')?.value || '').trim();
+    const cc       = (document.getElementById('su-country-code')?.value || '+91');
+    const phoneRaw = (document.getElementById('su-phone')?.value || '').replace(/[\s\-\(\)]/g, '');
+    const phone    = cc + phoneRaw;
+    const password = (suPwInput?.value || '');
+    const confirm  = (suConfirmInput?.value || '');
+
+    // Validate
+    let valid = true;
+    if (!AuthEngine.validateFullName(fullName)) {
+      showFieldError('su-err-name', 'Please enter your full name (min 2 characters).'); valid = false;
+    }
+    if (!AuthEngine.validateEmail(email)) {
+      showFieldError('su-err-email', 'Please enter a valid email address.'); valid = false;
+    }
+    if (!phoneRaw || !AuthEngine.validatePhone(phone)) {
+      showFieldError('su-err-phone', 'Enter a valid phone number (7â€“15 digits).'); valid = false;
+    }
+    if (password.length < 8) {
+      showGlobalError('Password must be at least 8 characters.'); valid = false;
+    }
+    if (password !== confirm) {
+      showFieldError('su-err-confirm', ''); // Label already shows in HTML
+      document.getElementById('su-err-confirm')?.classList.remove('d-none');
+      valid = false;
+    }
+    if (!valid) return;
+
+    const btn = document.getElementById('su-btn-submit');
+    setLoading(btn, true, 'Checking availabilityâ€¦');
+
+    try {
+      // Check duplicates
+      const dup = await AuthEngine.checkDuplicates(email, phone);
+      if (dup.isDuplicate) {
+        if (dup.field === 'email') showFieldError('su-err-email', dup.message);
+        else showFieldError('su-err-phone', dup.message);
+        btn.classList.remove('loading');
+        btn.innerHTML = '<span>Send Phone OTP <i class="bi bi-arrow-right-short fs-5"></i></span>';
+        return;
+      }
+
+      // Store data for step 3
+      pendingPhone = phone;
+      sessionStorage.setItem('bb_signup_pending', JSON.stringify({
+        fullName, email, phone, password, role: selectedRole
+      }));
+
+      // Send phone OTP
+      setLoading(btn, true, 'Sending OTP to phoneâ€¦');
+      await AuthEngine.sendOTP(phone, 'phone');
+
+      // Update OTP display
+      const display = document.getElementById('su-otp-phone-display');
+      if (display) display.textContent = AuthEngine.maskPhone(phone);
+
+      // Advance to step 3
+      setNodeState('su-node-2', 'done');
+      setConnDone('su-conn-2', true);
+      setNodeState('su-node-3', 'active');
+      transition(suStep2, suStep3);
+
+      // Wire OTP boxes
+      suBindOTPBoxes();
+      attemptCount = 0;
+      const ac = document.getElementById('su-attempt-count');
+      if (ac) ac.textContent = '0';
+      document.getElementById('su-btn-verify').disabled = false;
+
+      // Start expiry countdown
+      const timerEl = document.getElementById('su-otp-timer');
+      AuthEngine.startExpiryCountdown('su-expiry', {
+        displayEl: timerEl,
+        onExpire: () => {
+          if (timerEl) timerEl.classList.add('urgent');
+          suShowOTPError('OTP expired. Click "Resend OTP" to get a new code.');
+          document.getElementById('su-btn-verify').disabled = true;
         }
-        
-        // Update subheader messages
-        const subhead = document.getElementById('signup-subtext-header');
-        if (subhead) {
-          subhead.textContent = `Set up your profile as a ${selectedRole === 'student' ? 'Student' : 'Instructor'}`;
-        }
-        
-        // Toggle the conditional instructor info/warning box
-        if (instructorEmailBox) {
-          if (selectedRole === 'teach') {
-            instructorEmailBox.classList.remove('d-none');
-            const infoText = instructorEmailBox.querySelector('span');
-            if (infoText) {
-              infoText.innerHTML = "âš¡ Verification required before publishing courses";
+      });
+
+      // Start resend timer
+      suStartResend(phone);
+      setTimeout(() => document.getElementById('su-d1')?.focus(), 120);
+
+    } catch (err) {
+      showGlobalError(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      btn.classList.remove('loading');
+      btn.innerHTML = '<span>Send Phone OTP <i class="bi bi-arrow-right-short fs-5"></i></span>';
+    }
+  });
+
+  // â”€â”€ STEP 3: OTP helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const suShowOTPError = (msg) => {
+    const el  = document.getElementById('su-otp-error');
+    const txt = document.getElementById('su-otp-error-text');
+    if (el && txt) { txt.textContent = msg; el.classList.add('show'); }
+    for (let i = 1; i <= 6; i++) {
+      const b = document.getElementById(`su-d${i}`);
+      if (b) { b.classList.remove('error'); void b.offsetWidth; b.classList.add('error'); }
+    }
+  };
+  const suHideOTPError = () => {
+    const el = document.getElementById('su-otp-error');
+    if (el) el.classList.remove('show');
+    for (let i = 1; i <= 6; i++) {
+      const b = document.getElementById(`su-d${i}`);
+      if (b) b.classList.remove('error');
+    }
+  };
+
+  function suBindOTPBoxes() {
+    const boxes = [];
+    for (let i = 1; i <= 6; i++) {
+      const b = document.getElementById(`su-d${i}`);
+      if (b) { b.value = ''; b.classList.remove('filled','error','success'); boxes.push(b); }
+    }
+    boxes.forEach((box, idx) => {
+      box.addEventListener('input', (ev) => {
+        const val = ev.target.value.replace(/\D/g, '').slice(-1);
+        box.value = val;
+        box.classList.toggle('filled', !!val);
+        if (val && boxes[idx + 1]) boxes[idx + 1].focus();
+      });
+      box.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Backspace' && !box.value && boxes[idx - 1]) boxes[idx - 1].focus();
+        if (ev.key === 'ArrowLeft'  && boxes[idx - 1]) boxes[idx - 1].focus();
+        if (ev.key === 'ArrowRight' && boxes[idx + 1]) boxes[idx + 1].focus();
+      });
+      box.addEventListener('paste', (ev) => {
+        ev.preventDefault();
+        const pasted = (ev.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+        pasted.split('').forEach((ch, i) => {
+          if (boxes[i]) { boxes[i].value = ch; boxes[i].classList.add('filled'); }
+        });
+        const next = boxes[Math.min(pasted.length, 5)];
+        if (next) next.focus();
+      });
+    });
+  }
+
+  function suGetOTPCode() {
+    let code = '';
+    for (let i = 1; i <= 6; i++) code += (document.getElementById(`su-d${i}`)?.value || '');
+    return code;
+  }
+
+  function suStartResend(phone) {
+    const btn      = document.getElementById('su-btn-resend');
+    const timerRow = document.getElementById('su-resend-timer');
+    const secEl    = document.getElementById('su-resend-sec');
+
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; }
+    if (timerRow) timerRow.style.display = 'inline';
+    let sec = 30;
+    if (secEl) secEl.textContent = sec;
+
+    const interval = setInterval(() => {
+      sec--;
+      if (secEl) secEl.textContent = sec;
+      if (sec <= 0) {
+        clearInterval(interval);
+        if (timerRow) timerRow.style.display = 'none';
+        if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+      }
+    }, 1000);
+
+    if (btn) {
+      btn.onclick = async () => {
+        clearInterval(interval);
+        try {
+          await AuthEngine.sendOTP(phone, 'phone');
+          suHideOTPError();
+          AuthEngine.stopTimer('su-expiry');
+          const timerEl = document.getElementById('su-otp-timer');
+          if (timerEl) timerEl.classList.remove('urgent');
+          AuthEngine.startExpiryCountdown('su-expiry', {
+            displayEl: timerEl,
+            onExpire: () => {
+              if (timerEl) timerEl.classList.add('urgent');
+              suShowOTPError('OTP expired. Click "Resend OTP" to get a new code.');
+              document.getElementById('su-btn-verify').disabled = true;
             }
-          } else {
-            instructorEmailBox.classList.add('d-none');
-          }
-        }
-      }, 250);
-    });
-  }
-
-  // Back Wizard Page Transition (Smooth fadeOut -> fadeIn)
-  if (backBtn) {
-    backBtn.addEventListener('click', () => {
-      step2.style.transition = 'opacity 0.25s ease';
-      step2.style.opacity = '0';
-      
-      setTimeout(() => {
-        step2.style.display = 'none';
-        step2.classList.remove('active');
-        
-        step1.style.display = 'block';
-        step1.style.opacity = '0';
-        step1.style.transition = 'opacity 0.25s ease';
-        
-        // Trigger reflow
-        step1.offsetHeight;
-        
-        step1.style.opacity = '1';
-        step1.classList.add('active');
-        
-        // Revert top indicators to Step 1
-        if (indicatorStepText) indicatorStepText.textContent = "Step 1";
-        if (indicatorStepDots) {
-          indicatorStepDots.innerHTML = `<span style="color: var(--violet-primary);">â—â—</span><span style="color: rgba(255,255,255,0.12);">â—‹â—‹</span>`;
-        }
-        
-        const subhead = document.getElementById('signup-subtext-header');
-        if (subhead) {
-          subhead.textContent = "Create your free account";
-        }
-      }, 250);
-    });
-  }
-
-  // ================================================================
-  // STEP 2 - ACCOUNT DETAILS CONTROLLER
-  // ================================================================
-  
-  // A. Eye Toggles for Visibility
-  if (togglePassBtn && passwordInput) {
-    togglePassBtn.addEventListener('click', () => {
-      const isPass = passwordInput.getAttribute('type') === 'password';
-      passwordInput.setAttribute('type', isPass ? 'text' : 'password');
-      
-      const icon = togglePassBtn.querySelector('i');
-      if (icon) icon.className = isPass ? 'bi bi-eye-slash' : 'bi bi-eye';
-    });
-  }
-
-  if (toggleConfirmBtn && confirmPasswordInput) {
-    toggleConfirmBtn.addEventListener('click', () => {
-      const isPass = confirmPasswordInput.getAttribute('type') === 'password';
-      confirmPasswordInput.setAttribute('type', isPass ? 'text' : 'password');
-      
-      const icon = toggleConfirmBtn.querySelector('i');
-      if (icon) icon.className = isPass ? 'bi bi-eye-slash' : 'bi bi-eye';
-    });
-  }
-
-  // B. Dynamic Password Strength Meter
-  if (passwordInput && strengthBar && strengthLabel) {
-    passwordInput.addEventListener('input', () => {
-      const val = passwordInput.value;
-      let strength = 0;
-      
-      if (val.length === 0) {
-        resetStrength();
-        return;
-      }
-      
-      if (val.length >= 6) strength++;
-      if (/[0-9]/.test(val) || /[^A-Za-z0-9]/.test(val)) strength++;
-      if (val.length >= 8 && /[A-Z]/.test(val)) strength++;
-      
-      // Render strength values
-      strengthBar.className = 'strength-bar-fill';
-      strengthLabel.className = 'strength-label';
-      
-      if (strength === 1 || val.length < 6) {
-        strengthBar.classList.add('weak');
-        strengthLabel.classList.add('weak');
-        strengthLabel.textContent = "Weak Password";
-      } else if (strength === 2) {
-        strengthBar.classList.add('medium');
-        strengthLabel.classList.add('medium');
-        strengthLabel.textContent = "Medium Password";
-      } else if (strength >= 3) {
-        strengthBar.classList.add('strong');
-        strengthLabel.classList.add('strong');
-        strengthLabel.textContent = "Strong Password (Perfect)";
-      }
-    });
-  }
-
-  function resetStrength() {
-    strengthBar.className = 'strength-bar-fill';
-    strengthBar.style.width = '0%';
-    strengthLabel.className = 'strength-label';
-    strengthLabel.textContent = "Password Strength";
-  }
-
-  // C. Confirm Password Match Checker
-  if (confirmPasswordInput && passwordInput && matchErrorText) {
-    const checkMatch = () => {
-      const pass = passwordInput.value;
-      const confirm = confirmPasswordInput.value;
-      
-      if (confirm.length > 0 && pass !== confirm) {
-        matchErrorText.classList.remove('d-none');
-        confirmPasswordInput.style.borderColor = 'var(--error)';
-      } else {
-        matchErrorText.classList.add('d-none');
-        confirmPasswordInput.style.borderColor = '';
-      }
-    };
-    
-    confirmPasswordInput.addEventListener('input', checkMatch);
-    passwordInput.addEventListener('input', checkMatch);
-  }
-
-  // D. Terms Checkbox Toggle
-  if (termsCheck && submitBtn) {
-    termsCheck.addEventListener('change', () => {
-      submitBtn.disabled = !termsCheck.checked;
-    });
-  }
-
-  // E. Form submission to real Supabase database
-  if (signupForm) {
-    signupForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const name = fullNameInput.value.trim();
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-      const confirm = confirmPasswordInput.value;
-      const phoneCountry = document.getElementById('phone-country-code') ? document.getElementById('phone-country-code').value : '+91';
-      const phoneRaw = document.getElementById('phone-number') ? document.getElementById('phone-number').value.trim().replace(/\s+/g,'') : '';
-      const phone = phoneRaw ? (phoneCountry + phoneRaw) : '';
-      
-      errorAlert.classList.add('d-none');
-      
-      // 1. Validation Checks
-      if (!name) {
-        showError("Full Name cannot be empty.");
-        return;
-      }
-      
-      // Valid email check (regex validation)
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!email || !emailRegex.test(email)) {
-        showError("Please enter a valid email address.");
-        return;
-      }
-      
-      // Password length check
-      if (password.length < 6) {
-        showError("Password must be at least 6 characters.");
-        return;
-      }
-      
-      // Password match check
-      if (password !== confirm) {
-        showError("Passwords do not match. Verify fields and submit again.");
-        return;
-      }
-      
-      // Terms checked
-      if (!termsCheck || !termsCheck.checked) {
-        showError("You must agree to the Terms of Service & Privacy Policy.");
-        return;
-      }
-      
-      // Start Loading indicator state
-      const originalText = submitBtn.innerHTML;
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = `<span class="alert-spinner"></span> <span>Creating Account...</span>`;
-      
-      try {
-        const client = window.supabaseClient || supabaseClient;
-        if (!client) {
-          throw new Error("Supabase client is not initialized. Please verify your connection settings.");
-        }
-        
-        // 2. Real Supabase SignUp
-        const { data, error } = await client.auth.signUp({
-          email: email,
-          password: password,
-          options: {
-            data: {
-              full_name: name,
-              role: selectedRole || 'student'
-            }
-          }
-        });
-
-        if (error) throw error;
-        if (!data || !data.user) {
-          throw new Error("Authentication failed. No user details returned.");
-        }
-
-        // 3. Insert user profile into public.users table
-        const { error: dbError } = await client.from('users').insert({
-          id: data.user.id,
-          email: email,
-          full_name: name,
-          role: selectedRole || 'student'
-        });
-
-        if (dbError) {
-          console.warn("[Signup] Profile table insert warning (might already exist):", dbError);
-        }
-
-        // 4. Cache credentials locally as backup
-        localStorage.setItem('brainbyte_user', JSON.stringify({
-          id: data.user.id,
-          email: email,
-          full_name: name,
-          role: selectedRole || 'student',
-          isLoggedIn: true
-        }));
-        
-        // 5. Store pending signup details for OTP step
-        sessionStorage.setItem('bb_pending_signup', JSON.stringify({
-          id: data.user.id, email, full_name: name, phone: phone,
-          role: selectedRole || 'student', password: password, isLoggedIn: true
-        }));
-        
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
-        
-        // 6. Go to Step 3 OTP
-        initSignupOTPStep(email, name, selectedRole, phone);
-        return;
-
-      } catch (err) {
-        console.error("[Supabase Auth] SignUp failure:", err);
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
-        showError(err.message || "An unexpected registration error occurred.");
-      }
-    });
-  }
-
-  // F. Google OAuth Signup triggers
-  if (googleBtn) {
-    googleBtn.addEventListener('click', async () => {
-      const originalGoogleContent = googleBtn.innerHTML;
-      googleBtn.disabled = true;
-      googleBtn.innerHTML = `<span class="alert-spinner"></span> <span>Connecting to Google...</span>`;
-      
-      try {
-        const client = window.supabaseClient || supabaseClient;
-        if (!client) {
-          throw new Error("Supabase client is not initialized.");
-        }
-        
-        const { error } = await client.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: window.location.origin + '/dashboard.html'
-          }
-        });
-
-        if (error) throw error;
-        
-      } catch (err) {
-        console.error("[Supabase OAuth] Google signup error:", err);
-        googleBtn.disabled = false;
-        googleBtn.innerHTML = originalGoogleContent;
-        showError(err.message || "Could not connect to Google OAuth.");
-      }
-    });
-  }
-
-  function showError(msg) {
-    if (errorAlert && errorTextDisplay) {
-      errorTextDisplay.textContent = msg;
-      errorAlert.classList.remove('d-none');
-      errorAlert.classList.add('scale-pop');
-      setTimeout(() => errorAlert.classList.remove('scale-pop'), 200);
+          });
+          document.getElementById('su-btn-verify').disabled = false;
+          attemptCount = 0;
+          const ac = document.getElementById('su-attempt-count');
+          if (ac) ac.textContent = '0';
+          suStartResend(phone);
+          suBindOTPBoxes();
+          document.getElementById('su-d1')?.focus();
+        } catch { suShowOTPError('Failed to resend. Please try again.'); }
+      };
     }
   }
-  
-  // ================================================================
-  // STEP 3: OTP VERIFICATION FOR SIGNUP
-  // ================================================================
-  function initSignupOTPStep(email, name, role, phone) {
-    const step2 = document.getElementById('step-2-container');
-    const step3 = document.getElementById('step-3-container');
-    if (!step3) {
-      // Fallback: no step 3 â€” just redirect
-      const dest = (role === 'instructor' || role === 'teach') ? 'teach-verify.html' : 'dashboard.html';
-      window.location.href = dest;
+
+  // Back to step 2
+  document.getElementById('su-btn-back-2')?.addEventListener('click', () => {
+    AuthEngine.stopTimer('su-expiry');
+    AuthEngine.stopTimer('su-resend');
+    suHideOTPError();
+    setNodeState('su-node-3', 'idle');
+    setConnDone('su-conn-2', false);
+    setNodeState('su-node-2', 'active');
+    transition(suStep3, suStep2);
+  });
+
+  // â”€â”€ STEP 3: Verify OTP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  document.getElementById('su-btn-verify')?.addEventListener('click', async () => {
+    suHideOTPError();
+    const code = suGetOTPCode();
+
+    if (code.length !== 6) {
+      suShowOTPError('Please enter all 6 digits.'); return;
+    }
+
+    const verifyBtn = document.getElementById('su-btn-verify');
+    setLoading(verifyBtn, true, 'Verifying OTPâ€¦');
+
+    const result = await AuthEngine.verifyOTP(pendingPhone, 'phone', code);
+
+    if (!result.success) {
+      attemptCount++;
+      const ac = document.getElementById('su-attempt-count');
+      if (ac) ac.textContent = String(attemptCount);
+      suShowOTPError(result.error);
+      verifyBtn.classList.remove('loading');
+      verifyBtn.innerHTML = '<span>Verify &amp; Create Account</span>';
+      if (result.maxAttempts || result.remainingAttempts === 0) {
+        verifyBtn.disabled = true;
+      }
       return;
     }
-    
-    // Track active OTP channel for signup
-    let signupOtpChannel = 'email';
-    BrainByteOTP.sendOTP(email, 'email');
 
-    // Wire channel tabs
-    const signupTabEmail = document.getElementById('signup-otp-tab-email');
-    const signupTabPhone = document.getElementById('signup-otp-tab-phone');
-    const wireSignupChannelTabs = () => {
-      const tabs = [signupTabEmail, signupTabPhone];
-      tabs.forEach(tab => {
-        if (!tab) return;
-        tab.onclick = () => {
-          tabs.forEach(t => t && t.classList.remove('active'));
-          tab.classList.add('active');
-          signupOtpChannel = tab.dataset.channel || 'email';
-          const recipient = signupOtpChannel === 'phone' ? (phone || '') : email;
-          if (!recipient) {
-            // No phone provided — show message
-            const recipientEl = document.getElementById('signup-otp-recipient');
-            if (recipientEl) recipientEl.textContent = 'No phone number provided';
-            return;
-          }
-          BrainByteOTP.sendOTP(recipient, signupOtpChannel);
-          const recipientEl = document.getElementById('signup-otp-recipient');
-          if (recipientEl) recipientEl.textContent = BrainByteOTP.getMasked(recipient, signupOtpChannel);
-          // Clear OTP boxes
-          for (let i = 1; i <= 6; i++) {
-            const b = document.getElementById(signup-otp-d);
-            if (b) { b.value = ''; b.classList.remove('filled','error','success'); }
-          }
-          document.getElementById('signup-otp-d1')?.focus();
-        };
-      });
-      // If no phone number entered, disable the phone tab
-      if (!phone) {
-        if (signupTabPhone) {
-          signupTabPhone.disabled = true;
-          signupTabPhone.title = 'Enter phone number in Step 2 to use SMS OTP';
-          signupTabPhone.style.opacity = '0.45';
-          signupTabPhone.style.cursor = 'not-allowed';
-        }
-      }
-    };
-    wireSignupChannelTabs();
-    
-    // Update recipient
-    const recipientEl = document.getElementById('signup-otp-recipient');
-    if (recipientEl) recipientEl.textContent = BrainByteOTP.getMasked(email, 'email');
-    
-    // Update step indicators
-    const indicatorStepText = document.getElementById('indicator-step-text');
-    const indicatorStepDots = document.getElementById('indicator-step-dots');
-    if (indicatorStepText) indicatorStepText.textContent = 'Step 3';
-    if (indicatorStepDots) {
-      indicatorStepDots.innerHTML = `<span style="color: var(--violet-primary);">&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;</span>`;
-    }
-    
-    // Transition step 2 â†’ step 3
-    if (step2) {
-      step2.style.transition = 'opacity 0.25s ease';
-      step2.style.opacity = '0';
-      setTimeout(() => {
-        step2.classList.remove('active');
-        step2.style.display = 'none';
-        step3.classList.add('active');
-        step3.style.display = 'block';
-        
-        // Bind digit boxes & focus first
-        bindSignupOTPBoxes();
-        const d1 = document.getElementById('signup-otp-d1');
-        if (d1) setTimeout(() => d1.focus(), 100);
-        
-        // Start resend timer
-        startSignupResendTimer(email);
-      }, 250);
-    }
-    
-    // â”€â”€ Digit box behavior â”€â”€
-    function bindSignupOTPBoxes() {
-      const boxes = [];
+    // OTP verified â€” create account
+    setLoading(verifyBtn, true, 'Creating your accountâ€¦');
+
+    try {
+      const pending = JSON.parse(sessionStorage.getItem('bb_signup_pending') || '{}');
+      await AuthEngine.signup(
+        pending.fullName, pending.email, pending.phone, pending.password, pending.role
+      );
+
+      // All boxes green
       for (let i = 1; i <= 6; i++) {
-        const el = document.getElementById(`signup-otp-d${i}`);
-        if (el) boxes.push(el);
+        const b = document.getElementById(`su-d${i}`);
+        if (b) { b.classList.remove('error'); b.classList.add('success'); }
       }
-      boxes.forEach((box, idx) => {
-        box.addEventListener('input', (e) => {
-          let val = e.target.value.toString().replace(/\D/g, '').slice(-1);
-          box.value = val;
-          if (val) { box.classList.add('filled'); box.classList.remove('error'); if (idx < boxes.length - 1) boxes[idx+1].focus(); }
-          else { box.classList.remove('filled'); }
-        });
-        box.addEventListener('keydown', (e) => {
-          if (e.key === 'Backspace' && !box.value && idx > 0) { boxes[idx-1].focus(); boxes[idx-1].value=''; boxes[idx-1].classList.remove('filled'); }
-          if (e.key === 'ArrowLeft' && idx > 0) boxes[idx-1].focus();
-          if (e.key === 'ArrowRight' && idx < boxes.length-1) boxes[idx+1].focus();
-        });
-        box.addEventListener('paste', (e) => {
-          const p = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'').substring(0,6);
-          if (p.length > 0) {
-            e.preventDefault();
-            boxes.forEach((b,i) => { b.value = p[i]||''; if(b.value) b.classList.add('filled'); else b.classList.remove('filled'); });
-            boxes[Math.min(p.length,boxes.length)-1].focus();
-          }
-        });
-      });
+
+      AuthEngine.stopTimer('su-expiry');
+      AuthEngine.stopTimer('su-resend');
+      sessionStorage.removeItem('bb_signup_pending');
+
+      // Show success step
+      setTimeout(() => { transition(suStep3, suSuccess); }, 400);
+
+    } catch (err) {
+      suShowOTPError(err.message || 'Account creation failed. Please try again.');
+      verifyBtn.classList.remove('loading');
+      verifyBtn.innerHTML = '<span>Verify &amp; Create Account</span>';
     }
-    
-    // â”€â”€ Resend timer â”€â”€
-    let signupTimerInterval = null;
-    function startSignupResendTimer(email) {
-      const btn = document.getElementById('btn-signup-resend-otp');
-      const timerEl = document.getElementById('signup-otp-timer');
-      if (signupTimerInterval) clearInterval(signupTimerInterval);
-      signupTimerInterval = BrainByteOTP.startResendTimer(btn, timerEl);
-      
-      if (btn) {
-        btn.onclick = () => {
-          BrainByteOTP.sendOTP(email, 'email');
-          startSignupResendTimer(email);
-          const errEl = document.getElementById('signup-otp-error');
-          if (errEl) errEl.classList.remove('visible');
-          for (let i = 1; i <= 6; i++) {
-            const b = document.getElementById(`signup-otp-d${i}`);
-            if (b) { b.value=''; b.classList.remove('filled','error','success'); }
-          }
-          document.getElementById('signup-otp-d1')?.focus();
-        };
+  });
+
+  // â”€â”€ Success: go to dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  document.getElementById('su-btn-go-dashboard')?.addEventListener('click', () => {
+    const user = JSON.parse(localStorage.getItem('brainbyte_user') || '{}');
+    const role = user.role || 'student';
+    window.location.href = (role === 'teach' || role === 'instructor') ? 'teach-verify.html' : 'dashboard.html';
+  });
+
+  // â”€â”€ Google OAuth (signup) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  document.getElementById('su-btn-google')?.addEventListener('click', async () => {
+    try {
+      const client = window.supabaseClient;
+      if (client) {
+        await client.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: window.location.origin + '/dashboard.html' }
+        });
       }
-    }
-    
-    // â”€â”€ Verify button â”€â”€
-    const btnVerify = document.getElementById('btn-signup-verify-otp');
-    if (btnVerify) {
-      btnVerify.onclick = () => {
-        let code = '';
-        for (let i = 1; i <= 6; i++) {
-          const el = document.getElementById(`signup-otp-d${i}`);
-          code += el ? (el.value || '') : '';
-        }
-        
-        const errEl = document.getElementById('signup-otp-error');
-        if (errEl) errEl.classList.remove('visible');
-        
-        if (code.length < 6) {
-          if (errEl) { errEl.textContent = '&#x26A0;&#xFE0F; Please enter all 6 digits.'; errEl.classList.add('visible'); }
-          return;
-        }
-        
-        const result = BrainByteOTP.verifyOTP(code);
-        if (!result.success) {
-          if (errEl) { errEl.textContent = '&#x26A0;&#xFE0F; ' + result.error; errEl.classList.add('visible'); }
-          for (let i = 1; i <= 6; i++) {
-            const b = document.getElementById(`signup-otp-d${i}`);
-            if (b) { b.classList.add('error'); setTimeout(() => b.classList.remove('error'), 500); }
-          }
-          return;
-        }
-        
-        // Success!
-        for (let i = 1; i <= 6; i++) {
-          const b = document.getElementById(`signup-otp-d${i}`);
-          if (b) b.classList.add('success');
-        }
-        btnVerify.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Account verified! Welcome ðŸŽ‰</span>`;
-        btnVerify.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
-        btnVerify.disabled = true;
-        
-        // Finalize signup
-        const pending = JSON.parse(sessionStorage.getItem('bb_pending_signup') || '{}');
-        const finalUser = { ...pending, isLoggedIn: true, emailVerified: true };
-        localStorage.setItem('brainbyte_user', JSON.stringify(finalUser));
-        
-        // Also register in mock users list for future logins
-        const mockUsers = JSON.parse(localStorage.getItem('bb_mock_users') || '[]');
-        const exists = mockUsers.find(u => u.email === finalUser.email);
-        if (!exists) mockUsers.push(finalUser);
-        localStorage.setItem('bb_mock_users', JSON.stringify(mockUsers));
-        
-        sessionStorage.removeItem('bb_pending_signup');
-        BrainByteOTP.clearOTP();
-        
-        console.log('%c[BrainByte Signup] Account verified and created!', 'color: #10B981; font-weight: bold;');
-        
-        setTimeout(() => {
-          if (role === 'instructor' || role === 'teach') {
-            window.location.href = 'teach-verify.html';
-          } else {
-            window.location.href = 'dashboard.html';
-          }
-        }, 1200);
-      };
-    }
-    
-    // â”€â”€ Back to step 2 â”€â”€
-    const btnBack2 = document.getElementById('btn-signup-back-to-step2');
-    if (btnBack2) {
-      btnBack2.onclick = () => {
-        BrainByteOTP.clearOTP();
-        step3.classList.remove('active');
-        step3.style.display = 'none';
-        if (step2) { step2.classList.add('active'); step2.style.display = 'block'; }
-        const indicatorStepText = document.getElementById('indicator-step-text');
-        const indicatorStepDots = document.getElementById('indicator-step-dots');
-        if (indicatorStepText) indicatorStepText.textContent = 'Step 2';
-        if (indicatorStepDots) indicatorStepDots.innerHTML = `<span style="color: var(--violet-primary);">&#9679;&#9679;&#9679;&#9679;</span><span style="color: rgba(255,255,255,0.12);">&#9675;&#9675;</span>`;
-      };
-    }
-  }
+    } catch (e) { showGlobalError('Google sign-up unavailable. Please use email registration.'); }
+  });
 }
 
-/**
- * PAGE 02 â€” Course Browse Page Controller
- * Full dynamic search/filtering engine with 12 mock courses, pagination, 
- * synchronized mobile/desktop filter controls, and dynamic detail redirects.
- */
+
+
 function initCoursesController() {
   const gridContainer = document.getElementById('courses-grid-container');
   if (!gridContainer) return; // Only execute on the course browse page

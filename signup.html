@@ -3,427 +3,534 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign Up &mdash; BrainByte</title>
-  <meta name="description" content="Create your free developer account on BrainByte. Join thousands of developers learning, building, and teaching modern technology career paths.">
-  
+  <title>Create Account &mdash; BrainByte</title>
+  <meta name="description" content="Join BrainByte — create your free developer account. Learn from senior tech architects and showcase verified skills.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
-  
+  <link rel="stylesheet" href="css/style.css">
+
   <style>
-    .role-card, .role-selection-card {
-      cursor: pointer !important;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-      border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    }
-    .role-card:hover, .role-selection-card:hover {
-      border-color: rgba(168, 85, 247, 0.3) !important;
-      transform: translateY(-2px) !important;
-    }
-    .role-card.selected, .role-selection-card.selected {
-      border: 2px solid rgba(168, 85, 247, 0.60) !important;
-      background: rgba(168, 85, 247, 0.08) !important;
-      box-shadow: 0 0 20px rgba(168, 85, 247, 0.15) !important;
-      transform: translateY(-2px) !important;
-    }
-    .signup-step { opacity: 1; display: none; }
-    .signup-step.active { display: block; }
-
-    .instructor-email-alert-box {
-      background: rgba(245, 158, 11, 0.1) !important;
-      border: 1px solid rgba(245, 158, 11, 0.25) !important;
-      color: #F59E0B !important;
-      border-radius: 12px !important;
-      padding: 12px !important;
-      margin-top: 12px !important;
-      font-size: 0.8rem !important;
-      font-weight: 500 !important;
-      display: flex !important;
-      align-items: center !important;
-      gap: 8px !important;
+    /* ── Step system ── */
+    .auth-step { display: none; animation: fadeSlideIn 0.32s cubic-bezier(0.16,1,0.3,1) both; }
+    .auth-step.active { display: block; }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* Phone input with country code prefix */
-    .phone-input-group {
-      display: flex;
-      gap: 0;
-      position: relative;
+    /* ── Step progress bar ── */
+    .step-progress {
+      display: flex; align-items: center; gap: 0; margin-bottom: 1.75rem;
     }
-    .phone-country-select {
-      width: 90px;
-      flex-shrink: 0;
+    .step-node {
+      width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 800; font-family: var(--font-display, 'Inter', sans-serif);
+      background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.12); color: #64748B;
+      flex-shrink: 0; transition: all 0.3s ease; position: relative; z-index: 1;
+    }
+    .step-node.active   { background: #7C3AED; border-color: #7C3AED; color: #fff; box-shadow: 0 0 0 4px rgba(124,58,237,0.2); }
+    .step-node.done     { background: #10B981; border-color: #10B981; color: #fff; }
+    .step-connector {
+      flex: 1; height: 2px; background: rgba(255,255,255,0.08); margin: 0 4px;
+      transition: background 0.4s ease;
+    }
+    .step-connector.done { background: #10B981; }
+    .step-label { font-size: 0.65rem; color: #64748B; font-weight: 600; letter-spacing: 0.04em; margin-top: 4px; text-transform: uppercase; }
+
+    /* ── Role cards ── */
+    .role-card {
+      cursor: pointer; padding: 1.1rem 1rem; border-radius: 14px;
+      border: 1.5px solid rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.03);
+      transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+      text-align: center;
+    }
+    .role-card:hover {
+      border-color: rgba(168,85,247,0.35); transform: translateY(-2px);
+      background: rgba(168,85,247,0.04);
+    }
+    .role-card.selected {
+      border-color: rgba(168,85,247,0.65); background: rgba(168,85,247,0.08);
+      box-shadow: 0 0 0 3px rgba(168,85,247,0.15), 0 4px 20px rgba(168,85,247,0.1);
+      transform: translateY(-2px);
+    }
+    .role-card-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
+    .role-card-title { font-size: 0.85rem; font-weight: 700; color: #E2E8F0; font-family: var(--font-display, 'Inter'); margin: 0; }
+    .role-card-sub   { font-size: 0.7rem; color: #64748B; margin-top: 0.25rem; font-weight: 500; }
+    .role-cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.5rem; }
+
+    /* ── Phone input group ── */
+    .phone-group { display: flex; }
+    .country-code-select {
+      width: 100px; flex-shrink: 0;
       background: rgba(255,255,255,0.04);
       border: 1.5px solid rgba(255,255,255,0.1);
       border-right: none;
       border-radius: 12px 0 0 12px;
-      color: #FFFFFF;
-      font-family: var(--font-display, 'Inter', sans-serif);
-      font-size: 0.88rem;
-      font-weight: 600;
-      padding: 0 0.75rem;
-      outline: none;
-      cursor: pointer;
-      transition: border-color 0.2s ease;
-      -webkit-appearance: none;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394A3B8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 8px center;
+      color: #fff; padding: 0 0.6rem; height: 52px;
+      font-family: var(--font-display, 'Inter'); font-size: 0.85rem; font-weight: 600;
+      outline: none; cursor: pointer;
+      -webkit-appearance: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2394A3B8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 8px center;
+      transition: border-color 0.2s;
     }
-    .phone-country-select:focus {
-      border-color: #A855F7;
-      background-color: rgba(168,85,247,0.06);
+    .country-code-select:focus { border-color: #7C3AED; background-color: rgba(124,58,237,0.06); }
+    .country-code-select option { background: #0D0E1A; color: #fff; }
+    .phone-input { flex: 1; border-radius: 0 12px 12px 0 !important; }
+
+    /* ── OTP digit boxes ── */
+    .otp-row {
+      display: flex; gap: 0.5rem; justify-content: center; margin: 1.25rem 0;
     }
-    .phone-country-select option {
-      background: #0D0E1A;
-      color: #FFFFFF;
+    .otp-box {
+      width: 48px; height: 56px; border-radius: 12px; text-align: center;
+      background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.1);
+      color: #fff; font-size: 1.4rem; font-weight: 800;
+      font-family: var(--font-display, 'Inter');
+      outline: none; transition: all 0.2s ease; -moz-appearance: textfield;
+      caret-color: #A855F7;
     }
-    .phone-number-input {
-      flex: 1;
-      border-radius: 0 12px 12px 0 !important;
+    .otp-box::-webkit-inner-spin-button,
+    .otp-box::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .otp-box:focus { border-color: #7C3AED; background: rgba(124,58,237,0.08); box-shadow: 0 0 0 3px rgba(124,58,237,0.2); }
+    .otp-box.filled  { border-color: rgba(168,85,247,0.5); background: rgba(168,85,247,0.07); }
+    .otp-box.error   { border-color: #EF4444; background: rgba(239,68,68,0.07); animation: shake 0.35s ease; }
+    .otp-box.success { border-color: #10B981; background: rgba(16,185,129,0.1); }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)} 20%{transform:translateX(-4px)} 60%{transform:translateX(4px)}
     }
 
-    /* OTP channel toggle tabs */
-    .otp-channel-tabs {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1.25rem;
-      background: rgba(255,255,255,0.04);
-      border-radius: 12px;
-      padding: 4px;
+    /* ── OTP meta info ── */
+    .otp-meta { text-align: center; margin-bottom: 0.75rem; }
+    .otp-recipient {
+      font-size: 0.88rem; color: #CBD5E1; font-weight: 500;
     }
-    .otp-channel-tab {
-      flex: 1;
-      padding: 0.5rem 0.75rem;
-      border-radius: 9px;
-      border: none;
-      background: transparent;
-      color: #94A3B8;
-      font-size: 0.78rem;
-      font-weight: 700;
-      font-family: var(--font-display, 'Inter', sans-serif);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.35rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+    .otp-recipient strong { color: #A855F7; }
+
+    /* ── Expiry + attempts row ── */
+    .otp-status-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 0.5rem 0 1rem; padding: 0.6rem 0.9rem;
+      background: rgba(255,255,255,0.03); border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.06);
     }
-    .otp-channel-tab.active {
-      background: rgba(168,85,247,0.15);
-      color: #C084FC;
-      border: 1px solid rgba(168,85,247,0.3);
+    .otp-expiry  { display: flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; color: #94A3B8; }
+    .otp-expiry .timer { color: #F59E0B; font-weight: 800; font-family: 'Fira Code', monospace; font-size: 0.82rem; }
+    .otp-expiry .timer.urgent { color: #EF4444; }
+    .otp-attempts { font-size: 0.75rem; color: #64748B; font-weight: 600; }
+    .otp-attempts .count { color: #A855F7; font-weight: 800; }
+
+    /* ── Resend ── */
+    .resend-row {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.5rem; font-size: 0.82rem; color: #64748B;
     }
-    .otp-channel-tab:hover:not(.active) {
-      background: rgba(255,255,255,0.06);
-      color: #FFFFFF;
+    .btn-resend {
+      background: none; border: none; color: #A855F7; font-weight: 700;
+      font-size: 0.82rem; cursor: pointer; padding: 0; font-family: inherit;
+      transition: opacity 0.2s;
+    }
+    .btn-resend:disabled { opacity: 0.4; cursor: not-allowed; }
+    .resend-timer { color: #64748B; font-size: 0.78rem; display: none; }
+
+    /* ── Password strength ── */
+    .pw-strength-track {
+      height: 4px; border-radius: 99px; background: rgba(255,255,255,0.08);
+      margin-top: 0.5rem; overflow: hidden;
+    }
+    .pw-strength-fill {
+      height: 100%; width: 0%; border-radius: 99px;
+      transition: width 0.3s ease, background 0.3s ease;
+    }
+    .pw-strength-label { font-size: 0.72rem; font-weight: 600; margin-top: 0.3rem; color: #64748B; }
+    .pw-strength-label.weak   { color: #EF4444; }
+    .pw-strength-label.fair   { color: #F59E0B; }
+    .pw-strength-label.good   { color: #06B6D4; }
+    .pw-strength-label.strong { color: #10B981; }
+
+    /* ── OTP shield icon ── */
+    .otp-badge {
+      width: 64px; height: 64px; border-radius: 20px; margin: 0 auto 1.25rem;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(168,85,247,0.15));
+      border: 1.5px solid rgba(168,85,247,0.3); font-size: 1.75rem;
+      box-shadow: 0 0 30px rgba(124,58,237,0.15);
+    }
+
+    /* ── Error + Success alerts ── */
+    .auth-alert {
+      display: none; padding: 0.75rem 1rem; border-radius: 12px;
+      font-size: 0.82rem; font-weight: 600; margin-bottom: 1rem;
+      align-items: center; gap: 0.5rem; animation: fadeSlideIn 0.2s ease;
+    }
+    .auth-alert.show { display: flex; }
+    .auth-alert.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #FCA5A5; }
+    .auth-alert.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: #6EE7B7; }
+
+    /* ── Loading spinner on buttons ── */
+    .btn-bb-login.loading { pointer-events: none; opacity: 0.8; }
+    .spinner-ring {
+      width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,0.25);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.7s linear infinite; display: inline-block; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Instructor alert box ── */
+    .instructor-note {
+      display: none; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.22);
+      color: #FCD34D; border-radius: 10px; padding: 0.6rem 0.85rem;
+      font-size: 0.78rem; font-weight: 500; gap: 0.5rem; align-items: center; margin-top: 0.75rem;
+    }
+    .instructor-note.show { display: flex; }
+
+    /* ── Checkbox ── */
+    .auth-checkbox-row { display: flex; align-items: flex-start; gap: 0.6rem; margin: 1rem 0; }
+    .auth-checkbox { width: 17px; height: 17px; flex-shrink: 0; margin-top: 1px; accent-color: #7C3AED; cursor: pointer; }
+    .auth-checkbox-label { font-size: 0.82rem; color: #94A3B8; line-height: 1.5; }
+    .auth-checkbox-label a { color: #A855F7; font-weight: 700; text-decoration: none; }
+
+    /* ── Back button ── */
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: none; border: none; color: #A855F7; font-size: 0.82rem;
+      font-weight: 700; font-family: inherit; cursor: pointer; padding: 0;
+      margin-bottom: 1.25rem; transition: opacity 0.2s;
+    }
+    .btn-back:hover { opacity: 0.75; }
+
+    /* ── Console hint ── */
+    .console-hint {
+      display: flex; align-items: center; gap: 0.4rem;
+      font-size: 0.7rem; color: #475569; font-family: 'Fira Code', monospace;
+      background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.07);
+      border-radius: 8px; padding: 0.45rem 0.75rem; margin: 0.5rem 0 0.75rem;
+      text-align: center; justify-content: center;
+    }
+
+    /* ── Success screen ── */
+    .success-check {
+      width: 72px; height: 72px; border-radius: 50%; background: rgba(16,185,129,0.15);
+      border: 2px solid rgba(16,185,129,0.4); display: flex; align-items: center;
+      justify-content: center; margin: 0 auto 1.25rem; font-size: 2rem;
+      animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.5); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
     }
   </style>
-
-  <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="login-body">
+<div class="container-fluid p-0">
+  <div class="row g-0 login-wrapper">
 
-  <div class="container-fluid p-0">
-    <div class="row g-0 login-wrapper">
-      
-      <!-- LEFT PANEL -->
-      <div class="col-lg-6 login-brand-side d-none d-lg-flex">
-        <div class="glow-purple"></div>
-        <div class="glow-cyan"></div>
-        
-        <a class="navbar-brand d-flex align-items-center mb-5 position-relative" style="z-index: 5;" href="index.html" id="signup-brand-logo">
-          <span class="text-white">Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
-        </a>
-        
-        <div class="position-relative" style="z-index: 5; max-width: 440px;">
-          <h2 class="text-white fw-bold mb-3" style="font-size: 2.5rem; line-height: 1.25; font-family: var(--font-display);">
-            Start your <span class="text-gradient-violet">learning journey</span> today
-          </h2>
-          <p class="text-muted mb-5" style="font-size: 0.95rem; line-height: 1.6;">
-            Learn directly from senior tech architects, compile hands-on coding repositories, and showcase verified learning achievements to high-growth organizations.
-          </p>
+    <!-- ======================================================
+      LEFT BRAND PANEL
+    ====================================================== -->
+    <div class="col-lg-6 login-brand-side d-none d-lg-flex">
+      <div class="glow-purple"></div>
+      <div class="glow-cyan"></div>
+      <a class="navbar-brand d-flex align-items-center mb-5 position-relative" style="z-index:5;" href="index.html">
+        <span class="text-white">Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
+      </a>
+      <div class="position-relative" style="z-index:5; max-width:440px;">
+        <h2 class="text-white fw-bold mb-3" style="font-size:2.4rem;line-height:1.25;font-family:var(--font-display);">
+          Start your <span class="text-gradient-violet">learning journey</span> today
+        </h2>
+        <p class="text-muted mb-5" style="font-size:0.95rem;line-height:1.65;">
+          Learn from senior tech architects. Compile hands-on repositories. Showcase verified achievements to high-growth organizations.
+        </p>
+      </div>
+      <div class="perspective-container position-relative" style="z-index:5;">
+        <div class="floating-glass-card">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge" style="background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);color:#A78BFA;font-size:0.7rem;font-weight:700;">REACT FRONTEND</span>
+            <span class="text-white-50" style="font-size:0.75rem;font-weight:500;">84% Done</span>
+          </div>
+          <h4 class="text-white fw-bold m-0" style="font-size:0.9rem;">Next.js &amp; Supabase Certification</h4>
+          <div class="course-progress-track"><div class="course-progress-bar-glow" style="width:84%;"></div></div>
         </div>
-        
-        <div class="perspective-container position-relative" style="z-index: 5;">
-          <div class="floating-glass-card">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="badge" style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3); color: var(--violet-mid); font-size: 0.7rem; font-weight: 700;">REACT FRONTEND</span>
-              <span class="text-white-50" style="font-size: 0.75rem; font-weight: 500;">84% Done</span>
-            </div>
-            <h4 class="text-white fw-bold m-0" style="font-size: 0.95rem;">Next.js &amp; Supabase Certification</h4>
-            <div class="course-progress-track"><div class="course-progress-bar-glow" style="width: 84%;"></div></div>
+        <div class="floating-glass-card">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge" style="background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);color:#67E8F9;font-size:0.7rem;font-weight:700;">UI/UX DESIGN</span>
+            <span class="text-white-50" style="font-size:0.75rem;font-weight:500;">95% Done</span>
           </div>
-          <div class="floating-glass-card">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="badge" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); color: var(--teal-mid); font-size: 0.7rem; font-weight: 700;">UI/UX DESIGN</span>
-              <span class="text-white-50" style="font-size: 0.75rem; font-weight: 500;">95% Done</span>
-            </div>
-            <h4 class="text-white fw-bold m-0" style="font-size: 0.95rem;">Figma UI/UX Advanced Prototyping</h4>
-            <div class="course-progress-track"><div class="course-progress-bar-glow" style="width: 95%; background: linear-gradient(90deg, var(--teal-primary) 0%, var(--teal-mid) 100%); box-shadow: 0 0 8px rgba(6, 182, 212, 0.5);"></div></div>
+          <h4 class="text-white fw-bold m-0" style="font-size:0.9rem;">Figma UI/UX Advanced Prototyping</h4>
+          <div class="course-progress-track"><div class="course-progress-bar-glow" style="width:95%;background:linear-gradient(90deg,#06B6D4,#67E8F9);"></div></div>
+        </div>
+        <div class="floating-glass-card">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge" style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.3);color:#F9A8D4;font-size:0.7rem;font-weight:700;">AI DEEP LEARNING</span>
+            <span class="text-white-50" style="font-size:0.75rem;font-weight:500;">42% Done</span>
           </div>
-          <div class="floating-glass-card">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="badge" style="background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.3); color: var(--brand-pink); font-size: 0.7rem; font-weight: 700;">AI DEEP LEARNING</span>
-              <span class="text-white-50" style="font-size: 0.75rem; font-weight: 500;">42% Done</span>
-            </div>
-            <h4 class="text-white fw-bold m-0" style="font-size: 0.95rem;">Deep Learning &amp; PyTorch Systems</h4>
-            <div class="course-progress-track"><div class="course-progress-bar-glow" style="width: 42%; background: linear-gradient(90deg, var(--brand-pink) 0%, #a855f7 100%); box-shadow: 0 0 8px rgba(236, 72, 153, 0.5);"></div></div>
-          </div>
+          <h4 class="text-white fw-bold m-0" style="font-size:0.9rem;">Deep Learning &amp; PyTorch Systems</h4>
+          <div class="course-progress-track"><div class="course-progress-bar-glow" style="width:42%;background:linear-gradient(90deg,#EC4899,#a855f7);"></div></div>
         </div>
       </div>
-      
-      <!-- RIGHT PANEL (Forms) -->
-      <div class="col-lg-6 col-12 login-form-side">
-        <div class="login-form-container">
-          
-          <!-- Mobile brand -->
-          <div class="d-lg-none text-center mb-4">
-            <a class="navbar-brand d-inline-flex align-items-center" href="index.html">
-              <span class="text-white">Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
-            </a>
-          </div>
-          
-          <!-- Step Indicator -->
-          <div class="mb-3 d-flex align-items-center justify-content-center justify-content-lg-start gap-2" id="signup-step-indicator">
-            <span class="fw-bold text-white text-uppercase" style="font-size: 0.75rem; font-family: var(--font-display); letter-spacing: 0.08em;" id="indicator-step-text">Step 1</span>
-            <span id="indicator-step-dots" style="font-size: 0.95rem; line-height: 1;"><span style="color: var(--violet-primary);">&#9679;&#9679;</span><span style="color: rgba(255,255,255,0.12);">&#9675;&#9675;&#9675;&#9675;</span></span>
-          </div>
+    </div>
 
-          <!-- Header -->
-          <div class="mb-4 text-center text-lg-start">
-            <h1 class="fw-bold text-white mb-2" style="font-size: 2rem; font-family: var(--font-display);" id="signup-title-header">Join BrainByte &#x1F680;</h1>
-            <p style="color: #94A3B8; font-size: 0.95rem;" id="signup-subtext-header">Create your free account</p>
-          </div>
-          
-          <!-- Error alert -->
-          <div class="bb-error-alert d-none" role="alert" id="signup-error-alert">
-            <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
-            <div id="signup-error-text">Registration failed. Please check your credentials.</div>
-          </div>
-          
-          <!-- ================================================================
-            STEP 1: Role Selection
-          ================================================================ -->
-          <div class="signup-step active" id="step-1-container">
-            <label class="glass-input-label mb-3 text-center text-lg-start">Select your platform profile</label>
-            
-            <div class="role-cards-grid">
-              <div class="role-selection-card role-card" id="role-card-student" data-role="student">
-                <div class="role-card-icon">&#x1F393;</div>
-                <h3 class="role-card-title">I want to Learn</h3>
-                <span class="text-muted d-block mt-2" style="font-size: 0.72rem; font-weight: 500;">Access free &amp; premium tracks</span>
-              </div>
-              <div class="role-selection-card role-card" id="role-card-instructor" data-role="teach">
-                <div class="role-card-icon">&#x1F399;&#xFE0F;</div>
-                <h3 class="role-card-title">I want to Teach</h3>
-                <span class="text-muted d-block mt-2" style="font-size: 0.72rem; font-weight: 500;">Share knowledge &amp; earn split</span>
-              </div>
-            </div>
-            
-            <div class="d-none mb-4 text-center" id="instructor-verify-note">
-              <span style="font-size: 0.8rem; color: #94A3B8; font-weight: 500;">
-                <i class="bi bi-shield-exclamation text-warning me-1"></i> Verification required before publishing courses (takes 2-3 days).
-              </span>
-            </div>
-            
-            <button type="button" class="btn-bb-login" id="btn-signup-continue" disabled>
-              <span>Continue <i class="bi bi-arrow-right-short fs-5"></i></span>
-            </button>
-          </div>
-          
-          <!-- ================================================================
-            STEP 2: Account Details (with phone number)
-          ================================================================ -->
-          <div class="signup-step" id="step-2-container">
-            <button type="button" class="btn btn-link text-decoration-none p-0 mb-3 d-inline-flex align-items-center gap-1" id="btn-signup-back" style="color: var(--violet-mid); font-family: var(--font-display); font-weight: 700; font-size: 0.85rem;">
-              <i class="bi bi-arrow-left"></i> Back
-            </button>
+    <!-- ======================================================
+      RIGHT FORM PANEL
+    ====================================================== -->
+    <div class="col-lg-6 col-12 login-form-side">
+      <div class="login-form-container">
 
-            <form id="signup-form" novalidate>
-              
-              <!-- Full Name -->
-              <div class="glass-input-wrapper">
-                <label for="fullname" class="glass-input-label">Full Name</label>
-                <input type="text" class="glass-input" id="fullname" placeholder="John Doe" required>
-              </div>
-              
-              <!-- Email -->
-              <div class="glass-input-wrapper">
-                <label for="email" class="glass-input-label">Email Address</label>
-                <input type="email" class="glass-input" id="email" placeholder="john@domain.com" required>
-                <div class="instructor-email-alert-box d-none" id="instructor-email-info-box">
-                  <i class="bi bi-lightning-charge-fill flex-shrink-0" style="color: var(--violet-mid);"></i>
-                  <span>&#x26A1; After signup, you'll need to verify your profile before publishing courses (2-3 days).</span>
-                </div>
-              </div>
-
-              <!-- Phone Number -->
-              <div class="glass-input-wrapper">
-                <label class="glass-input-label">Phone Number <span style="color: #64748B; font-weight: 400; font-size: 0.75rem;">(for OTP verification)</span></label>
-                <div class="phone-input-group">
-                  <select class="phone-country-select" id="phone-country-code" aria-label="Country code">
-                    <option value="+91">&#x1F1EE;&#x1F1F3; +91</option>
-                    <option value="+1">&#x1F1FA;&#x1F1F8; +1</option>
-                    <option value="+44">&#x1F1EC;&#x1F1E7; +44</option>
-                    <option value="+61">&#x1F1E6;&#x1F1FA; +61</option>
-                    <option value="+971">&#x1F1E6;&#x1F1EA; +971</option>
-                    <option value="+65">&#x1F1F8;&#x1F1EC; +65</option>
-                    <option value="+49">&#x1F1E9;&#x1F1EA; +49</option>
-                    <option value="+33">&#x1F1EB;&#x1F1F7; +33</option>
-                    <option value="+81">&#x1F1EF;&#x1F1F5; +81</option>
-                    <option value="+86">&#x1F1E8;&#x1F1F3; +86</option>
-                  </select>
-                  <input type="tel" class="glass-input phone-number-input" id="phone-number" placeholder="98765 43210" pattern="[0-9]{7,12}" maxlength="12">
-                </div>
-                <span style="font-size: 0.72rem; color: #64748B; margin-top: 0.35rem; display: block;">
-                  <i class="bi bi-info-circle me-1"></i>Used to verify your identity via OTP
-                </span>
-              </div>
-              
-              <!-- Password -->
-              <div class="glass-input-wrapper">
-                <label for="password" class="glass-input-label">Password</label>
-                <input type="password" class="glass-input" id="password" placeholder="Min. 8 characters" required>
-                <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility" id="toggle-password-btn" style="top: 32px;">
-                  <i class="bi bi-eye"></i>
-                </button>
-                <div class="password-strength-wrapper" id="strength-meter-box">
-                  <div class="strength-bar-track">
-                    <div class="strength-bar-fill" id="strength-bar-bar"></div>
-                  </div>
-                  <div class="strength-label-container">
-                    <span class="strength-label" id="strength-bar-label">Password Strength</span>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Confirm Password -->
-              <div class="glass-input-wrapper">
-                <label for="confirm-password" class="glass-input-label">Confirm Password</label>
-                <input type="password" class="glass-input" id="confirm-password" placeholder="Confirm your password" required>
-                <button type="button" class="password-toggle-btn" aria-label="Toggle confirm visibility" id="toggle-confirm-btn" style="top: 32px;">
-                  <i class="bi bi-eye"></i>
-                </button>
-                <span class="d-none mt-1 fw-semibold text-danger" style="font-size: 0.75rem;" id="match-error-text">
-                  <i class="bi bi-x-circle me-1"></i> Passwords do not match.
-                </span>
-              </div>
-              
-              <!-- Terms -->
-              <div class="glass-checkbox-wrapper" id="checkbox-terms-wrapper">
-                <input type="checkbox" class="glass-checkbox" id="terms-check" required>
-                <label for="terms-check" class="glass-checkbox-label">
-                  I agree to the <a href="#" style="color: #A855F7; font-weight: 700; text-decoration: none;">Terms of Service</a> &amp; <a href="#" style="color: #A855F7; font-weight: 700; text-decoration: none;">Privacy Policy</a>
-                </label>
-              </div>
-              
-              <button type="submit" class="btn-bb-login mt-2" id="submit-signup-btn" disabled>
-                <span>Continue to Verification</span>
-              </button>
-              
-            </form>
-            
-            <div class="login-divider">or continue with</div>
-            
-            <button type="button" class="btn-bb-google mb-4" id="btn-oauth-signup-google">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z" fill="#4285F4"/>
-                <path d="M9 18C11.43 18 13.4673 17.1941 14.9564 15.8195L12.0477 13.5614C11.2418 14.1014 10.2109 14.4205 9 14.4205C6.65591 14.4205 4.67182 12.8373 3.96409 10.71H0.957275V13.0418C2.43818 15.9832 5.48182 18 9 18Z" fill="#34A853"/>
-                <path d="M3.96409 10.71C3.78409 10.17 3.68182 9.59727 3.68182 9C3.68182 8.40273 3.78409 7.83 3.96409 7.29V4.95818H0.957275C0.347727 6.17318 0 7.55182 0 9C0 10.4482 0.347727 11.8268 0.957275 13.0418L3.96409 10.71Z" fill="#FBBC05"/>
-                <path d="M9 3.57955C10.3214 3.57955 11.5077 4.03364 12.4405 4.92545L15.0218 2.34409C13.4632 0.891818 11.4259 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.16273 6.65591 3.57955 9 3.57955Z" fill="#EA4335"/>
-              </svg>
-              <span>Continue with Google</span>
-            </button>
-            
-            <div class="text-center">
-              <span style="color: #94A3B8; font-size: 0.88rem; font-weight: 500;">
-                Already have an account? <a href="login.html" style="color: #A855F7; font-weight: 700; text-decoration: none;" id="link-signup-login">Login</a>
-              </span>
-            </div>
-          </div>
-          
-          <!-- ================================================================
-            STEP 3: OTP VERIFICATION (Email OR Phone)
-          ================================================================ -->
-          <div class="signup-step" id="step-3-container">
-
-            <!-- Shield badge -->
-            <div class="otp-icon-badge">
-              <i class="bi bi-shield-check-fill"></i>
-            </div>
-
-            <div class="text-center mb-3">
-              <h2 class="fw-bold text-white mb-2" style="font-size: 1.75rem; font-family: var(--font-display);">Verify your account &#x1F510;</h2>
-              <p style="color: #94A3B8; font-size: 0.85rem;">Choose how you want to receive the 6-digit code</p>
-            </div>
-
-            <!-- Channel chooser tabs -->
-            <div class="otp-channel-tabs" id="signup-otp-channel-tabs">
-              <button type="button" class="otp-channel-tab active" id="signup-otp-tab-email" data-channel="email">
-                <i class="bi bi-envelope-fill"></i> Email
-              </button>
-              <button type="button" class="otp-channel-tab" id="signup-otp-tab-phone" data-channel="phone">
-                <i class="bi bi-phone-fill"></i> Phone SMS
-              </button>
-            </div>
-
-            <!-- Recipient display -->
-            <p class="otp-recipient-line text-center mb-1">
-              Code sent to: <strong id="signup-otp-recipient">your email</strong>
-            </p>
-            <p style="font-size: 0.72rem; color: #475569; text-align: center; margin-bottom: 0.5rem; font-family: 'Fira Code', monospace;">
-              <i class="bi bi-terminal-fill me-1" style="color: #A855F7;"></i>
-              Check browser console (F12) to see your OTP code
-            </p>
-
-            <!-- 6-digit OTP boxes -->
-            <div class="otp-digits-row" id="signup-otp-digits-row">
-              <input type="number" class="otp-digit-box" maxlength="1" id="signup-otp-d1" min="0" max="9" autocomplete="off">
-              <input type="number" class="otp-digit-box" maxlength="1" id="signup-otp-d2" min="0" max="9" autocomplete="off">
-              <input type="number" class="otp-digit-box" maxlength="1" id="signup-otp-d3" min="0" max="9" autocomplete="off">
-              <input type="number" class="otp-digit-box" maxlength="1" id="signup-otp-d4" min="0" max="9" autocomplete="off">
-              <input type="number" class="otp-digit-box" maxlength="1" id="signup-otp-d5" min="0" max="9" autocomplete="off">
-              <input type="number" class="otp-digit-box" maxlength="1" id="signup-otp-d6" min="0" max="9" autocomplete="off">
-            </div>
-
-            <!-- Error message -->
-            <div class="otp-error-msg" id="signup-otp-error"></div>
-
-            <!-- Confirm Button -->
-            <button type="button" class="btn-bb-login mt-3 btn-otp-verify" id="btn-signup-verify-otp">
-              <span>Confirm &amp; Create Account</span>
-            </button>
-
-            <!-- Resend row -->
-            <div class="d-flex align-items-center justify-content-center gap-2 mt-3 flex-wrap">
-              <span style="color: #94A3B8; font-size: 0.82rem;">Didn't get the code?</span>
-              <button type="button" class="btn btn-link p-0 text-decoration-none fw-bold" style="color: #A855F7; font-size: 0.82rem;" id="btn-signup-resend-otp">Resend</button>
-              <span class="otp-resend-timer" id="signup-otp-timer" style="display:none;"></span>
-            </div>
-
-            <!-- Back link -->
-            <div class="text-center mt-3">
-              <button type="button" class="btn btn-link p-0 text-decoration-none" style="color: #94A3B8; font-size: 0.8rem;" id="btn-signup-back-to-step2">
-                <i class="bi bi-arrow-left me-1"></i>Back to account details
-              </button>
-            </div>
-          </div>
-          
+        <!-- Mobile brand -->
+        <div class="d-lg-none text-center mb-4">
+          <a class="navbar-brand d-inline-flex align-items-center" href="index.html">
+            <span class="text-white">Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
+          </a>
         </div>
+
+        <!-- Step progress indicator -->
+        <div class="mb-4" id="su-step-indicator">
+          <div class="step-progress">
+            <div class="step-node active" id="su-node-1">1</div>
+            <div class="step-connector" id="su-conn-1"></div>
+            <div class="step-node" id="su-node-2">2</div>
+            <div class="step-connector" id="su-conn-2"></div>
+            <div class="step-node" id="su-node-3">3</div>
+          </div>
+          <div class="d-flex justify-content-between mt-1" style="font-size:0.62rem;color:#64748B;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">
+            <span>Role</span>
+            <span style="text-align:center;flex:1;margin:0 0.25rem;">Details</span>
+            <span>Verify</span>
+          </div>
+        </div>
+
+        <!-- Global error alert -->
+        <div class="auth-alert error" id="su-global-error" role="alert">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span id="su-global-error-text">Something went wrong.</span>
+        </div>
+
+        <!-- ==========================================
+          STEP 1 — Role Selection
+        =========================================== -->
+        <div class="auth-step active" id="su-step-1">
+          <div class="mb-4">
+            <h1 class="fw-bold text-white mb-1" style="font-size:1.85rem;font-family:var(--font-display);">Join BrainByte &#x1F680;</h1>
+            <p style="color:#94A3B8;font-size:0.9rem;">Who are you joining as?</p>
+          </div>
+
+          <div class="role-cards-grid">
+            <div class="role-card" id="role-student" data-role="student">
+              <div class="role-card-icon">&#x1F393;</div>
+              <h3 class="role-card-title">I want to Learn</h3>
+              <p class="role-card-sub">Access free &amp; premium tracks</p>
+            </div>
+            <div class="role-card" id="role-instructor" data-role="teach">
+              <div class="role-card-icon">&#x1F399;&#xFE0F;</div>
+              <h3 class="role-card-title">I want to Teach</h3>
+              <p class="role-card-sub">Share knowledge &amp; earn</p>
+            </div>
+          </div>
+
+          <div class="instructor-note" id="su-instructor-note">
+            <i class="bi bi-shield-exclamation"></i>
+            <span>Instructor accounts require verification (2-3 days) before publishing courses.</span>
+          </div>
+
+          <button type="button" class="btn-bb-login mt-3" id="su-btn-continue-1" disabled>
+            <span>Continue <i class="bi bi-arrow-right-short fs-5"></i></span>
+          </button>
+        </div>
+
+        <!-- ==========================================
+          STEP 2 — Account Details
+        =========================================== -->
+        <div class="auth-step" id="su-step-2">
+          <button type="button" class="btn-back" id="su-btn-back-1">
+            <i class="bi bi-arrow-left"></i> Back
+          </button>
+
+          <div class="mb-4">
+            <h1 class="fw-bold text-white mb-1" style="font-size:1.75rem;font-family:var(--font-display);" id="su-step2-title">Set up your profile</h1>
+            <p style="color:#94A3B8;font-size:0.88rem;" id="su-step2-sub">Fill in your account details</p>
+          </div>
+
+          <form id="su-form" novalidate>
+            <!-- Full Name -->
+            <div class="glass-input-wrapper">
+              <label for="su-fullname" class="glass-input-label">Full Name</label>
+              <input type="text" class="glass-input" id="su-fullname" placeholder="John Doe" autocomplete="name" required>
+              <span class="d-none mt-1 text-danger" style="font-size:0.73rem;" id="su-err-name">
+                <i class="bi bi-x-circle me-1"></i> <span></span>
+              </span>
+            </div>
+
+            <!-- Email -->
+            <div class="glass-input-wrapper">
+              <label for="su-email" class="glass-input-label">Email Address</label>
+              <input type="email" class="glass-input" id="su-email" placeholder="john@domain.com" autocomplete="email" required>
+              <span class="d-none mt-1 text-danger" style="font-size:0.73rem;" id="su-err-email">
+                <i class="bi bi-x-circle me-1"></i> <span></span>
+              </span>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="glass-input-wrapper">
+              <label class="glass-input-label">Phone Number <span style="color:#64748B;font-weight:400;font-size:0.73rem;">(OTP verification)</span></label>
+              <div class="phone-group">
+                <select class="country-code-select" id="su-country-code" aria-label="Country code">
+                  <option value="+91">&#x1F1EE;&#x1F1F3; +91</option>
+                  <option value="+1">&#x1F1FA;&#x1F1F8; +1</option>
+                  <option value="+44">&#x1F1EC;&#x1F1E7; +44</option>
+                  <option value="+61">&#x1F1E6;&#x1F1FA; +61</option>
+                  <option value="+971">&#x1F1E6;&#x1F1EA; +971</option>
+                  <option value="+65">&#x1F1F8;&#x1F1EC; +65</option>
+                  <option value="+49">&#x1F1E9;&#x1F1EA; +49</option>
+                  <option value="+81">&#x1F1EF;&#x1F1F5; +81</option>
+                  <option value="+86">&#x1F1E8;&#x1F1F3; +86</option>
+                </select>
+                <input type="tel" class="glass-input phone-input" id="su-phone"
+                  placeholder="98765 43210" maxlength="12" autocomplete="tel-national">
+              </div>
+              <span class="d-none mt-1 text-danger" style="font-size:0.73rem;" id="su-err-phone">
+                <i class="bi bi-x-circle me-1"></i> <span></span>
+              </span>
+            </div>
+
+            <!-- Password -->
+            <div class="glass-input-wrapper">
+              <label for="su-password" class="glass-input-label">Password</label>
+              <input type="password" class="glass-input" id="su-password" placeholder="Min. 8 characters" autocomplete="new-password" required>
+              <button type="button" class="password-toggle-btn" id="su-toggle-pw" aria-label="Toggle password" style="top:32px;">
+                <i class="bi bi-eye"></i>
+              </button>
+              <div class="pw-strength-track"><div class="pw-strength-fill" id="su-pw-bar"></div></div>
+              <span class="pw-strength-label" id="su-pw-label">Password strength</span>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="glass-input-wrapper">
+              <label for="su-confirm" class="glass-input-label">Confirm Password</label>
+              <input type="password" class="glass-input" id="su-confirm" placeholder="Repeat password" autocomplete="new-password" required>
+              <button type="button" class="password-toggle-btn" id="su-toggle-confirm" aria-label="Toggle confirm" style="top:32px;">
+                <i class="bi bi-eye"></i>
+              </button>
+              <span class="d-none mt-1 text-danger" style="font-size:0.73rem;" id="su-err-confirm">
+                <i class="bi bi-x-circle me-1"></i> Passwords do not match.
+              </span>
+            </div>
+
+            <!-- Terms -->
+            <div class="auth-checkbox-row">
+              <input type="checkbox" class="auth-checkbox" id="su-terms">
+              <label for="su-terms" class="auth-checkbox-label">
+                I agree to the <a href="#">Terms of Service</a> &amp; <a href="#">Privacy Policy</a>
+              </label>
+            </div>
+
+            <button type="submit" class="btn-bb-login" id="su-btn-submit" disabled>
+              <span>Send Phone OTP <i class="bi bi-arrow-right-short fs-5"></i></span>
+            </button>
+          </form>
+
+          <div class="login-divider">or continue with</div>
+          <button type="button" class="btn-bb-google mb-3" id="su-btn-google">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M17.64 9.205c0-.638-.057-1.252-.164-1.841H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+              <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
+              <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.402.065-.793.182-1.162V5.506H.957A9.006 9.006 0 000 9c0 1.452.348 2.827.957 4.042L3.964 10.71z" fill="#FBBC05"/>
+              <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.892 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958l3.007 2.332C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+            </svg>
+            <span>Continue with Google</span>
+          </button>
+          <div class="text-center">
+            <span style="color:#94A3B8;font-size:0.85rem;">Already have an account?
+              <a href="login.html" style="color:#A855F7;font-weight:700;text-decoration:none;">Sign In</a>
+            </span>
+          </div>
+        </div>
+
+        <!-- ==========================================
+          STEP 3 — Phone OTP Verification
+        =========================================== -->
+        <div class="auth-step" id="su-step-3">
+          <button type="button" class="btn-back" id="su-btn-back-2">
+            <i class="bi bi-arrow-left"></i> Back
+          </button>
+
+          <div class="otp-badge">&#x1F4F1;</div>
+
+          <div class="otp-meta">
+            <h2 class="fw-bold text-white mb-1" style="font-size:1.65rem;font-family:var(--font-display);">Verify Phone Number</h2>
+            <p class="otp-recipient">6-digit code sent to <strong id="su-otp-phone-display">your phone</strong></p>
+          </div>
+
+          <div class="console-hint">
+            <i class="bi bi-terminal-fill" style="color:#A855F7;"></i>
+            Open DevTools Console (F12) to see your OTP code
+          </div>
+
+          <!-- OTP boxes -->
+          <div class="otp-row" id="su-otp-row">
+            <input type="tel" inputmode="numeric" class="otp-box" maxlength="1" id="su-d1" autocomplete="off">
+            <input type="tel" inputmode="numeric" class="otp-box" maxlength="1" id="su-d2" autocomplete="off">
+            <input type="tel" inputmode="numeric" class="otp-box" maxlength="1" id="su-d3" autocomplete="off">
+            <input type="tel" inputmode="numeric" class="otp-box" maxlength="1" id="su-d4" autocomplete="off">
+            <input type="tel" inputmode="numeric" class="otp-box" maxlength="1" id="su-d5" autocomplete="off">
+            <input type="tel" inputmode="numeric" class="otp-box" maxlength="1" id="su-d6" autocomplete="off">
+          </div>
+
+          <!-- Error -->
+          <div class="auth-alert error" id="su-otp-error" role="alert">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            <span id="su-otp-error-text"></span>
+          </div>
+
+          <!-- Status: expiry + attempts -->
+          <div class="otp-status-row">
+            <div class="otp-expiry">
+              <i class="bi bi-clock-history"></i>
+              Expires in <span class="timer" id="su-otp-timer">05:00</span>
+            </div>
+            <div class="otp-attempts">
+              Attempt <span class="count" id="su-attempt-count">0</span>/5
+            </div>
+          </div>
+
+          <!-- Verify button -->
+          <button type="button" class="btn-bb-login" id="su-btn-verify">
+            <span>Verify &amp; Create Account</span>
+          </button>
+
+          <!-- Resend row -->
+          <div class="resend-row mt-3">
+            <span>Didn't receive it?</span>
+            <button type="button" class="btn-resend" id="su-btn-resend" disabled>Resend OTP</button>
+            <span class="resend-timer" id="su-resend-timer">in <b id="su-resend-sec">30</b>s</span>
+          </div>
+        </div>
+
+        <!-- ==========================================
+          STEP 4 — Success Screen
+        =========================================== -->
+        <div class="auth-step" id="su-step-success">
+          <div class="text-center">
+            <div class="success-check">&#x2705;</div>
+            <h2 class="fw-bold text-white mb-2" style="font-size:1.65rem;font-family:var(--font-display);">Account Created!</h2>
+            <p style="color:#94A3B8;font-size:0.9rem;margin-bottom:2rem;">Your phone number is verified. Welcome to BrainByte.</p>
+            <button type="button" class="btn-bb-login" id="su-btn-go-dashboard">
+              <span>Go to Dashboard <i class="bi bi-arrow-right-short fs-5"></i></span>
+            </button>
+          </div>
+        </div>
+
       </div>
-      
     </div>
   </div>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase-config.js"></script>
-  <script src="js/otp-engine.js"></script>
-  <script src="js/main.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/auth-engine.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>
