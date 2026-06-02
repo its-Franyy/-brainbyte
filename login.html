@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="css/style.css">
 
   <style>
-    /* ── Step animation ── */
+    /* â”€â”€ Step animation â”€â”€ */
     .auth-step { display: none; animation: fadeSlideIn 0.3s cubic-bezier(0.16,1,0.3,1) both; }
     .auth-step.active { display: block; }
     @keyframes fadeSlideIn {
@@ -20,7 +20,7 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* ── Step progress (2-step) ── */
+    /* â”€â”€ Step progress (2-step) â”€â”€ */
     .step-progress {
       display: flex; align-items: center; gap: 0; margin-bottom: 1.75rem;
     }
@@ -36,7 +36,7 @@
     .step-connector   { flex: 1; height: 2px; background: rgba(255,255,255,0.08); margin: 0 4px; transition: background 0.4s; }
     .step-connector.done { background: #10B981; }
 
-    /* ── OTP boxes ── */
+    /* â”€â”€ OTP boxes â”€â”€ */
     .otp-row { display: flex; gap: 0.5rem; justify-content: center; margin: 1.25rem 0; }
     .otp-box {
       width: 48px; height: 56px; border-radius: 12px; text-align: center;
@@ -52,7 +52,7 @@
     .otp-box.success { border-color: #10B981; background: rgba(16,185,129,0.1); }
     @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-4px)} 60%{transform:translateX(4px)} }
 
-    /* ── Alerts ── */
+    /* â”€â”€ Alerts â”€â”€ */
     .auth-alert {
       display: none; padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.82rem;
       font-weight: 600; margin-bottom: 1rem; align-items: center; gap: 0.5rem;
@@ -63,7 +63,7 @@
     .auth-alert.success{ background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: #6EE7B7; }
     .auth-alert.warning{ background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.22); color: #FCD34D; }
 
-    /* ── Loading spinner ── */
+    /* â”€â”€ Loading spinner â”€â”€ */
     .btn-bb-login.loading { pointer-events: none; opacity: 0.8; }
     .spinner-ring {
       width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,0.25);
@@ -72,7 +72,7 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── OTP meta ── */
+    /* â”€â”€ OTP meta â”€â”€ */
     .otp-badge {
       width: 64px; height: 64px; border-radius: 20px; margin: 0 auto 1.25rem;
       display: flex; align-items: center; justify-content: center;
@@ -83,7 +83,7 @@
     .otp-recipient { font-size: 0.88rem; color: #CBD5E1; font-weight: 500; text-align: center; }
     .otp-recipient strong { color: #A855F7; }
 
-    /* ── Status row ── */
+    /* â”€â”€ Status row â”€â”€ */
     .otp-status-row {
       display: flex; align-items: center; justify-content: space-between;
       margin: 0.5rem 0 1rem; padding: 0.6rem 0.9rem;
@@ -96,13 +96,13 @@
     .otp-attempts { font-size: 0.75rem; color: #64748B; font-weight: 600; }
     .otp-attempts .count { color: #A855F7; font-weight: 800; }
 
-    /* ── Resend ── */
+    /* â”€â”€ Resend â”€â”€ */
     .resend-row { display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.82rem; color: #64748B; }
     .btn-resend { background: none; border: none; color: #A855F7; font-weight: 700; font-size: 0.82rem; cursor: pointer; padding: 0; font-family: inherit; transition: opacity 0.2s; }
     .btn-resend:disabled { opacity: 0.4; cursor: not-allowed; }
     .resend-timer { color: #64748B; font-size: 0.78rem; display: none; }
 
-    /* ── Back button ── */
+    /* â”€â”€ Back button â”€â”€ */
     .btn-back {
       display: inline-flex; align-items: center; gap: 0.4rem;
       background: none; border: none; color: #A855F7; font-size: 0.82rem;
@@ -111,7 +111,7 @@
     }
     .btn-back:hover { opacity: 0.75; }
 
-    /* ── Console hint ── */
+    /* â”€â”€ Console hint â”€â”€ */
     .console-hint {
       display: flex; align-items: center; gap: 0.4rem;
       font-size: 0.7rem; color: #475569; font-family: 'Fira Code', monospace;
@@ -120,7 +120,7 @@
       text-align: center; justify-content: center;
     }
 
-    /* ── Lockout alert ── */
+    /* â”€â”€ Lockout alert â”€â”€ */
     .lockout-bar {
       display: none; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);
       border-radius: 10px; padding: 0.7rem 0.9rem; font-size: 0.8rem; color: #FCA5A5;
@@ -205,7 +205,7 @@
         </div>
 
         <!-- ==========================================
-          STEP 1 — Email + Password
+          STEP 1 â€” Email + Password
         =========================================== -->
         <div class="auth-step active" id="li-step-1">
           <div class="mb-4">
@@ -265,7 +265,7 @@
         </div>
 
         <!-- ==========================================
-          STEP 2 — Email OTP Verification
+          STEP 2 â€” Email OTP Verification
         =========================================== -->
         <div class="auth-step" id="li-step-2">
           <button type="button" class="btn-back" id="li-btn-back">
@@ -279,9 +279,9 @@
             <p class="otp-recipient">A 6-digit code was sent to<br><strong id="li-otp-email-display">your email</strong></p>
           </div>
 
-          <div class="console-hint">
-            <i class="bi bi-terminal-fill" style="color:#A855F7;"></i>
-            Open DevTools Console (F12) to see your OTP code
+          <div style="font-size:0.72rem;color:#64748B;text-align:center;margin:0.25rem 0 0.5rem;font-style:italic;">
+            <i class="bi bi-info-circle me-1" style="color:#A855F7;"></i>
+            OTP will appear as a popup card on screen
           </div>
 
           <!-- OTP boxes -->

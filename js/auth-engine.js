@@ -183,12 +183,19 @@ const AuthEngine = (() => {
       sessionStorage.setItem(`bb_otp_${type}_${key}`, JSON.stringify(fallback));
     }
 
-    // ── Display OTP in console (replace with Twilio/SendGrid in production) ──
+    // ── Store OTP for on-screen display (DEV MODE) ──
+    window._bb_last_otp = { code, type, recipient, expiresAt };
+
+    // ── Show OTP on screen in dev box ──
+    _showOTPDevBox(code, type, recipient);
+
+    // ── Console log as well ──
     const channel = type === 'phone' ? '📱 SMS' : '📧 Email';
-    console.groupCollapsed(`%c[BrainByte OTP] ${channel} code sent to ${recipient}`, 'color:#A855F7;font-weight:bold;');
-    console.log(`%c${code}`, 'color:#10B981;font-size:2rem;font-weight:900;background:#0D0E1A;padding:6px 20px;border-radius:8px;letter-spacing:8px;');
-    console.log(`%cExpires in 5 minutes. Attempts allowed: ${MAX_OTP_ATTEMPTS}`, 'color:#94A3B8;');
-    console.groupEnd();
+    console.log(
+      `%c[BrainByte OTP] ${channel} → ${recipient} : %c${code}`,
+      'color:#A855F7;font-weight:bold;',
+      'color:#10B981;font-size:1.8rem;font-weight:900;background:#0D0E1A;padding:4px 16px;border-radius:6px;letter-spacing:6px;'
+    );
 
     return { success: true };
   }
@@ -473,6 +480,139 @@ const AuthEngine = (() => {
   function stopTimer(id) {
     if (timers[id]) { clearInterval(timers[id]); delete timers[id]; }
   }
+
+  // ================================================================
+  // DEV MODE — Show OTP on screen (remove in production)
+  // Creates a floating card on the page with the OTP code visible
+  // ================================================================
+  function _showOTPDevBox(code, type, recipient) {
+    // Remove any existing dev box
+    const existing = document.getElementById('_bb_otp_devbox');
+    if (existing) existing.remove();
+
+    const isPhone = type === 'phone';
+    const icon    = isPhone ? '📱' : '📧';
+    const label   = isPhone ? 'Phone OTP' : 'Email OTP';
+
+    const box = document.createElement('div');
+    box.id = '_bb_otp_devbox';
+    box.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 20px; right: 20px;
+        z-index: 99999;
+        background: linear-gradient(135deg, #0F0F1A 0%, #1A0F2E 100%);
+        border: 1.5px solid rgba(168,85,247,0.5);
+        border-radius: 18px;
+        padding: 1.1rem 1.4rem;
+        min-width: 240px;
+        box-shadow: 0 8px 40px rgba(168,85,247,0.25), 0 0 0 1px rgba(255,255,255,0.05);
+        font-family: 'Inter', -apple-system, sans-serif;
+        animation: _bbSlideIn 0.35s cubic-bezier(0.16,1,0.3,1) both;
+      ">
+        <!-- Close button -->
+        <button onclick="document.getElementById('_bb_otp_devbox').remove()" style="
+          position: absolute; top: 10px; right: 12px;
+          background: none; border: none; color: #64748B;
+          font-size: 1rem; cursor: pointer; line-height: 1; padding: 0;
+        ">&#x2715;</button>
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;">
+          <span style="font-size:1.1rem;">${icon}</span>
+          <span style="font-size:0.7rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#A855F7;">${label} — Dev Mode</span>
+        </div>
+
+        <!-- Recipient -->
+        <div style="font-size:0.72rem;color:#64748B;margin-bottom:0.8rem;">
+          Sent to: <span style="color:#94A3B8;font-weight:600;">${recipient}</span>
+        </div>
+
+        <!-- OTP Code -->
+        <div style="
+          background: rgba(16,185,129,0.08);
+          border: 1.5px solid rgba(16,185,129,0.3);
+          border-radius: 12px;
+          padding: 0.8rem 1rem;
+          text-align: center;
+          margin-bottom: 0.75rem;
+        ">
+          <div style="font-size:0.62rem;color:#64748B;margin-bottom:0.3rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Your OTP Code</div>
+          <div id="_bb_otp_code_display" style="
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: 10px;
+            color: #10B981;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            line-height: 1;
+            padding-left: 10px;
+          ">${code}</div>
+        </div>
+
+        <!-- Copy button -->
+        <button id="_bb_otp_copy_btn" onclick="
+          navigator.clipboard.writeText('${code}').then(()=>{
+            this.textContent='✅ Copied!';
+            this.style.background='rgba(16,185,129,0.15)';
+            this.style.borderColor='rgba(16,185,129,0.4)';
+            this.style.color='#10B981';
+            setTimeout(()=>{
+              this.textContent='📋 Copy OTP';
+              this.style.background='';
+              this.style.borderColor='';
+              this.style.color='';
+            }, 2000);
+          });
+        " style="
+          width: 100%;
+          background: rgba(168,85,247,0.1);
+          border: 1px solid rgba(168,85,247,0.3);
+          border-radius: 9px;
+          color: #C084FC;
+          font-size: 0.78rem;
+          font-weight: 700;
+          padding: 0.45rem 0;
+          cursor: pointer;
+          font-family: inherit;
+          transition: all 0.2s;
+          margin-bottom: 0.5rem;
+        ">&#x1F4CB; Copy OTP</button>
+
+        <!-- Expiry note -->
+        <div style="font-size:0.65rem;color:#475569;text-align:center;">
+          &#x23F3; Expires in 5 minutes &bull; For testing only
+        </div>
+      </div>
+    `;
+
+    // Inject keyframe animation once
+    if (!document.getElementById('_bb_devbox_style')) {
+      const style = document.createElement('style');
+      style.id = '_bb_devbox_style';
+      style.textContent = `
+        @keyframes _bbSlideIn {
+          from { opacity: 0; transform: translateX(40px) scale(0.95); }
+          to   { opacity: 1; transform: translateX(0)   scale(1); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    document.body.appendChild(box);
+
+    // Auto-remove after 5 minutes (when OTP expires)
+    setTimeout(() => {
+      const el = document.getElementById('_bb_otp_devbox');
+      if (el) {
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(40px)';
+        el.style.transition = 'all 0.3s ease';
+        setTimeout(() => el.remove(), 300);
+      }
+    }, OTP_EXPIRY_MS);
+  }
+
+
 
   // ================================================================
   // EXPORTS
