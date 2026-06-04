@@ -153,9 +153,8 @@ const AuthEngine = (() => {
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS).toISOString();
     const key       = String(recipient).toLowerCase();
 
-    let usedSupabase = false;
-    const client = db(); // null-safe now
-
+    // ── Store OTP hash in Supabase (if available) ──────────────
+    const client = db();
     if (client) {
       try {
         await client.from('bb_otp_verifications')
@@ -164,28 +163,136 @@ const AuthEngine = (() => {
           recipient: key, otp_type: type, code_hash: codeHash,
           expires_at: expiresAt, attempts: 0, max_attempts: MAX_OTP_ATTEMPTS, verified: false
         });
-        if (!error) usedSupabase = true;
+        if (error) throw error;
       } catch (e) {
-        console.warn('[AuthEngine] Supabase OTP store failed, using sessionStorage');
+        console.warn('[AuthEngine] Supabase OTP store failed:', e.message);
       }
     }
 
-    // Always store in sessionStorage as reliable fallback
-    const fallback = { code_hash: codeHash, expires_at: expiresAt, attempts: 0, max_attempts: MAX_OTP_ATTEMPTS, verified: false };
+    // ── ALWAYS store in sessionStorage (primary local store) ────
+    var fallback = { code_hash: codeHash, expires_at: expiresAt, attempts: 0, max_attempts: MAX_OTP_ATTEMPTS, verified: false };
     sessionStorage.setItem('bb_otp_' + type + '_' + key, JSON.stringify(fallback));
 
-    // Show OTP on screen (dev mode)
-    window._bb_last_otp = { code: code, type: type, recipient: recipient, expiresAt: expiresAt };
-    _showOTPDevBox(code, type, recipient);
+    // ── REAL SMS via Fast2SMS (phone OTPs) ──────────────────────
+    var smsSent = false;
+    if (type === 'phone') {
+      smsSent = await _sendRealSMS(recipient, code);
+    }
 
-    // Console log
+    // ── REAL Email OTP (placeholder - add SendGrid/SMTP in future) ──
+    var emailSent = false;
+    if (type === 'email') {
+      emailSent = await _sendRealEmail(recipient, code);
+    }
+
+    // ── Dev mode: show on screen if real delivery failed/disabled ──
+    window._bb_last_otp = { code: code, type: type, recipient: recipient, expiresAt: expiresAt };
+    if (!smsSent && !emailSent) {
+      _showOTPDevBox(code, type, recipient);
+    }
+
+    // Console always
     console.log(
       '%c[BrainByte OTP] ' + (type === 'phone' ? 'SMS' : 'Email') + ' -> ' + recipient + ': %c' + code,
       'color:#A855F7;font-weight:bold;',
       'color:#10B981;font-size:1.8rem;font-weight:900;background:#0D0E1A;padding:4px 16px;border-radius:6px;letter-spacing:6px;'
     );
 
-    return { success: true };
+    return { success: true, smsSent: smsSent, emailSent: emailSent };
+  }
+
+  // ================================================================
+  // SMS SENDER — Fast2SMS (India)
+  // ================================================================
+  async function _sendRealSMS(phone, code) {
+    var cfg = window.BB_SMS_CONFIG;
+    if (!cfg || !cfg.enabled || !cfg.FAST2SMS_KEY) {
+      console.info('[AuthEngine] SMS dev mode (no Fast2SMS key). Add key in js/sms-config.js to enable real SMS.');
+      return false;
+    }
+
+    // Extract digits only, remove country code for Fast2SMS (India only)
+    var digits = String(phone).replace(/\D/g, '');
+    if (digits.length > 10) digits = digits.slice(-10); // last 10 digits = Indian mobile
+
+    if (digits.length !== 10) {
+      console.warn('[AuthEngine] Fast2SMS supports 10-digit Indian numbers only. Got:', digits);
+      return false;
+    }
+
+    try {
+      var url = 'https://www.fast2sms.com/dev/bulkV2'
+        + '?authorization=' + encodeURIComponent(cfg.FAST2SMS_KEY)
+        + '&variables_values=' + encodeURIComponent(code)
+        + '&route=otp'
+        + '&numbers=' + encodeURIComponent(digits);
+
+      var res  = await fetch(url, { method: 'GET' });
+      var data = await res.json();
+
+      if (data.return === true) {
+        console.log('%c[BrainByte SMS] OTP sent successfully to +91' + digits, 'color:#10B981;font-weight:bold;');
+        // Show confirmation instead of OTP dev box
+        _showSMSSentConfirmation('+91' + digits);
+        return true;
+      } else {
+        console.warn('[AuthEngine] Fast2SMS error:', data.message || data);
+        return false;
+      }
+    } catch (e) {
+      console.warn('[AuthEngine] Fast2SMS request failed:', e.message);
+      return false;
+    }
+  }
+
+  // ================================================================
+  // EMAIL SENDER — Placeholder (add SendGrid/EmailJS later)
+  // ================================================================
+  async function _sendRealEmail(email, code) {
+    // Future: integrate SendGrid or EmailJS here
+    // For now, fall through to dev box
+    return false;
+  }
+
+  // ================================================================
+  // SMS SENT CONFIRMATION CARD (replaces dev OTP box when SMS is real)
+  // ================================================================
+  function _showSMSSentConfirmation(phone) {
+    var existing = document.getElementById('_bb_otp_devbox');
+    if (existing) existing.remove();
+
+    var box = document.createElement('div');
+    box.id = '_bb_otp_devbox';
+    box.innerHTML = '<div style="position:fixed;top:20px;right:20px;z-index:99999;'
+      + 'background:linear-gradient(135deg,#0F1A0F,#0F2A1A);'
+      + 'border:1.5px solid rgba(16,185,129,0.5);border-radius:18px;'
+      + 'padding:1.1rem 1.4rem;min-width:240px;'
+      + 'box-shadow:0 8px 40px rgba(16,185,129,0.2);'
+      + 'font-family:Inter,-apple-system,sans-serif;'
+      + 'animation:_bbSlideIn 0.35s cubic-bezier(0.16,1,0.3,1) both;">'
+      + '<button onclick="document.getElementById(\'_bb_otp_devbox\').remove()" '
+      + 'style="position:absolute;top:10px;right:12px;background:none;border:none;'
+      + 'color:#64748B;font-size:1rem;cursor:pointer;">\u00d7</button>'
+      + '<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;">'
+      + '<span style="font-size:1.3rem;">\ud83d\udcf1</span>'
+      + '<span style="font-size:0.7rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#10B981;">SMS Sent!</span>'
+      + '</div>'
+      + '<div style="font-size:0.85rem;color:#6EE7B7;font-weight:600;margin-bottom:0.4rem;">OTP sent to</div>'
+      + '<div style="font-size:1rem;color:#fff;font-weight:800;font-family:monospace;">' + phone + '</div>'
+      + '<div style="margin-top:0.75rem;font-size:0.68rem;color:#475569;">Check your SMS inbox \u2022 Expires in 5 min</div>'
+      + '</div>';
+
+    if (!document.getElementById('_bb_devbox_style')) {
+      var s = document.createElement('style');
+      s.id = '_bb_devbox_style';
+      s.textContent = '@keyframes _bbSlideIn{from{opacity:0;transform:translateX(40px) scale(0.95)}to{opacity:1;transform:translateX(0) scale(1)}}';
+      document.head.appendChild(s);
+    }
+    document.body.appendChild(box);
+    setTimeout(function() {
+      var el = document.getElementById('_bb_otp_devbox');
+      if (el) { el.style.opacity='0'; el.style.transform='translateX(40px)'; el.style.transition='all 0.3s'; setTimeout(function(){ el.remove(); }, 300); }
+    }, OTP_EXPIRY_MS);
   }
 
   // ================================================================
