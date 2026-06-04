@@ -1,5 +1,5 @@
 ﻿/**
- * BrainByte â€” Authentication Engine v3.0
+ * BrainByte Ã¢â‚¬â€ Authentication Engine v3.0
  * ================================================================
  * Complete auth system: Phone OTP (signup) + Email OTP (login)
  * Supabase-backed OTP storage with SHA-256 hashing
@@ -9,7 +9,7 @@
 
 const AuthEngine = (() => {
 
-  // â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Constants Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   const OTP_EXPIRY_MS        = 5 * 60 * 1000;   // 5 minutes
   const RESEND_COOLDOWN_SEC  = 30;
   const MAX_OTP_ATTEMPTS     = 5;
@@ -17,18 +17,17 @@ const AuthEngine = (() => {
   const BF_LOCKOUT_MS        = 15 * 60 * 1000;  // 15-minute lockout
   const OTP_SALT             = 'bb_otp_v3_2025';
 
-  // â”€â”€ Active timers store â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Active timers store Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   const timers = {};
 
-  // â”€â”€ Supabase client â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â”€â”€ Supabase client (never throws â€” returns null if unavailable) â”€â”€â”€â”€â”€â”€â”€
   function db() {
-    const client = window.supabaseClient;
-    if (!client) throw new Error('Supabase not initialized. Check js/supabase-config.js');
-    return client;
+    return window.supabaseClient || null;
   }
+  function hasDb() { return !!window.supabaseClient; }
 
   // ================================================================
-  // CRYPTO â€” SHA-256 hash for OTP codes
+  // CRYPTO Ã¢â‚¬â€ SHA-256 hash for OTP codes
   // ================================================================
   async function hashCode(code) {
     const buf  = new TextEncoder().encode(code + OTP_SALT);
@@ -51,7 +50,7 @@ const AuthEngine = (() => {
   }
 
   function validatePhone(phone) {
-    // Strip spaces/dashes/parens, must be 7â€“15 digits optionally starting with +
+    // Strip spaces/dashes/parens, must be 7Ã¢â‚¬â€œ15 digits optionally starting with +
     const clean = String(phone).replace(/[\s\-\(\)]/g, '');
     return /^\+?[1-9]\d{7,14}$/.test(clean);
   }
@@ -125,24 +124,26 @@ const AuthEngine = (() => {
   // ================================================================
   async function checkDuplicates(email, phone) {
     const client = db();
-    try {
-      const [{ data: eu }, { data: pu }] = await Promise.all([
-        client.from('bb_users').select('id').eq('email', email.toLowerCase()).maybeSingle(),
-        client.from('bb_users').select('id').eq('phone_number', phone).maybeSingle()
-      ]);
-      if (eu) return { isDuplicate: true, field: 'email',  message: 'Email already registered. Please log in.' };
-      if (pu) return { isDuplicate: true, field: 'phone',  message: 'Phone number already registered.' };
-    } catch (e) {
-      // Supabase unavailable â€” fall back to mock check
-      const mocks = JSON.parse(localStorage.getItem('bb_mock_users') || '[]');
-      if (mocks.find(u => u.email === email.toLowerCase())) return { isDuplicate: true, field: 'email', message: 'Email already registered.' };
-      if (mocks.find(u => u.phone_number === phone))        return { isDuplicate: true, field: 'phone', message: 'Phone already registered.' };
+    // Always check local mocks first (works offline too)
+    const mocks = JSON.parse(localStorage.getItem('bb_mock_users') || '[]');
+    if (mocks.find(function(u) { return u.email === email.toLowerCase(); }))
+      return { isDuplicate: true, field: 'email', message: 'Email already registered. Please log in.' };
+    if (mocks.find(function(u) { return u.phone_number === phone; }))
+      return { isDuplicate: true, field: 'phone', message: 'Phone number already registered.' };
+    // Also check Supabase if available
+    if (client) {
+      try {
+        var eu = await client.from('bb_users').select('id').eq('email', email.toLowerCase()).maybeSingle();
+        var pu = await client.from('bb_users').select('id').eq('phone_number', phone).maybeSingle();
+        if (eu.data) return { isDuplicate: true, field: 'email',  message: 'Email already registered. Please log in.' };
+        if (pu.data) return { isDuplicate: true, field: 'phone',  message: 'Phone number already registered.' };
+      } catch (e) { /* ignore Supabase errors */ }
     }
     return { isDuplicate: false };
   }
 
   // ================================================================
-  // OTP â€” SEND
+  // OTP — SEND
   // Stores hashed OTP in Supabase bb_otp_verifications table
   // Falls back to sessionStorage if Supabase unavailable
   // ================================================================
@@ -153,46 +154,33 @@ const AuthEngine = (() => {
     const key       = String(recipient).toLowerCase();
 
     let usedSupabase = false;
+    const client = db(); // null-safe now
 
-    try {
-      const client = db();
-      // Remove any old OTPs for this recipient+type
-      await client.from('bb_otp_verifications')
-        .delete()
-        .eq('recipient', key)
-        .eq('otp_type', type);
-
-      const { error } = await client.from('bb_otp_verifications').insert({
-        recipient:    key,
-        otp_type:     type,
-        code_hash:    codeHash,
-        expires_at:   expiresAt,
-        attempts:     0,
-        max_attempts: MAX_OTP_ATTEMPTS,
-        verified:     false
-      });
-
-      if (!error) usedSupabase = true;
-    } catch (e) {
-      console.warn('[AuthEngine] Supabase OTP store failed, using sessionStorage fallback');
+    if (client) {
+      try {
+        await client.from('bb_otp_verifications')
+          .delete().eq('recipient', key).eq('otp_type', type);
+        const { error } = await client.from('bb_otp_verifications').insert({
+          recipient: key, otp_type: type, code_hash: codeHash,
+          expires_at: expiresAt, attempts: 0, max_attempts: MAX_OTP_ATTEMPTS, verified: false
+        });
+        if (!error) usedSupabase = true;
+      } catch (e) {
+        console.warn('[AuthEngine] Supabase OTP store failed, using sessionStorage');
+      }
     }
 
-    // Fallback: sessionStorage
-    if (!usedSupabase) {
-      const fallback = { code_hash: codeHash, expires_at: expiresAt, attempts: 0, verified: false };
-      sessionStorage.setItem(`bb_otp_${type}_${key}`, JSON.stringify(fallback));
-    }
+    // Always store in sessionStorage as reliable fallback
+    const fallback = { code_hash: codeHash, expires_at: expiresAt, attempts: 0, max_attempts: MAX_OTP_ATTEMPTS, verified: false };
+    sessionStorage.setItem('bb_otp_' + type + '_' + key, JSON.stringify(fallback));
 
-    // â”€â”€ Store OTP for on-screen display (DEV MODE) â”€â”€
-    window._bb_last_otp = { code, type, recipient, expiresAt };
-
-    // â”€â”€ Show OTP on screen in dev box â”€â”€
+    // Show OTP on screen (dev mode)
+    window._bb_last_otp = { code: code, type: type, recipient: recipient, expiresAt: expiresAt };
     _showOTPDevBox(code, type, recipient);
 
-    // â”€â”€ Console log as well â”€â”€
-    const channel = type === 'phone' ? 'ðŸ“± SMS' : 'ðŸ“§ Email';
+    // Console log
     console.log(
-      `%c[BrainByte OTP] ${channel} â†’ ${recipient} : %c${code}`,
+      '%c[BrainByte OTP] ' + (type === 'phone' ? 'SMS' : 'Email') + ' -> ' + recipient + ': %c' + code,
       'color:#A855F7;font-weight:bold;',
       'color:#10B981;font-size:1.8rem;font-weight:900;background:#0D0E1A;padding:4px 16px;border-radius:6px;letter-spacing:6px;'
     );
@@ -201,7 +189,7 @@ const AuthEngine = (() => {
   }
 
   // ================================================================
-  // OTP â€” VERIFY
+  // OTP - VERIFY
   // ================================================================
   async function verifyOTP(recipient, type, enteredCode) {
     const key      = String(recipient).toLowerCase();
@@ -213,7 +201,7 @@ const AuthEngine = (() => {
 
     const codeHash = await hashCode(fullCode);
 
-    // â”€â”€ Try Supabase â”€â”€
+    // Ã¢â€â‚¬Ã¢â€â‚¬ Try Supabase Ã¢â€â‚¬Ã¢â€â‚¬
     try {
       const client = db();
       const { data: record, error } = await client
@@ -233,7 +221,7 @@ const AuthEngine = (() => {
       console.warn('[AuthEngine] Supabase verify failed, trying fallback');
     }
 
-    // â”€â”€ Fallback: sessionStorage â”€â”€
+    // Ã¢â€â‚¬Ã¢â€â‚¬ Fallback: sessionStorage Ã¢â€â‚¬Ã¢â€â‚¬
     const raw = sessionStorage.getItem(`bb_otp_${type}_${key}`);
     if (!raw) return { success: false, error: 'No OTP found. Request a new code.' };
     const record = JSON.parse(raw);
@@ -294,7 +282,7 @@ const AuthEngine = (() => {
   }
 
   // ================================================================
-  // SIGNUP â€” create account after phone OTP verified
+  // SIGNUP Ã¢â‚¬â€ create account after phone OTP verified
   // ================================================================
   async function signup(fullName, email, phone, password, role) {
     const client = db();
@@ -349,71 +337,92 @@ const AuthEngine = (() => {
   }
 
   // ================================================================
-  // LOGIN â€” Step 1: validate password â†’ returns profile
+  // LOGIN Ã¢â‚¬â€ Step 1: validate password Ã¢â€ â€™ returns profile
   // ================================================================
   async function loginWithPassword(email, password) {
-    // Brute-force check
-    const bf = checkBruteForce(email);
+    const emailLow = (email || '').toLowerCase().trim();
+
+    // â”€â”€ Brute-force gate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const bf = checkBruteForce(emailLow);
     if (bf.locked) throw new Error(bf.message);
 
-    let profile = null;
+    let profile    = null;
     let supabaseOk = false;
 
+    // â”€â”€ 1. Try Supabase auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     try {
       const client = db();
       const { data, error } = await client.auth.signInWithPassword({
-        email: email.toLowerCase(), password
+        email: emailLow, password
       });
 
-      if (!error && data?.user) {
+      if (!error && data && data.user) {
         supabaseOk = true;
-        clearBruteForce(email);
+        clearBruteForce(emailLow);
 
-        // Get or build profile
-        const { data: prof } = await client
+        const profRes = await client
           .from('bb_users').select('*').eq('auth_id', data.user.id).maybeSingle();
 
-        profile = prof || {
+        const meta = data.user.user_metadata || {};
+        profile = profRes.data || {
           id:           data.user.id,
           auth_id:      data.user.id,
-          full_name:    data.user.user_metadata?.full_name || email.split('@')[0],
-          email:        email.toLowerCase(),
-          phone_number: data.user.user_metadata?.phone_number || '',
+          full_name:    meta.full_name || emailLow.split('@')[0],
+          email:        emailLow,
+          phone_number: meta.phone_number || '',
           role:         'student',
           isLoggedIn:   false
         };
       }
+      // If Supabase errors, don't throw â€” fall through to local mock below
     } catch (e) {
-      console.warn('[AuthEngine] Supabase login error:', e.message);
+      console.warn('[AuthEngine] Supabase auth error (falling back to local):', e.message);
     }
 
-    // Local fallback
+    // â”€â”€ 2. Local mock fallback â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (!supabaseOk) {
-      const mocks = JSON.parse(localStorage.getItem('bb_mock_users') || '[]');
-      const found = mocks.find(u => u.email === email.toLowerCase() && u.password === password);
+      var mocks = JSON.parse(localStorage.getItem('bb_mock_users') || '[]');
 
-      if (!found) {
-        const rec = recordFailedLogin(email);
-        const remaining = BF_LIMIT - rec.count;
-        if (rec.locked) {
-          throw new Error('Account locked for 15 minutes due to too many failed attempts.');
-        }
-        const hint = remaining <= 2 ? ` (${remaining} attempt${remaining !== 1 ? 's' : ''} left before lockout)` : '';
-        throw new Error(`Invalid email or password.${hint}`);
+      // Is this email registered at all (in mocks)?
+      var emailEntry = null;
+      for (var i = 0; i < mocks.length; i++) {
+        if (mocks[i].email === emailLow) { emailEntry = mocks[i]; break; }
       }
 
-      profile = { ...found };
-      clearBruteForce(email);
+      if (!emailEntry) {
+        // Email not found anywhere
+        var nfErr = new Error('No account found with this email address. Please sign up first.');
+        nfErr.code = 'NOT_FOUND';
+        throw nfErr;
+      }
+
+      // Email found but password doesn't match?
+      if (emailEntry.password !== password) {
+        var rec = recordFailedLogin(emailLow);
+        var remaining = BF_LIMIT - rec.count;
+        if (rec.locked) {
+          throw new Error('Too many failed attempts. Account locked for 15 minutes.');
+        }
+        var hint = remaining <= 3
+          ? ' (' + remaining + ' attempt' + (remaining !== 1 ? 's' : '') + ' left)'
+          : '';
+        var wpErr = new Error('Incorrect password.' + hint);
+        wpErr.code = 'WRONG_PASSWORD';
+        throw wpErr;
+      }
+
+      profile = Object.assign({}, emailEntry);
+      clearBruteForce(emailLow);
     }
 
-    // Store pending session (not fully logged in until email OTP verified)
-    sessionStorage.setItem('bb_pending_login', JSON.stringify({ ...profile, isLoggedIn: false, pendingOTP: true }));
-    return { success: true, profile };
+    // â”€â”€ 3. Store pending session (OTP not yet verified) â”€â”€â”€â”€â”€â”€â”€â”€
+    sessionStorage.setItem(
+      'bb_pending_login',
+      JSON.stringify(Object.assign({}, profile, { isLoggedIn: false, pendingOTP: true }))
+    );
+    return { success: true, profile: profile };
   }
 
-  // ================================================================
-  // LOGIN â€” Step 2: complete login after email OTP verified
-  // ================================================================
   async function completeLogin(profile) {
     try {
       const client = db();
@@ -482,7 +491,7 @@ const AuthEngine = (() => {
   }
 
   // ================================================================
-  // DEV MODE â€” Show OTP on screen (remove in production)
+  // DEV MODE Ã¢â‚¬â€ Show OTP on screen (remove in production)
   // Creates a floating card on the page with the OTP code visible
   // ================================================================
   function _showOTPDevBox(code, type, recipient) {
@@ -491,7 +500,7 @@ const AuthEngine = (() => {
     if (existing) existing.remove();
 
     const isPhone = type === 'phone';
-    const icon    = isPhone ? 'ðŸ“±' : 'ðŸ“§';
+    const icon    = isPhone ? 'Ã°Å¸â€œÂ±' : 'Ã°Å¸â€œÂ§';
     const label   = isPhone ? 'Phone OTP' : 'Email OTP';
 
     const box = document.createElement('div');
@@ -520,7 +529,7 @@ const AuthEngine = (() => {
         <!-- Header -->
         <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;">
           <span style="font-size:1.1rem;">${icon}</span>
-          <span style="font-size:0.7rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#A855F7;">${label} â€” Dev Mode</span>
+          <span style="font-size:0.7rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#A855F7;">${label} Ã¢â‚¬â€ Dev Mode</span>
         </div>
 
         <!-- Recipient -->
@@ -552,12 +561,12 @@ const AuthEngine = (() => {
         <!-- Copy button -->
         <button id="_bb_otp_copy_btn" onclick="
           navigator.clipboard.writeText('${code}').then(()=>{
-            this.textContent='âœ… Copied!';
+            this.textContent='Ã¢Å“â€¦ Copied!';
             this.style.background='rgba(16,185,129,0.15)';
             this.style.borderColor='rgba(16,185,129,0.4)';
             this.style.color='#10B981';
             setTimeout(()=>{
-              this.textContent='ðŸ“‹ Copy OTP';
+              this.textContent='Ã°Å¸â€œâ€¹ Copy OTP';
               this.style.background='';
               this.style.borderColor='';
               this.style.color='';
