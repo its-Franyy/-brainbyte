@@ -1,4 +1,4 @@
-﻿/**
+/**
  * BrainByte Ã¢â‚¬â€ Authentication Engine v3.0
  * ================================================================
  * Complete auth system: Phone OTP (signup) + Email OTP (login)
@@ -229,6 +229,8 @@ const AuthEngine = (() => {
           // Firebase generates its own OTP — store a marker in sessionStorage
           // so verifyOTP knows to use Firebase verification
           sessionStorage.setItem('bb_otp_method_' + key, 'firebase');
+          var fbTracking = { expires_at: expiresAt, attempts: 0, max_attempts: MAX_OTP_ATTEMPTS, verified: false };
+          sessionStorage.setItem('bb_otp_' + type + '_' + key, JSON.stringify(fbTracking));
           console.log('%c[BrainByte] Real SMS sent via Firebase to ' + recipient, 'color:#10B981;font-weight:bold;');
           _showSMSSentCard(recipient, 'firebase');
           return { success: true, method: 'firebase' };
@@ -365,12 +367,46 @@ const AuthEngine = (() => {
 
     // ── Firebase verification ──────────────────────────────────
     if (method === 'firebase') {
+      var raw = sessionStorage.getItem('bb_otp_' + type + '_' + key);
+      if (raw) {
+        var rec = JSON.parse(raw);
+        if (Date.now() > new Date(rec.expires_at).getTime()) {
+          sessionStorage.removeItem('bb_otp_' + type + '_' + key);
+          sessionStorage.removeItem('bb_otp_method_' + key);
+          return { success: false, error: 'OTP expired. Please request a new code.', expired: true };
+        }
+        if (rec.attempts >= rec.max_attempts) {
+          sessionStorage.removeItem('bb_otp_' + type + '_' + key);
+          sessionStorage.removeItem('bb_otp_method_' + key);
+          return { success: false, error: 'Max attempts exceeded. Please request a new code.', maxAttempts: true };
+        }
+        rec.attempts++;
+        sessionStorage.setItem('bb_otp_' + type + '_' + key, JSON.stringify(rec));
+      }
+
       var fbResult = await _firebaseVerifyPhoneOTP(fullCode);
       if (fbResult.success) {
         sessionStorage.removeItem('bb_otp_method_' + key);
         sessionStorage.removeItem('bb_otp_' + type + '_' + key);
+        return fbResult;
+      } else {
+        if (raw) {
+          var remaining = rec.max_attempts - rec.attempts;
+          var errorMsg = fbResult.error;
+          if (remaining > 0) {
+            errorMsg = fbResult.error + ' ' + remaining + ' attempt' + (remaining !== 1 ? 's' : '') + ' left.';
+          } else {
+            errorMsg = 'Max attempts exceeded. Please request a new code.';
+          }
+          return {
+            success: false,
+            error: errorMsg,
+            remainingAttempts: remaining,
+            maxAttempts: remaining === 0
+          };
+        }
+        return fbResult;
       }
-      return fbResult;
     }
 
     // ── Hash-based verification (sessionStorage + Supabase) ────
