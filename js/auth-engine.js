@@ -147,141 +147,195 @@ const AuthEngine = (() => {
   // Stores hashed OTP in Supabase bb_otp_verifications table
   // Falls back to sessionStorage if Supabase unavailable
   // ================================================================
+  // ================================================================
+  // FIREBASE PHONE OTP — Send (global, free)
+  // ================================================================
+  async function _firebaseSendPhoneOTP(phone) {
+    var fbAuth = window._bbFirebaseAuth;
+    if (!fbAuth) return null;
+    try {
+      // Setup invisible reCAPTCHA once
+      if (!window._bbRecaptcha) {
+        var container = document.getElementById('bb-recaptcha');
+        if (!container) {
+          container = document.createElement('div');
+          container.id = 'bb-recaptcha';
+          document.body.appendChild(container);
+        }
+        window._bbRecaptcha = new firebase.auth.RecaptchaVerifier('bb-recaptcha', {
+          size: 'invisible',
+          callback: function() {}
+        });
+        await window._bbRecaptcha.render();
+      }
+      var confirmResult = await fbAuth.signInWithPhoneNumber(phone, window._bbRecaptcha);
+      window._bbFbConfirm = confirmResult;
+      return confirmResult;
+    } catch (e) {
+      console.warn('[AuthEngine] Firebase phone OTP failed:', e.message);
+      // Reset recaptcha on error so next attempt works
+      if (window._bbRecaptcha) {
+        try { window._bbRecaptcha.clear(); } catch(_) {}
+        window._bbRecaptcha = null;
+      }
+      return null;
+    }
+  }
+
+  // ================================================================
+  // FIREBASE PHONE OTP — Verify
+  // ================================================================
+  async function _firebaseVerifyPhoneOTP(code) {
+    var confirm = window._bbFbConfirm;
+    if (!confirm) return { success: false, error: 'No OTP request found. Please resend.' };
+    try {
+      var result = await confirm.confirm(code);
+      // Sign out from Firebase — we only used it for verification
+      if (window._bbFirebaseAuth) {
+        try { await window._bbFirebaseAuth.signOut(); } catch(_) {}
+      }
+      window._bbFbConfirm = null;
+      return { success: true, user: result.user };
+    } catch (e) {
+      var msg = 'Incorrect OTP. Please try again.';
+      if (e.code === 'auth/code-expired')        msg = 'OTP expired. Please resend.';
+      if (e.code === 'auth/too-many-requests')    msg = 'Too many attempts. Try again later.';
+      if (e.code === 'auth/invalid-verification-code') msg = 'Wrong OTP code. Check and retry.';
+      return { success: false, error: msg, code: e.code };
+    }
+  }
+
+  // ================================================================
+  // OTP — SEND (main function)
+  // Priority: Firebase (real SMS) → Fast2SMS → Dev mode
+  // ================================================================
   async function sendOTP(recipient, type) {
     const code      = generateOTP();
     const codeHash  = await hashCode(code);
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS).toISOString();
     const key       = String(recipient).toLowerCase();
 
-    // ── Store OTP hash in Supabase (if available) ──────────────
-    const client = db();
+    var deliveryMethod = 'dev'; // will track what actually worked
+
+    // ── PHONE OTP ─────────────────────────────────────────────
+    if (type === 'phone') {
+      var fbCfg = window.BB_FIREBASE_CONFIG;
+
+      // 1. Firebase (free, global — Indian + International)
+      if (fbCfg && fbCfg.enabled && window._bbFirebaseAuth) {
+        var fbResult = await _firebaseSendPhoneOTP(recipient);
+        if (fbResult) {
+          deliveryMethod = 'firebase';
+          // Firebase generates its own OTP — store a marker in sessionStorage
+          // so verifyOTP knows to use Firebase verification
+          sessionStorage.setItem('bb_otp_method_' + key, 'firebase');
+          console.log('%c[BrainByte] Real SMS sent via Firebase to ' + recipient, 'color:#10B981;font-weight:bold;');
+          _showSMSSentCard(recipient, 'firebase');
+          return { success: true, method: 'firebase' };
+        }
+        // Firebase failed — fall through to next option
+      }
+
+      // 2. Fast2SMS (Indian numbers only, free)
+      var smsCfg = window.BB_SMS_CONFIG;
+      if (smsCfg && smsCfg.enabled && smsCfg.FAST2SMS_KEY) {
+        var fast2Result = await _sendFast2SMS(recipient, code);
+        if (fast2Result) {
+          deliveryMethod = 'fast2sms';
+          sessionStorage.setItem('bb_otp_method_' + key, 'hash');
+        }
+      }
+    }
+
+    // ── EMAIL OTP ──────────────────────────────────────────────
+    // (EmailJS / SendGrid future integration point)
+
+    // ── Store OTP hash in sessionStorage (fallback verifier) ──
+    var fallback = { code_hash: codeHash, expires_at: expiresAt, attempts: 0, max_attempts: MAX_OTP_ATTEMPTS, verified: false };
+    sessionStorage.setItem('bb_otp_' + type + '_' + key, JSON.stringify(fallback));
+    if (!sessionStorage.getItem('bb_otp_method_' + key)) {
+      sessionStorage.setItem('bb_otp_method_' + key, 'hash');
+    }
+
+    // ── Store in Supabase if available ─────────────────────────
+    var client = db();
     if (client) {
       try {
-        await client.from('bb_otp_verifications')
-          .delete().eq('recipient', key).eq('otp_type', type);
-        const { error } = await client.from('bb_otp_verifications').insert({
+        await client.from('bb_otp_verifications').delete().eq('recipient', key).eq('otp_type', type);
+        await client.from('bb_otp_verifications').insert({
           recipient: key, otp_type: type, code_hash: codeHash,
           expires_at: expiresAt, attempts: 0, max_attempts: MAX_OTP_ATTEMPTS, verified: false
         });
-        if (error) throw error;
-      } catch (e) {
-        console.warn('[AuthEngine] Supabase OTP store failed:', e.message);
-      }
+      } catch (e) { /* non-critical */ }
     }
 
-    // ── ALWAYS store in sessionStorage (primary local store) ────
-    var fallback = { code_hash: codeHash, expires_at: expiresAt, attempts: 0, max_attempts: MAX_OTP_ATTEMPTS, verified: false };
-    sessionStorage.setItem('bb_otp_' + type + '_' + key, JSON.stringify(fallback));
-
-    // ── REAL SMS via Fast2SMS (phone OTPs) ──────────────────────
-    var smsSent = false;
-    if (type === 'phone') {
-      smsSent = await _sendRealSMS(recipient, code);
-    }
-
-    // ── REAL Email OTP (placeholder - add SendGrid/SMTP in future) ──
-    var emailSent = false;
-    if (type === 'email') {
-      emailSent = await _sendRealEmail(recipient, code);
-    }
-
-    // ── Dev mode: show on screen if real delivery failed/disabled ──
-    window._bb_last_otp = { code: code, type: type, recipient: recipient, expiresAt: expiresAt };
-    if (!smsSent && !emailSent) {
+    // ── Dev mode: show OTP on screen ──────────────────────────
+    if (deliveryMethod === 'dev') {
+      window._bb_last_otp = { code: code, type: type, recipient: recipient, expiresAt: expiresAt };
       _showOTPDevBox(code, type, recipient);
+    } else if (deliveryMethod === 'fast2sms') {
+      _showSMSSentCard(recipient, 'fast2sms');
     }
 
-    // Console always
+    // Always log to console
     console.log(
-      '%c[BrainByte OTP] ' + (type === 'phone' ? 'SMS' : 'Email') + ' -> ' + recipient + ': %c' + code,
-      'color:#A855F7;font-weight:bold;',
-      'color:#10B981;font-size:1.8rem;font-weight:900;background:#0D0E1A;padding:4px 16px;border-radius:6px;letter-spacing:6px;'
+      '%c[BrainByte OTP] ' + type + ' -> ' + recipient + ' (%c' + deliveryMethod + '%c): ' + code,
+      'color:#A855F7;font-weight:bold;', 'color:#10B981;font-weight:bold;', 'color:#A855F7;font-weight:bold;'
     );
 
-    return { success: true, smsSent: smsSent, emailSent: emailSent };
+    return { success: true, method: deliveryMethod };
   }
 
   // ================================================================
-  // SMS SENDER — Fast2SMS (India)
+  // FAST2SMS sender (Indian numbers)
   // ================================================================
-  async function _sendRealSMS(phone, code) {
+  async function _sendFast2SMS(phone, code) {
     var cfg = window.BB_SMS_CONFIG;
-    if (!cfg || !cfg.enabled || !cfg.FAST2SMS_KEY) {
-      console.info('[AuthEngine] SMS dev mode (no Fast2SMS key). Add key in js/sms-config.js to enable real SMS.');
-      return false;
-    }
-
-    // Extract digits only, remove country code for Fast2SMS (India only)
+    if (!cfg || !cfg.FAST2SMS_KEY) return false;
     var digits = String(phone).replace(/\D/g, '');
-    if (digits.length > 10) digits = digits.slice(-10); // last 10 digits = Indian mobile
-
-    if (digits.length !== 10) {
-      console.warn('[AuthEngine] Fast2SMS supports 10-digit Indian numbers only. Got:', digits);
-      return false;
-    }
-
+    if (digits.length > 10) digits = digits.slice(-10);
+    if (digits.length !== 10) return false;
     try {
-      var url = 'https://www.fast2sms.com/dev/bulkV2'
-        + '?authorization=' + encodeURIComponent(cfg.FAST2SMS_KEY)
-        + '&variables_values=' + encodeURIComponent(code)
-        + '&route=otp'
-        + '&numbers=' + encodeURIComponent(digits);
-
-      var res  = await fetch(url, { method: 'GET' });
+      var url = 'https://www.fast2sms.com/dev/bulkV2?authorization=' + encodeURIComponent(cfg.FAST2SMS_KEY)
+        + '&variables_values=' + encodeURIComponent(code) + '&route=otp&numbers=' + encodeURIComponent(digits);
+      var res  = await fetch(url);
       var data = await res.json();
-
       if (data.return === true) {
-        console.log('%c[BrainByte SMS] OTP sent successfully to +91' + digits, 'color:#10B981;font-weight:bold;');
-        // Show confirmation instead of OTP dev box
-        _showSMSSentConfirmation('+91' + digits);
+        console.log('%c[BrainByte SMS] Fast2SMS delivered to +91' + digits, 'color:#10B981;font-weight:bold;');
         return true;
-      } else {
-        console.warn('[AuthEngine] Fast2SMS error:', data.message || data);
-        return false;
       }
+      console.warn('[AuthEngine] Fast2SMS:', data.message);
+      return false;
     } catch (e) {
-      console.warn('[AuthEngine] Fast2SMS request failed:', e.message);
+      console.warn('[AuthEngine] Fast2SMS error:', e.message);
       return false;
     }
   }
 
   // ================================================================
-  // EMAIL SENDER — Placeholder (add SendGrid/EmailJS later)
+  // SMS SENT CONFIRMATION CARD
   // ================================================================
-  async function _sendRealEmail(email, code) {
-    // Future: integrate SendGrid or EmailJS here
-    // For now, fall through to dev box
-    return false;
-  }
-
-  // ================================================================
-  // SMS SENT CONFIRMATION CARD (replaces dev OTP box when SMS is real)
-  // ================================================================
-  function _showSMSSentConfirmation(phone) {
-    var existing = document.getElementById('_bb_otp_devbox');
-    if (existing) existing.remove();
-
+  function _showSMSSentCard(phone, provider) {
+    var ex = document.getElementById('_bb_otp_devbox');
+    if (ex) ex.remove();
+    var provLabel = provider === 'firebase' ? 'Firebase (Global)' : 'Fast2SMS';
     var box = document.createElement('div');
     box.id = '_bb_otp_devbox';
     box.innerHTML = '<div style="position:fixed;top:20px;right:20px;z-index:99999;'
-      + 'background:linear-gradient(135deg,#0F1A0F,#0F2A1A);'
-      + 'border:1.5px solid rgba(16,185,129,0.5);border-radius:18px;'
-      + 'padding:1.1rem 1.4rem;min-width:240px;'
-      + 'box-shadow:0 8px 40px rgba(16,185,129,0.2);'
-      + 'font-family:Inter,-apple-system,sans-serif;'
+      + 'background:linear-gradient(135deg,#0a1f0f,#0f2a1a);'
+      + 'border:1.5px solid rgba(16,185,129,0.55);border-radius:18px;padding:1.1rem 1.4rem;min-width:240px;'
+      + 'box-shadow:0 8px 40px rgba(16,185,129,0.2);font-family:Inter,-apple-system,sans-serif;'
       + 'animation:_bbSlideIn 0.35s cubic-bezier(0.16,1,0.3,1) both;">'
       + '<button onclick="document.getElementById(\'_bb_otp_devbox\').remove()" '
-      + 'style="position:absolute;top:10px;right:12px;background:none;border:none;'
-      + 'color:#64748B;font-size:1rem;cursor:pointer;">\u00d7</button>'
-      + '<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;">'
-      + '<span style="font-size:1.3rem;">\ud83d\udcf1</span>'
-      + '<span style="font-size:0.7rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#10B981;">SMS Sent!</span>'
+      + 'style="position:absolute;top:10px;right:12px;background:none;border:none;color:#64748B;font-size:1rem;cursor:pointer;">&times;</button>'
+      + '<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">'
+      + '<span style="font-size:1.3rem;">&#x2705;</span>'
+      + '<span style="font-size:0.68rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#10B981;">OTP Sent via ' + provLabel + '</span>'
       + '</div>'
-      + '<div style="font-size:0.85rem;color:#6EE7B7;font-weight:600;margin-bottom:0.4rem;">OTP sent to</div>'
-      + '<div style="font-size:1rem;color:#fff;font-weight:800;font-family:monospace;">' + phone + '</div>'
-      + '<div style="margin-top:0.75rem;font-size:0.68rem;color:#475569;">Check your SMS inbox \u2022 Expires in 5 min</div>'
+      + '<div style="font-size:0.78rem;color:#94A3B8;margin-bottom:0.3rem;">Check SMS on:</div>'
+      + '<div style="font-size:1.05rem;color:#fff;font-weight:800;font-family:monospace;">' + phone + '</div>'
+      + '<div style="margin-top:0.75rem;font-size:0.65rem;color:#475569;">&#x23F3; Expires in 5 min &bull; Check your messages app</div>'
       + '</div>';
-
     if (!document.getElementById('_bb_devbox_style')) {
       var s = document.createElement('style');
       s.id = '_bb_devbox_style';
@@ -291,12 +345,13 @@ const AuthEngine = (() => {
     document.body.appendChild(box);
     setTimeout(function() {
       var el = document.getElementById('_bb_otp_devbox');
-      if (el) { el.style.opacity='0'; el.style.transform='translateX(40px)'; el.style.transition='all 0.3s'; setTimeout(function(){ el.remove(); }, 300); }
-    }, OTP_EXPIRY_MS);
+      if (el) { el.style.opacity='0'; el.style.transition='all 0.3s'; setTimeout(function(){ el.remove(); },300); }
+    }, 15000);
   }
 
   // ================================================================
-  // OTP - VERIFY
+  // OTP — VERIFY (main function)
+  // Detects method: Firebase | hash (sessionStorage/Supabase)
   // ================================================================
   async function verifyOTP(recipient, type, enteredCode) {
     const key      = String(recipient).toLowerCase();
@@ -306,57 +361,75 @@ const AuthEngine = (() => {
       return { success: false, error: 'Enter the complete 6-digit code.' };
     }
 
+    const method = sessionStorage.getItem('bb_otp_method_' + key) || 'hash';
+
+    // ── Firebase verification ──────────────────────────────────
+    if (method === 'firebase') {
+      var fbResult = await _firebaseVerifyPhoneOTP(fullCode);
+      if (fbResult.success) {
+        sessionStorage.removeItem('bb_otp_method_' + key);
+        sessionStorage.removeItem('bb_otp_' + type + '_' + key);
+      }
+      return fbResult;
+    }
+
+    // ── Hash-based verification (sessionStorage + Supabase) ────
     const codeHash = await hashCode(fullCode);
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬ Try Supabase Ã¢â€â‚¬Ã¢â€â‚¬
-    try {
-      const client = db();
-      const { data: record, error } = await client
-        .from('bb_otp_verifications')
-        .select('*')
-        .eq('recipient', key)
-        .eq('otp_type', type)
-        .eq('verified', false)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (!error && record) {
-        return await _verifyRecord(client, record, codeHash);
-      }
-    } catch (e) {
-      console.warn('[AuthEngine] Supabase verify failed, trying fallback');
+    // Try Supabase first
+    var client = db();
+    if (client) {
+      try {
+        var { data: record, error } = await client
+          .from('bb_otp_verifications')
+          .select('*')
+          .eq('recipient', key)
+          .eq('otp_type', type)
+          .eq('verified', false)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (!error && record) {
+          var res = await _verifyRecord(client, record, codeHash);
+          if (res.success) {
+            sessionStorage.removeItem('bb_otp_method_' + key);
+            sessionStorage.removeItem('bb_otp_' + type + '_' + key);
+          }
+          return res;
+        }
+      } catch (e) { /* fall through to sessionStorage */ }
     }
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬ Fallback: sessionStorage Ã¢â€â‚¬Ã¢â€â‚¬
-    const raw = sessionStorage.getItem(`bb_otp_${type}_${key}`);
-    if (!raw) return { success: false, error: 'No OTP found. Request a new code.' };
-    const record = JSON.parse(raw);
+    // SessionStorage fallback
+    var raw = sessionStorage.getItem('bb_otp_' + type + '_' + key);
+    if (!raw) return { success: false, error: 'No OTP found. Please request a new code.' };
+    var rec = JSON.parse(raw);
 
-    if (Date.now() > new Date(record.expires_at).getTime()) {
-      sessionStorage.removeItem(`bb_otp_${type}_${key}`);
-      return { success: false, error: 'OTP expired. Request a new code.', expired: true };
+    if (Date.now() > new Date(rec.expires_at).getTime()) {
+      sessionStorage.removeItem('bb_otp_' + type + '_' + key);
+      return { success: false, error: 'OTP expired. Please request a new code.', expired: true };
     }
-    if (record.attempts >= MAX_OTP_ATTEMPTS) {
-      sessionStorage.removeItem(`bb_otp_${type}_${key}`);
-      return { success: false, error: 'Max attempts exceeded. Request a new code.', maxAttempts: true };
+    if (rec.attempts >= rec.max_attempts) {
+      sessionStorage.removeItem('bb_otp_' + type + '_' + key);
+      return { success: false, error: 'Max attempts exceeded. Please request a new code.', maxAttempts: true };
     }
 
-    record.attempts++;
-    if (codeHash !== record.code_hash) {
-      sessionStorage.setItem(`bb_otp_${type}_${key}`, JSON.stringify(record));
-      const remaining = MAX_OTP_ATTEMPTS - record.attempts;
+    rec.attempts++;
+    if (codeHash !== rec.code_hash) {
+      sessionStorage.setItem('bb_otp_' + type + '_' + key, JSON.stringify(rec));
+      var remaining = rec.max_attempts - rec.attempts;
       return {
         success: false,
         error: remaining > 0
-          ? `Wrong OTP. ${remaining} attempt${remaining !== 1 ? 's' : ''} left.`
-          : 'Max attempts exceeded. Request a new code.',
+          ? 'Wrong OTP. ' + remaining + ' attempt' + (remaining !== 1 ? 's' : '') + ' left.'
+          : 'Max attempts exceeded. Please request a new code.',
         remainingAttempts: remaining
       };
     }
 
-    record.verified = true;
-    sessionStorage.setItem(`bb_otp_${type}_${key}`, JSON.stringify(record));
+    rec.verified = true;
+    sessionStorage.setItem('bb_otp_' + type + '_' + key, JSON.stringify(rec));
+    sessionStorage.removeItem('bb_otp_method_' + key);
     return { success: true };
   }
 
