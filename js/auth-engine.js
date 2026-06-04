@@ -1,5 +1,5 @@
-/**
- * BrainByte — Authentication Engine v3.0
+﻿/**
+ * BrainByte â€” Authentication Engine v3.0
  * ================================================================
  * Complete auth system: Phone OTP (signup) + Email OTP (login)
  * Supabase-backed OTP storage with SHA-256 hashing
@@ -9,7 +9,7 @@
 
 const AuthEngine = (() => {
 
-  // ── Constants ──────────────────────────────────────────────────
+  // â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const OTP_EXPIRY_MS        = 5 * 60 * 1000;   // 5 minutes
   const RESEND_COOLDOWN_SEC  = 30;
   const MAX_OTP_ATTEMPTS     = 5;
@@ -17,10 +17,10 @@ const AuthEngine = (() => {
   const BF_LOCKOUT_MS        = 15 * 60 * 1000;  // 15-minute lockout
   const OTP_SALT             = 'bb_otp_v3_2025';
 
-  // ── Active timers store ────────────────────────────────────────
+  // â”€â”€ Active timers store â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const timers = {};
 
-  // ── Supabase client ────────────────────────────────────────────
+  // â”€â”€ Supabase client â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   function db() {
     const client = window.supabaseClient;
     if (!client) throw new Error('Supabase not initialized. Check js/supabase-config.js');
@@ -28,7 +28,7 @@ const AuthEngine = (() => {
   }
 
   // ================================================================
-  // CRYPTO — SHA-256 hash for OTP codes
+  // CRYPTO â€” SHA-256 hash for OTP codes
   // ================================================================
   async function hashCode(code) {
     const buf  = new TextEncoder().encode(code + OTP_SALT);
@@ -51,7 +51,7 @@ const AuthEngine = (() => {
   }
 
   function validatePhone(phone) {
-    // Strip spaces/dashes/parens, must be 7–15 digits optionally starting with +
+    // Strip spaces/dashes/parens, must be 7â€“15 digits optionally starting with +
     const clean = String(phone).replace(/[\s\-\(\)]/g, '');
     return /^\+?[1-9]\d{7,14}$/.test(clean);
   }
@@ -133,7 +133,7 @@ const AuthEngine = (() => {
       if (eu) return { isDuplicate: true, field: 'email',  message: 'Email already registered. Please log in.' };
       if (pu) return { isDuplicate: true, field: 'phone',  message: 'Phone number already registered.' };
     } catch (e) {
-      // Supabase unavailable — fall back to mock check
+      // Supabase unavailable â€” fall back to mock check
       const mocks = JSON.parse(localStorage.getItem('bb_mock_users') || '[]');
       if (mocks.find(u => u.email === email.toLowerCase())) return { isDuplicate: true, field: 'email', message: 'Email already registered.' };
       if (mocks.find(u => u.phone_number === phone))        return { isDuplicate: true, field: 'phone', message: 'Phone already registered.' };
@@ -142,7 +142,7 @@ const AuthEngine = (() => {
   }
 
   // ================================================================
-  // OTP — SEND
+  // OTP â€” SEND
   // Stores hashed OTP in Supabase bb_otp_verifications table
   // Falls back to sessionStorage if Supabase unavailable
   // ================================================================
@@ -183,16 +183,16 @@ const AuthEngine = (() => {
       sessionStorage.setItem(`bb_otp_${type}_${key}`, JSON.stringify(fallback));
     }
 
-    // ── Store OTP for on-screen display (DEV MODE) ──
+    // â”€â”€ Store OTP for on-screen display (DEV MODE) â”€â”€
     window._bb_last_otp = { code, type, recipient, expiresAt };
 
-    // ── Show OTP on screen in dev box ──
+    // â”€â”€ Show OTP on screen in dev box â”€â”€
     _showOTPDevBox(code, type, recipient);
 
-    // ── Console log as well ──
-    const channel = type === 'phone' ? '📱 SMS' : '📧 Email';
+    // â”€â”€ Console log as well â”€â”€
+    const channel = type === 'phone' ? 'ðŸ“± SMS' : 'ðŸ“§ Email';
     console.log(
-      `%c[BrainByte OTP] ${channel} → ${recipient} : %c${code}`,
+      `%c[BrainByte OTP] ${channel} â†’ ${recipient} : %c${code}`,
       'color:#A855F7;font-weight:bold;',
       'color:#10B981;font-size:1.8rem;font-weight:900;background:#0D0E1A;padding:4px 16px;border-radius:6px;letter-spacing:6px;'
     );
@@ -201,7 +201,7 @@ const AuthEngine = (() => {
   }
 
   // ================================================================
-  // OTP — VERIFY
+  // OTP â€” VERIFY
   // ================================================================
   async function verifyOTP(recipient, type, enteredCode) {
     const key      = String(recipient).toLowerCase();
@@ -213,7 +213,7 @@ const AuthEngine = (() => {
 
     const codeHash = await hashCode(fullCode);
 
-    // ── Try Supabase ──
+    // â”€â”€ Try Supabase â”€â”€
     try {
       const client = db();
       const { data: record, error } = await client
@@ -233,7 +233,7 @@ const AuthEngine = (() => {
       console.warn('[AuthEngine] Supabase verify failed, trying fallback');
     }
 
-    // ── Fallback: sessionStorage ──
+    // â”€â”€ Fallback: sessionStorage â”€â”€
     const raw = sessionStorage.getItem(`bb_otp_${type}_${key}`);
     if (!raw) return { success: false, error: 'No OTP found. Request a new code.' };
     const record = JSON.parse(raw);
@@ -294,7 +294,7 @@ const AuthEngine = (() => {
   }
 
   // ================================================================
-  // SIGNUP — create account after phone OTP verified
+  // SIGNUP â€” create account after phone OTP verified
   // ================================================================
   async function signup(fullName, email, phone, password, role) {
     const client = db();
@@ -349,7 +349,7 @@ const AuthEngine = (() => {
   }
 
   // ================================================================
-  // LOGIN — Step 1: validate password → returns profile
+  // LOGIN â€” Step 1: validate password â†’ returns profile
   // ================================================================
   async function loginWithPassword(email, password) {
     // Brute-force check
@@ -412,7 +412,7 @@ const AuthEngine = (() => {
   }
 
   // ================================================================
-  // LOGIN — Step 2: complete login after email OTP verified
+  // LOGIN â€” Step 2: complete login after email OTP verified
   // ================================================================
   async function completeLogin(profile) {
     try {
@@ -482,7 +482,7 @@ const AuthEngine = (() => {
   }
 
   // ================================================================
-  // DEV MODE — Show OTP on screen (remove in production)
+  // DEV MODE â€” Show OTP on screen (remove in production)
   // Creates a floating card on the page with the OTP code visible
   // ================================================================
   function _showOTPDevBox(code, type, recipient) {
@@ -491,7 +491,7 @@ const AuthEngine = (() => {
     if (existing) existing.remove();
 
     const isPhone = type === 'phone';
-    const icon    = isPhone ? '📱' : '📧';
+    const icon    = isPhone ? 'ðŸ“±' : 'ðŸ“§';
     const label   = isPhone ? 'Phone OTP' : 'Email OTP';
 
     const box = document.createElement('div');
@@ -520,7 +520,7 @@ const AuthEngine = (() => {
         <!-- Header -->
         <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;">
           <span style="font-size:1.1rem;">${icon}</span>
-          <span style="font-size:0.7rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#A855F7;">${label} — Dev Mode</span>
+          <span style="font-size:0.7rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#A855F7;">${label} â€” Dev Mode</span>
         </div>
 
         <!-- Recipient -->
@@ -552,12 +552,12 @@ const AuthEngine = (() => {
         <!-- Copy button -->
         <button id="_bb_otp_copy_btn" onclick="
           navigator.clipboard.writeText('${code}').then(()=>{
-            this.textContent='✅ Copied!';
+            this.textContent='âœ… Copied!';
             this.style.background='rgba(16,185,129,0.15)';
             this.style.borderColor='rgba(16,185,129,0.4)';
             this.style.color='#10B981';
             setTimeout(()=>{
-              this.textContent='📋 Copy OTP';
+              this.textContent='ðŸ“‹ Copy OTP';
               this.style.background='';
               this.style.borderColor='';
               this.style.color='';

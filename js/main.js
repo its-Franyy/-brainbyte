@@ -438,8 +438,22 @@ function initLoginController() {
       if (ac) ac.textContent = '0';
 
     } catch (err) {
-      liShowError(err.message || 'Login failed. Please try again.');
-      // Show lockout if applicable
+      const msg = err.message || 'Login failed. Please try again.';
+
+      // "Account not found" -> show sign-up link inside error
+      if (err.code === 'NOT_FOUND') {
+        const el  = document.getElementById('li-error');
+        const txt = document.getElementById('li-error-text');
+        if (el && txt) {
+          el.innerHTML = '<i class="bi bi-person-x-fill me-1"></i> ' + msg +
+            ' <a href="signup.html" style="color:#C084FC;font-weight:800;text-decoration:underline;">Sign up free</a>';
+          el.classList.add('show');
+        }
+      } else {
+        liShowError(msg);
+      }
+
+      // Show lockout banner if applicable
       const bf = AuthEngine.checkBruteForce(email);
       if (bf.locked) {
         const lockBar  = document.getElementById('li-lockout-bar');
@@ -633,6 +647,32 @@ function initLoginController() {
       sessionStorage.removeItem('bb_pending_login');
     });
   }
+
+  // Demo Account button
+  var liDemoBtnEl = document.getElementById('li-btn-demo');
+  if (liDemoBtnEl) {
+    liDemoBtnEl.addEventListener('click', function() {
+      var DEMO_EMAIL = 'demo@brainbyte.dev';
+      var DEMO_PASS  = 'Demo@1234';
+      var mocks = JSON.parse(localStorage.getItem('bb_mock_users') || '[]');
+      if (!mocks.some(function(u) { return u.email === DEMO_EMAIL; })) {
+        mocks.push({ id: 'demo_001', full_name: 'Demo Student', email: DEMO_EMAIL,
+          password: DEMO_PASS, phone_number: '+910000000000', role: 'student',
+          phone_verified: true, isLoggedIn: false, created_at: new Date().toISOString() });
+        localStorage.setItem('bb_mock_users', JSON.stringify(mocks));
+      }
+      var eEl = document.getElementById('li-email');
+      var pEl = document.getElementById('li-password');
+      if (eEl) eEl.value = DEMO_EMAIL;
+      if (pEl) pEl.value = DEMO_PASS;
+      var liHideErr = function() { var el = document.getElementById('li-error'); if(el) el.classList.remove('show'); };
+      liHideErr();
+      var lb = document.getElementById('li-lockout-bar');
+      if (lb) lb.classList.remove('show');
+      liForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+  }
+
 
   // â”€â”€ Google OAuth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const liGoogleBtn = document.getElementById('li-btn-google');
@@ -4522,7 +4562,6 @@ function initVerificationController() {
   const savedState = localStorage.getItem(MOCK_STATUS_KEY) || 'form';
   showActivePanel(savedState);
 }
-
 
 
 
