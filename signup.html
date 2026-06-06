@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Account &mdash; BrainByte</title>
-  <meta name="description" content="Join BrainByte â€” create your free developer account. Learn from senior tech architects and showcase verified skills.">
+  <meta name="description" content="Join BrainByte — create your free developer account. Learn from senior tech architects and showcase verified skills.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -292,13 +292,10 @@
             <div class="step-node active" id="su-node-1">1</div>
             <div class="step-connector" id="su-conn-1"></div>
             <div class="step-node" id="su-node-2">2</div>
-            <div class="step-connector" id="su-conn-2"></div>
-            <div class="step-node" id="su-node-3">3</div>
           </div>
           <div class="d-flex justify-content-between mt-1" style="font-size:0.62rem;color:#64748B;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">
             <span>Role</span>
-            <span style="text-align:center;flex:1;margin:0 0.25rem;">Details</span>
-            <span>Verify</span>
+            <span style="text-align:right;">Details</span>
           </div>
         </div>
 
@@ -374,7 +371,7 @@
 
             <!-- Phone Number -->
             <div class="glass-input-wrapper">
-              <label class="glass-input-label">Phone Number <span style="color:#64748B;font-weight:400;font-size:0.73rem;">(OTP verification)</span></label>
+              <label class="glass-input-label">Phone Number</label>
               <div class="phone-group">
                 <select class="country-code-select" id="su-country-code" aria-label="Country code">
                   <option value="+91">&#x1F1EE;&#x1F1F3; +91</option>
@@ -427,7 +424,7 @@
             </div>
 
             <button type="submit" class="btn-bb-login" id="su-btn-submit" disabled>
-              <span>Send Phone OTP <i class="bi bi-arrow-right-short fs-5"></i></span>
+              <span>Create Account <i class="bi bi-arrow-right-short fs-5"></i></span>
             </button>
           </form>
 
@@ -449,73 +446,13 @@
         </div>
 
         <!-- ==========================================
-          STEP 3 â€” Phone OTP Verification
-        =========================================== -->
-        <div class="auth-step" id="su-step-3">
-          <button type="button" class="btn-back" id="su-btn-back-2">
-            <i class="bi bi-arrow-left"></i> Back
-          </button>
-
-          <div class="otp-badge">&#x1F4F1;</div>
-
-          <div class="otp-meta">
-            <h2 class="fw-bold text-white mb-1" style="font-size:1.65rem;font-family:var(--font-display);">Verify Phone Number</h2>
-            <p class="otp-recipient">6-digit code sent to <strong id="su-otp-phone-display">your phone</strong></p>
-          </div>
-
-          <div style="font-size:0.72rem;color:#64748B;text-align:center;margin:0.25rem 0 0.5rem;font-style:italic;">
-            <i class="bi bi-info-circle me-1" style="color:#A855F7;"></i>
-            OTP will appear as a popup card on screen
-          </div>
-
-          <!-- OTP boxes -->
-          <div class="otp-row" id="su-otp-row">
-            <input type="tel" inputmode="numeric" class="otp-box" maxlength="1" id="su-d1" autocomplete="off">
-            <input type="tel" inputmode="numeric" class="otp-box" maxlength="1" id="su-d2" autocomplete="off">
-            <input type="tel" inputmode="numeric" class="otp-box" maxlength="1" id="su-d3" autocomplete="off">
-            <input type="tel" inputmode="numeric" class="otp-box" maxlength="1" id="su-d4" autocomplete="off">
-            <input type="tel" inputmode="numeric" class="otp-box" maxlength="1" id="su-d5" autocomplete="off">
-            <input type="tel" inputmode="numeric" class="otp-box" maxlength="1" id="su-d6" autocomplete="off">
-          </div>
-
-          <!-- Error -->
-          <div class="auth-alert error" id="su-otp-error" role="alert">
-            <i class="bi bi-exclamation-circle-fill"></i>
-            <span id="su-otp-error-text"></span>
-          </div>
-
-          <!-- Status: expiry + attempts -->
-          <div class="otp-status-row">
-            <div class="otp-expiry">
-              <i class="bi bi-clock-history"></i>
-              Expires in <span class="timer" id="su-otp-timer">05:00</span>
-            </div>
-            <div class="otp-attempts">
-              Attempt <span class="count" id="su-attempt-count">0</span>/5
-            </div>
-          </div>
-
-          <!-- Verify button -->
-          <button type="button" class="btn-bb-login" id="su-btn-verify">
-            <span>Verify &amp; Create Account</span>
-          </button>
-
-          <!-- Resend row -->
-          <div class="resend-row mt-3">
-            <span>Didn't receive it?</span>
-            <button type="button" class="btn-resend" id="su-btn-resend" disabled>Resend OTP</button>
-            <span class="resend-timer" id="su-resend-timer">in <b id="su-resend-sec">30</b>s</span>
-          </div>
-        </div>
-
-        <!-- ==========================================
-          STEP 4 â€” Success Screen
+          STEP 3 — Success Screen
         =========================================== -->
         <div class="auth-step" id="su-step-success">
           <div class="text-center">
             <div class="success-check">&#x2705;</div>
             <h2 class="fw-bold text-white mb-2" style="font-size:1.65rem;font-family:var(--font-display);">Account Created!</h2>
-            <p style="color:#94A3B8;font-size:0.9rem;margin-bottom:2rem;">Your phone number is verified. Welcome to BrainByte.</p>
+            <p style="color:#94A3B8;font-size:0.9rem;margin-bottom:2rem;">Your account has been created. Welcome to BrainByte.</p>
             <button type="button" class="btn-bb-login" id="su-btn-go-dashboard">
               <span>Go to Dashboard <i class="bi bi-arrow-right-short fs-5"></i></span>
             </button>

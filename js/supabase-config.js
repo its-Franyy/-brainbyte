@@ -28,19 +28,7 @@ if (typeof window !== 'undefined' && window.supabase && typeof window.supabase.c
 document.addEventListener('DOMContentLoaded', () => {
   // A. Dynamic Page Fade-In Effect CSS Injector
   const injectPageFadeIn = () => {
-    if (document.getElementById('bb-fade-in-styles')) return;
-    const style = document.createElement('style');
-    style.id = 'bb-fade-in-styles';
-    style.textContent = `
-      body {
-        opacity: 0;
-        animation: fadeInPageEffect 0.35s ease forwards;
-      }
-      @keyframes fadeInPageEffect {
-        to { opacity: 1; }
-      }
-    `;
-    document.head.appendChild(style);
+    // Disabled to prevent page loading flickering/flashing in MPA
   };
   injectPageFadeIn();
 
@@ -233,14 +221,6 @@ document.addEventListener('DOMContentLoaded', () => {
           window.location.href = '404.html';
           return;
         }
-
-        // Animate body opacity before redirecting
-        e.preventDefault();
-        document.body.style.transition = 'opacity 0.22s ease';
-        document.body.style.opacity = '0';
-        setTimeout(() => {
-          window.location.href = href;
-        }, 220);
       }
     }
   });
@@ -301,14 +281,92 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.addEventListener('scroll', () => {
-      if (window.scrollY > 300) {
-        btn.classList.add('show');
-      } else {
-        btn.classList.remove('show');
+        if (window.scrollY > 300) {
+          btn.classList.add('show');
+        } else {
+          btn.classList.remove('show');
+        }
+      });
+    };
+    
+    // Inject back-to-top on next tick so it doesn't block the initial page render
+    setTimeout(injectBackToTop, 50);
+
+    // Global Toast Helper
+    function showGlobalToast(title, message, type = 'success') {
+      const existing = document.getElementById('bb-global-toast');
+      if (existing) existing.remove();
+
+      const toast = document.createElement('div');
+      toast.id = 'bb-global-toast';
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: rgba(13, 12, 29, 0.9);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(255, 255, 255, 0.02);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #FFFFFF;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      `;
+
+      if (type === 'error') {
+        toast.style.borderColor = 'rgba(239, 68, 68, 0.3)';
       }
+
+      let emoji = '✅';
+      if (type === 'error') emoji = '❌';
+
+      toast.innerHTML = `
+        <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; font-size: 1.15rem;">
+          ${emoji}
+        </div>
+        <div>
+          <span style="font-weight: 700; font-size: 0.85rem; display: block; letter-spacing: -0.015em; color: #FFFFFF;">${title}</span>
+          <span style="color: #9CA3AF; font-size: 0.74rem; font-weight: 500; display: block; margin-top: 1px;">${message}</span>
+        </div>
+      `;
+
+      document.body.appendChild(toast);
+
+      // Trigger animation
+      setTimeout(() => {
+        toast.style.transform = 'translateY(0)';
+        toast.style.opacity = '1';
+      }, 100);
+
+      // Auto dismiss
+      setTimeout(() => {
+        toast.style.transform = 'translateY(30px)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 500);
+      }, 4000);
+    }
+    window.showGlobalToast = showGlobalToast;
+
+    // H. Newsletter Form Interceptor
+    const newsletterForms = document.querySelectorAll('.footer-newsletter-box');
+    newsletterForms.forEach(form => {
+      form.removeAttribute('onsubmit');
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const emailInput = form.querySelector('.footer-newsletter-input');
+        const email = emailInput ? emailInput.value.trim() : '';
+        if (email) {
+          showGlobalToast('Subscribed!', `Thank you for subscribing with ${email}`, 'success');
+          if (emailInput) emailInput.value = '';
+        }
+      });
     });
-  };
-  
-  // Inject back-to-top on next tick so it doesn't block the initial page render
-  setTimeout(injectBackToTop, 50);
-});
+  });

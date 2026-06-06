@@ -188,6 +188,23 @@ a {
   color: var(--text-primary) !important;
 }
 
+.navbar-toggler {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-toggler:hover, .navbar-toggler:focus {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.15) !important;
+}
+
 .brand-bolt {
   color: #FBBF24;
   text-shadow: 0 0 15px rgba(251, 191, 36, 0.6);
@@ -5764,7 +5781,7 @@ a {
 .matrix-check-icon.amber { color: #F59E0B; }
 .matrix-cross-icon {
   font-size: 1.15rem;
-  color: #475569;
+  color: #EF4444;
 }
 
 /* FAQ Accordion Styling */

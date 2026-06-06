@@ -1,9 +1,384 @@
-﻿/*
+/*
 ================================================================
-  BRAINBYTE â€” INTERACTIVE LOGIC
+  BRAINBYTE — INTERACTIVE LOGIC
   Smooth Transitions, Floating Micro-interactions, and Counters
 ================================================================
 */
+
+// ================================================================
+// SHARED HIGH-FIDELITY DATABASE ARRAYS (File-level Scope)
+// ================================================================
+const coursesData = [
+  {
+    id: 1,
+    title: "Next.js 14 & Supabase: The Full-Stack SaaS Blueprint",
+    instructor: "Sarah Jenkins",
+    initials: "SJ",
+    verified: true,
+    category: "web-dev",
+    categoryLabel: "Web Dev",
+    rating: 4.9,
+    ratingCount: 420,
+    enrolled: 8240,
+    price: 499,
+    level: "advanced",
+    gradient: "linear-gradient(135deg, #667eea, #764ba2)",
+    newest: true,
+    popular: 8240
+  },
+  {
+    id: 2,
+    title: "Modern HTML5, CSS3 & Responsive Architecture",
+    instructor: "Dave Miller",
+    initials: "DM",
+    verified: true,
+    category: "web-dev",
+    categoryLabel: "Web Dev",
+    rating: 4.6,
+    ratingCount: 124,
+    enrolled: 3120,
+    price: 0,
+    level: "beginner",
+    gradient: "linear-gradient(135deg, #667eea, #764ba2)",
+    newest: false,
+    popular: 3120
+  },
+  {
+    id: 3,
+    title: "UI/UX Advanced Prototyping & Figma Design Systems",
+    instructor: "Elena Rostova",
+    initials: "ER",
+    verified: true,
+    category: "design",
+    categoryLabel: "Design",
+    rating: 4.8,
+    ratingCount: 215,
+    enrolled: 5430,
+    price: 699,
+    level: "intermediate",
+    gradient: "linear-gradient(135deg, #f093fb, #f5576c)",
+    newest: true,
+    popular: 5430
+  },
+  {
+    id: 4,
+    title: "Typography, Grid Systems & Branding Masterclass",
+    instructor: "Marc Aurel",
+    initials: "MA",
+    verified: false,
+    category: "design",
+    categoryLabel: "Design",
+    rating: 4.5,
+    ratingCount: 82,
+    enrolled: 1200,
+    price: 0,
+    level: "beginner",
+    gradient: "linear-gradient(135deg, #f093fb, #f5576c)",
+    newest: false,
+    popular: 1200
+  },
+  {
+    id: 5,
+    title: "Python for Data Science, Pandas & Visualization",
+    instructor: "Dr. Angela Yu",
+    initials: "AY",
+    verified: true,
+    category: "data-science",
+    categoryLabel: "Data Science",
+    rating: 4.7,
+    ratingCount: 510,
+    enrolled: 12850,
+    price: 799,
+    level: "intermediate",
+    gradient: "linear-gradient(135deg, #4facfe, #00f2fe)",
+    newest: true,
+    popular: 12850
+  },
+  {
+    id: 6,
+    title: "SQL & Relational Databases for Analytics",
+    instructor: "Kenji Gorom",
+    initials: "KG",
+    verified: false,
+    category: "data-science",
+    categoryLabel: "Data Science",
+    rating: 4.2,
+    ratingCount: 60,
+    enrolled: 1840,
+    price: 0,
+    level: "beginner",
+    gradient: "linear-gradient(135deg, #4facfe, #00f2fe)",
+    newest: false,
+    popular: 1840
+  },
+  {
+    id: 7,
+    title: "Flutter & Dart: Build iOS & Android Applications",
+    instructor: "Maximilian Schwarz",
+    initials: "MS",
+    verified: true,
+    category: "mobile",
+    categoryLabel: "Mobile Dev",
+    rating: 4.9,
+    ratingCount: 880,
+    enrolled: 18920,
+    price: 899,
+    level: "intermediate",
+    gradient: "linear-gradient(135deg, #43e97b, #38f9d7)",
+    newest: true,
+    popular: 18920
+  },
+  {
+    id: 8,
+    title: "SwiftUI Fundamentals: Declarative iOS Design",
+    instructor: "Paul Hudson",
+    initials: "PH",
+    verified: true,
+    category: "mobile",
+    categoryLabel: "Mobile Dev",
+    rating: 4.8,
+    ratingCount: 340,
+    enrolled: 9150,
+    price: 0,
+    level: "beginner",
+    gradient: "linear-gradient(135deg, #43e97b, #38f9d7)",
+    newest: false,
+    popular: 9150
+  },
+  {
+    id: 9,
+    title: "Deep Learning, PyTorch & Neural Networks Masterclass",
+    instructor: "Dr. Andrew Ng",
+    initials: "AN",
+    verified: true,
+    category: "ai-ml",
+    categoryLabel: "AI & ML",
+    rating: 5.0,
+    ratingCount: 1230,
+    enrolled: 32450,
+    price: 999,
+    level: "advanced",
+    gradient: "linear-gradient(135deg, #fa709a, #fee140)",
+    newest: true,
+    popular: 32450
+  },
+  {
+    id: 10,
+    title: "Intro to Machine Learning Models & Scikit-Learn",
+    instructor: "Alice Vance",
+    initials: "AV",
+    verified: true,
+    category: "ai-ml",
+    categoryLabel: "AI & ML",
+    rating: 4.4,
+    ratingCount: 110,
+    enrolled: 4310,
+    price: 0,
+    level: "beginner",
+    gradient: "linear-gradient(135deg, #fa709a, #fee140)",
+    newest: false,
+    popular: 4310
+  },
+  {
+    id: 11,
+    title: "TypeScript Deep Dive: Type Safety & Architecture",
+    instructor: "Sarah Jenkins",
+    initials: "SJ",
+    verified: true,
+    category: "web-dev",
+    categoryLabel: "Web Dev",
+    rating: 4.9,
+    ratingCount: 185,
+    enrolled: 3890,
+    price: 399,
+    level: "advanced",
+    gradient: "linear-gradient(135deg, #667eea, #764ba2)",
+    newest: true,
+    popular: 3890
+  },
+  {
+    id: 12,
+    title: "Figma to Webflow Production: Professional Development",
+    instructor: "Elena Rostova",
+    initials: "ER",
+    verified: true,
+    category: "design",
+    categoryLabel: "Design",
+    rating: 4.7,
+    ratingCount: 95,
+    enrolled: 2340,
+    price: 499,
+    level: "intermediate",
+    gradient: "linear-gradient(135deg, #f093fb, #f5576c)",
+    newest: false,
+    popular: 2340
+  }
+];
+
+const libraryData = [
+  {
+    id: 1,
+    type: "video",
+    title: "Docker Containers & Kubernetes Pods: Complete Hands-on Walkthrough",
+    category: "web-dev",
+    categoryLabel: "Docker & Devops",
+    rating: 4.9,
+    views: 14200,
+    duration: "45 Min",
+    level: "advanced",
+    levelLabel: "Advanced",
+    gradient: "linear-gradient(135deg, #0c1a2e, #0a2540)",
+    initials: "DK"
+  },
+  {
+    id: 2,
+    type: "pdf",
+    title: "System Design Interview Blueprint: Patterns & Cache Scaling",
+    category: "web-dev",
+    categoryLabel: "Software Architecture",
+    downloads: 8450,
+    pages: "18 pages",
+    size: "2.4 MB",
+    level: "advanced",
+    levelLabel: "Advanced",
+    initials: "SD"
+  },
+  {
+    id: 3,
+    type: "video",
+    title: "OWASP Top 10 Web Vulnerabilities & Prevention Live Demo",
+    category: "web-dev",
+    categoryLabel: "Security",
+    rating: 4.8,
+    views: 6900,
+    duration: "1h 15m",
+    level: "advanced",
+    levelLabel: "Advanced",
+    gradient: "linear-gradient(135deg, #1a0a0a, #2d0f0f)",
+    initials: "SEC"
+  },
+  {
+    id: 4,
+    type: "pdf",
+    title: "SQL Joins & Relational Database Design Reference Book",
+    category: "data-science",
+    categoryLabel: "Data Science",
+    downloads: 14200,
+    pages: "12 pages",
+    size: "5.8 MB",
+    level: "beginner",
+    levelLabel: "Beginner",
+    initials: "SQL"
+  },
+  {
+    id: 5,
+    type: "video",
+    title: "Introduction to PyTorch Models & Deep Learning Nodes",
+    category: "ai-ml",
+    categoryLabel: "AI & ML",
+    rating: 5.0,
+    views: 32500,
+    duration: "45:30",
+    level: "advanced",
+    levelLabel: "Advanced",
+    gradient: "linear-gradient(135deg, #fa709a, #fee140)",
+    initials: "AI"
+  },
+  {
+    id: 6,
+    type: "pdf",
+    title: "SwiftUI Declarative Animation & Physics State Blueprint",
+    category: "mobile",
+    categoryLabel: "Mobile Dev",
+    downloads: 9150,
+    pages: "8 pages",
+    size: "3.2 MB",
+    level: "advanced",
+    levelLabel: "Advanced",
+    initials: "iOS"
+  },
+  {
+    id: 7,
+    type: "video",
+    title: "TypeScript Strict Mode Configuration & Advanced Mappings",
+    category: "web-dev",
+    categoryLabel: "Web Dev",
+    rating: 4.9,
+    views: 11400,
+    duration: "18:40",
+    level: "advanced",
+    levelLabel: "Advanced",
+    gradient: "linear-gradient(135deg, #667eea, #764ba2)",
+    initials: "TS"
+  },
+  {
+    id: 8,
+    type: "pdf",
+    title: "Data Visualization Best Practices & Seaborn Guides",
+    category: "data-science",
+    categoryLabel: "Data Science",
+    downloads: 16100,
+    pages: "6 pages",
+    size: "1.9 MB",
+    level: "beginner",
+    levelLabel: "Beginner",
+    initials: "DS"
+  },
+  {
+    id: 9,
+    type: "video",
+    title: "Responsive Media Queries & Fluid Typography Architectures",
+    category: "web-dev",
+    categoryLabel: "Web Dev",
+    rating: 4.7,
+    views: 9400,
+    duration: "12:05",
+    level: "beginner",
+    levelLabel: "Beginner",
+    gradient: "linear-gradient(135deg, #667eea, #764ba2)",
+    initials: "CSS"
+  },
+  {
+    id: 10,
+    type: "pdf",
+    title: "Machine Learning Regression Models & Scikit-Learn Sheets",
+    category: "ai-ml",
+    categoryLabel: "AI & ML",
+    downloads: 11300,
+    pages: "10 pages",
+    size: "4.1 MB",
+    level: "beginner",
+    levelLabel: "Beginner",
+    initials: "ML"
+  },
+  {
+    id: 11,
+    type: "video",
+    title: "Flutter Declarative Theme Configs & Dynamic Dark Modes",
+    category: "mobile",
+    categoryLabel: "Mobile Dev",
+    rating: 4.8,
+    views: 7120,
+    duration: "15:10",
+    level: "beginner",
+    levelLabel: "Beginner",
+    gradient: "linear-gradient(135deg, #43e97b, #38f9d7)",
+    initials: "FL"
+  },
+  {
+    id: 12,
+    type: "pdf",
+    title: "Webflow Production Best Practices & Page Speeds Protocols",
+    category: "design",
+    categoryLabel: "Design",
+    downloads: 8200,
+    pages: "5 pages",
+    size: "2.8 MB",
+    level: "advanced",
+    levelLabel: "Advanced",
+    initials: "WF"
+  }
+];
 
 document.addEventListener('DOMContentLoaded', () => {
   initStickyNavbar();
@@ -319,6 +694,7 @@ function initLoginController() {
   }
 
   // â”€â”€ UI helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── UI helpers ────────────────────────────────────────────────
   const liShowError = (msg) => {
     const el = document.getElementById('li-error');
     const txt = document.getElementById('li-error-text');
@@ -333,38 +709,13 @@ function initLoginController() {
     if (!btn) return;
     if (loading) {
       btn.classList.add('loading');
-      btn.innerHTML = `<span class="spinner-ring"></span> <span style="margin-left:0.5rem;">${label || 'Please waitâ€¦'}</span>`;
+      btn.innerHTML = `<span class="spinner-ring"></span> <span style="margin-left:0.5rem;">${label || 'Please wait…'}</span>`;
     } else {
       btn.classList.remove('loading');
     }
   };
 
-  const goToOTPStep = () => {
-    liStep1.classList.remove('active');
-    liStep2.classList.add('active');
-    // Update step nodes
-    const n1 = document.getElementById('li-node-1');
-    const c1 = document.getElementById('li-conn-1');
-    const n2 = document.getElementById('li-node-2');
-    if (n1) { n1.classList.remove('active'); n1.classList.add('done'); n1.textContent = 'âœ“'; }
-    if (c1) c1.classList.add('done');
-    if (n2) n2.classList.add('active');
-  };
-
-  const goBackToStep1 = () => {
-    liStep2.classList.remove('active');
-    liStep1.classList.add('active');
-    const n1 = document.getElementById('li-node-1');
-    const c1 = document.getElementById('li-conn-1');
-    const n2 = document.getElementById('li-node-2');
-    if (n1) { n1.classList.add('active'); n1.classList.remove('done'); n1.textContent = '1'; }
-    if (c1) c1.classList.remove('done');
-    if (n2) n2.classList.remove('active');
-    AuthEngine.stopTimer('li-expiry');
-    AuthEngine.stopTimer('li-resend');
-  };
-
-  // â”€â”€ Brute-force lockout banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Brute-force lockout banner ──────────────────────────────
   const liEmail = document.getElementById('li-email');
   if (liEmail) {
     liEmail.addEventListener('blur', () => {
@@ -382,7 +733,7 @@ function initLoginController() {
     });
   }
 
-  // â”€â”€ STEP 1: Form submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Form submit: Direct Login ─────────────────────────────────────
   liForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     liHideError();
@@ -398,44 +749,21 @@ function initLoginController() {
     }
 
     const btn = document.getElementById('li-btn-submit');
-    setLoading(btn, true, 'Verifying credentialsâ€¦');
+    setLoading(btn, true, 'Verifying credentials…');
 
     try {
-      await AuthEngine.loginWithPassword(email, password);
+      const res = await AuthEngine.loginWithPassword(email, password);
 
-      // Send Email OTP
-      setLoading(btn, true, 'Sending OTP to emailâ€¦');
-      await AuthEngine.sendOTP(email, 'email');
+      // Complete login directly without OTP verification
+      await AuthEngine.completeLogin(res.profile);
 
-      // Update OTP panel UI
-      const display = document.getElementById('li-otp-email-display');
-      if (display) display.textContent = AuthEngine.maskEmail(email);
+      btn.innerHTML = '<span>✅ Redirecting…</span>';
+      btn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
 
-      goToOTPStep();
-
-      // Wire OTP boxes
-      liBindOTPBoxes();
-
-      // Start expiry countdown
-      const timerEl = document.getElementById('li-otp-timer');
-      AuthEngine.startExpiryCountdown('li-expiry', {
-        displayEl: timerEl,
-        onExpire: () => {
-          if (timerEl) timerEl.classList.add('urgent');
-          liShowOTPError('OTP expired. Click "Resend OTP" to get a new code.');
-          document.getElementById('li-btn-verify').disabled = true;
-        }
-      });
-
-      // Start resend timer
-      liStartResend(email);
-
-      // Focus first box
-      setTimeout(() => document.getElementById('li-d1')?.focus(), 120);
-
-      // Reset attempt counter
-      const ac = document.getElementById('li-attempt-count');
-      if (ac) ac.textContent = '0';
+      setTimeout(() => {
+        const role = res.profile.role || 'student';
+        window.location.href = (role === 'instructor' || role === 'teach') ? 'teach-verify.html' : 'dashboard.html';
+      }, 800);
 
     } catch (err) {
       const msg = err.message || 'Login failed. Please try again.';
@@ -462,191 +790,8 @@ function initLoginController() {
       }
     } finally {
       btn.classList.remove('loading');
-      btn.innerHTML = '<span>Continue <i class="bi bi-arrow-right-short fs-5"></i></span>';
     }
   });
-
-  // â”€â”€ STEP 2: OTP helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const liShowOTPError = (msg) => {
-    const el  = document.getElementById('li-otp-error');
-    const txt = document.getElementById('li-otp-error-text');
-    if (el && txt) { txt.textContent = msg; el.classList.add('show'); }
-    // Shake all boxes
-    for (let i = 1; i <= 6; i++) {
-      const b = document.getElementById(`li-d${i}`);
-      if (b) { b.classList.remove('error'); void b.offsetWidth; b.classList.add('error'); }
-    }
-  };
-  const liHideOTPError = () => {
-    const el = document.getElementById('li-otp-error');
-    if (el) el.classList.remove('show');
-    for (let i = 1; i <= 6; i++) {
-      const b = document.getElementById(`li-d${i}`);
-      if (b) b.classList.remove('error');
-    }
-  };
-
-  // OTP digit box binding
-  function liBindOTPBoxes() {
-    const boxes = [];
-    for (let i = 1; i <= 6; i++) {
-      const b = document.getElementById(`li-d${i}`);
-      if (b) { b.value = ''; b.classList.remove('filled','error','success'); boxes.push(b); }
-    }
-
-    boxes.forEach((box, idx) => {
-      box.addEventListener('input', (ev) => {
-        const val = ev.target.value.replace(/\D/g, '').slice(-1);
-        box.value = val;
-        box.classList.toggle('filled', !!val);
-        if (val && boxes[idx + 1]) boxes[idx + 1].focus();
-      });
-      box.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Backspace' && !box.value && boxes[idx - 1]) boxes[idx - 1].focus();
-        if (ev.key === 'ArrowLeft'  && boxes[idx - 1]) boxes[idx - 1].focus();
-        if (ev.key === 'ArrowRight' && boxes[idx + 1]) boxes[idx + 1].focus();
-      });
-      box.addEventListener('paste', (ev) => {
-        ev.preventDefault();
-        const pasted = (ev.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
-        pasted.split('').forEach((ch, i) => {
-          if (boxes[i]) { boxes[i].value = ch; boxes[i].classList.add('filled'); }
-        });
-        const next = boxes[Math.min(pasted.length, 5)];
-        if (next) next.focus();
-      });
-    });
-  }
-
-  function liGetOTPCode() {
-    let code = '';
-    for (let i = 1; i <= 6; i++) {
-      const b = document.getElementById(`li-d${i}`);
-      code += (b?.value || '');
-    }
-    return code;
-  }
-
-  // Resend timer
-  function liStartResend(email) {
-    const btn      = document.getElementById('li-btn-resend');
-    const timerRow = document.getElementById('li-resend-timer');
-    const secEl    = document.getElementById('li-resend-sec');
-
-    AuthEngine.startResendTimer('li-resend', {
-      btn,
-      timerEl: { style: {}, textContent: '' }, // handled manually below
-      onExpire: null
-    });
-
-    // Manual countdown display
-    if (timerRow) timerRow.style.display = 'inline';
-    let sec = 30;
-    if (secEl) secEl.textContent = sec;
-
-    const interval = setInterval(() => {
-      sec--;
-      if (secEl) secEl.textContent = sec;
-      if (sec <= 0) {
-        clearInterval(interval);
-        if (timerRow) timerRow.style.display = 'none';
-      }
-    }, 1000);
-
-    if (btn) {
-      btn.onclick = async () => {
-        clearInterval(interval);
-        try {
-          await AuthEngine.sendOTP(email, 'email');
-          liHideOTPError();
-          // Reset expiry countdown
-          AuthEngine.stopTimer('li-expiry');
-          const timerEl = document.getElementById('li-otp-timer');
-          if (timerEl) { timerEl.classList.remove('urgent'); }
-          AuthEngine.startExpiryCountdown('li-expiry', {
-            displayEl: timerEl,
-            onExpire: () => {
-              if (timerEl) timerEl.classList.add('urgent');
-              liShowOTPError('OTP expired. Click "Resend OTP" for a new code.');
-              document.getElementById('li-btn-verify').disabled = true;
-            }
-          });
-          document.getElementById('li-btn-verify').disabled = false;
-          const ac = document.getElementById('li-attempt-count');
-          if (ac) ac.textContent = '0';
-          liStartResend(email);
-          liBindOTPBoxes();
-          document.getElementById('li-d1')?.focus();
-        } catch (err) {
-          liShowOTPError('Failed to resend. Please try again.');
-        }
-      };
-    }
-  }
-
-  // â”€â”€ STEP 2: Verify OTP button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const liVerifyBtn = document.getElementById('li-btn-verify');
-  if (liVerifyBtn) {
-    liVerifyBtn.addEventListener('click', async () => {
-      liHideOTPError();
-      const code  = liGetOTPCode();
-      const email = (liEmail?.value || '').trim();
-
-      if (code.length !== 6) {
-        liShowOTPError('Please enter all 6 digits.'); return;
-      }
-
-      setLoading(liVerifyBtn, true, 'Verifyingâ€¦');
-
-      const result = await AuthEngine.verifyOTP(email, 'email', code);
-
-      if (!result.success) {
-        const ac = document.getElementById('li-attempt-count');
-        if (ac) {
-          const cur = parseInt(ac.textContent) || 0;
-          ac.textContent = cur + 1;
-        }
-        liShowOTPError(result.error);
-        liVerifyBtn.classList.remove('loading');
-        liVerifyBtn.innerHTML = '<span>Verify &amp; Sign In</span>';
-
-        if (result.maxAttempts || result.remainingAttempts === 0) {
-          liVerifyBtn.disabled = true;
-        }
-        return;
-      }
-
-      // Success â€” complete login
-      const pending = JSON.parse(sessionStorage.getItem('bb_pending_login') || '{}');
-      await AuthEngine.completeLogin(pending);
-
-      // All boxes green
-      for (let i = 1; i <= 6; i++) {
-        const b = document.getElementById(`li-d${i}`);
-        if (b) { b.classList.remove('error'); b.classList.add('success'); }
-      }
-      AuthEngine.stopTimer('li-expiry');
-      AuthEngine.stopTimer('li-resend');
-
-      liVerifyBtn.innerHTML = '<span>&#x2705; Verified! Redirectingâ€¦</span>';
-      liVerifyBtn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
-
-      setTimeout(() => {
-        const role = pending.role || 'student';
-        window.location.href = (role === 'instructor' || role === 'teach') ? 'teach-verify.html' : 'dashboard.html';
-      }, 900);
-    });
-  }
-
-  // â”€â”€ Back to step 1 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const liBackBtn = document.getElementById('li-btn-back');
-  if (liBackBtn) {
-    liBackBtn.addEventListener('click', () => {
-      liHideOTPError();
-      goBackToStep1();
-      sessionStorage.removeItem('bb_pending_login');
-    });
-  }
 
   // Demo Account button
   var liDemoBtnEl = document.getElementById('li-btn-demo');
@@ -864,7 +1009,7 @@ function initSignupController() {
       showFieldError('su-err-email', 'Please enter a valid email address.'); valid = false;
     }
     if (!phoneRaw || !AuthEngine.validatePhone(phone)) {
-      showFieldError('su-err-phone', 'Enter a valid phone number (7â€“15 digits).'); valid = false;
+      showFieldError('su-err-phone', 'Enter a valid phone number (7–15 digits).'); valid = false;
     }
     if (password.length < 8) {
       showGlobalError('Password must be at least 8 characters.'); valid = false;
@@ -877,7 +1022,7 @@ function initSignupController() {
     if (!valid) return;
 
     const btn = document.getElementById('su-btn-submit');
-    setLoading(btn, true, 'Checking availabilityâ€¦');
+    setLoading(btn, true, 'Creating account…');
 
     try {
       // Check duplicates
@@ -886,230 +1031,33 @@ function initSignupController() {
         if (dup.field === 'email') showFieldError('su-err-email', dup.message);
         else showFieldError('su-err-phone', dup.message);
         btn.classList.remove('loading');
-        btn.innerHTML = '<span>Send Phone OTP <i class="bi bi-arrow-right-short fs-5"></i></span>';
+        btn.innerHTML = '<span>Create Account <i class="bi bi-arrow-right-short fs-5"></i></span>';
         return;
       }
 
-      // Store data for step 3
-      pendingPhone = phone;
-      sessionStorage.setItem('bb_signup_pending', JSON.stringify({
-        fullName, email, phone, password, role: selectedRole
-      }));
+      // Complete signup directly without Phone OTP verification
+      const suResult = await AuthEngine.signup(fullName, email, phone, password, selectedRole);
 
-      // Send phone OTP
-      setLoading(btn, true, 'Sending OTP to phoneâ€¦');
-      await AuthEngine.sendOTP(phone, 'phone');
-
-      // Update OTP display
-      const display = document.getElementById('su-otp-phone-display');
-      if (display) display.textContent = AuthEngine.maskPhone(phone);
-
-      // Advance to step 3
-      setNodeState('su-node-2', 'done');
-      setConnDone('su-conn-2', true);
-      setNodeState('su-node-3', 'active');
-      transition(suStep2, suStep3);
-
-      // Wire OTP boxes
-      suBindOTPBoxes();
-      attemptCount = 0;
-      const ac = document.getElementById('su-attempt-count');
-      if (ac) ac.textContent = '0';
-      document.getElementById('su-btn-verify').disabled = false;
-
-      // Start expiry countdown
-      const timerEl = document.getElementById('su-otp-timer');
-      AuthEngine.startExpiryCountdown('su-expiry', {
-        displayEl: timerEl,
-        onExpire: () => {
-          if (timerEl) timerEl.classList.add('urgent');
-          suShowOTPError('OTP expired. Click "Resend OTP" to get a new code.');
-          document.getElementById('su-btn-verify').disabled = true;
-        }
-      });
-
-      // Start resend timer
-      suStartResend(phone);
-      setTimeout(() => document.getElementById('su-d1')?.focus(), 120);
+      if (suResult.success) {
+        // Advance to success step
+        setNodeState('su-node-2', 'done');
+        setConnDone('su-conn-2', true);
+        
+        transition(suStep2, suSuccess);
+      } else {
+        throw new Error(suResult.error || 'Signup failed.');
+      }
 
     } catch (err) {
       showGlobalError(err.message || 'Something went wrong. Please try again.');
     } finally {
       btn.classList.remove('loading');
-      btn.innerHTML = '<span>Send Phone OTP <i class="bi bi-arrow-right-short fs-5"></i></span>';
+      btn.innerHTML = '<span>Create Account <i class="bi bi-arrow-right-short fs-5"></i></span>';
     }
   });
 
-  // â”€â”€ STEP 3: OTP helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const suShowOTPError = (msg) => {
-    const el  = document.getElementById('su-otp-error');
-    const txt = document.getElementById('su-otp-error-text');
-    if (el && txt) { txt.textContent = msg; el.classList.add('show'); }
-    for (let i = 1; i <= 6; i++) {
-      const b = document.getElementById(`su-d${i}`);
-      if (b) { b.classList.remove('error'); void b.offsetWidth; b.classList.add('error'); }
-    }
-  };
-  const suHideOTPError = () => {
-    const el = document.getElementById('su-otp-error');
-    if (el) el.classList.remove('show');
-    for (let i = 1; i <= 6; i++) {
-      const b = document.getElementById(`su-d${i}`);
-      if (b) b.classList.remove('error');
-    }
-  };
 
-  function suBindOTPBoxes() {
-    const boxes = [];
-    for (let i = 1; i <= 6; i++) {
-      const b = document.getElementById(`su-d${i}`);
-      if (b) { b.value = ''; b.classList.remove('filled','error','success'); boxes.push(b); }
-    }
-    boxes.forEach((box, idx) => {
-      box.addEventListener('input', (ev) => {
-        const val = ev.target.value.replace(/\D/g, '').slice(-1);
-        box.value = val;
-        box.classList.toggle('filled', !!val);
-        if (val && boxes[idx + 1]) boxes[idx + 1].focus();
-      });
-      box.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Backspace' && !box.value && boxes[idx - 1]) boxes[idx - 1].focus();
-        if (ev.key === 'ArrowLeft'  && boxes[idx - 1]) boxes[idx - 1].focus();
-        if (ev.key === 'ArrowRight' && boxes[idx + 1]) boxes[idx + 1].focus();
-      });
-      box.addEventListener('paste', (ev) => {
-        ev.preventDefault();
-        const pasted = (ev.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
-        pasted.split('').forEach((ch, i) => {
-          if (boxes[i]) { boxes[i].value = ch; boxes[i].classList.add('filled'); }
-        });
-        const next = boxes[Math.min(pasted.length, 5)];
-        if (next) next.focus();
-      });
-    });
-  }
 
-  function suGetOTPCode() {
-    let code = '';
-    for (let i = 1; i <= 6; i++) code += (document.getElementById(`su-d${i}`)?.value || '');
-    return code;
-  }
-
-  function suStartResend(phone) {
-    const btn      = document.getElementById('su-btn-resend');
-    const timerRow = document.getElementById('su-resend-timer');
-    const secEl    = document.getElementById('su-resend-sec');
-
-    if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; }
-    if (timerRow) timerRow.style.display = 'inline';
-    let sec = 30;
-    if (secEl) secEl.textContent = sec;
-
-    const interval = setInterval(() => {
-      sec--;
-      if (secEl) secEl.textContent = sec;
-      if (sec <= 0) {
-        clearInterval(interval);
-        if (timerRow) timerRow.style.display = 'none';
-        if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
-      }
-    }, 1000);
-
-    if (btn) {
-      btn.onclick = async () => {
-        clearInterval(interval);
-        try {
-          await AuthEngine.sendOTP(phone, 'phone');
-          suHideOTPError();
-          AuthEngine.stopTimer('su-expiry');
-          const timerEl = document.getElementById('su-otp-timer');
-          if (timerEl) timerEl.classList.remove('urgent');
-          AuthEngine.startExpiryCountdown('su-expiry', {
-            displayEl: timerEl,
-            onExpire: () => {
-              if (timerEl) timerEl.classList.add('urgent');
-              suShowOTPError('OTP expired. Click "Resend OTP" to get a new code.');
-              document.getElementById('su-btn-verify').disabled = true;
-            }
-          });
-          document.getElementById('su-btn-verify').disabled = false;
-          attemptCount = 0;
-          const ac = document.getElementById('su-attempt-count');
-          if (ac) ac.textContent = '0';
-          suStartResend(phone);
-          suBindOTPBoxes();
-          document.getElementById('su-d1')?.focus();
-        } catch { suShowOTPError('Failed to resend. Please try again.'); }
-      };
-    }
-  }
-
-  // Back to step 2
-  document.getElementById('su-btn-back-2')?.addEventListener('click', () => {
-    AuthEngine.stopTimer('su-expiry');
-    AuthEngine.stopTimer('su-resend');
-    suHideOTPError();
-    setNodeState('su-node-3', 'idle');
-    setConnDone('su-conn-2', false);
-    setNodeState('su-node-2', 'active');
-    transition(suStep3, suStep2);
-  });
-
-  // â”€â”€ STEP 3: Verify OTP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  document.getElementById('su-btn-verify')?.addEventListener('click', async () => {
-    suHideOTPError();
-    const code = suGetOTPCode();
-
-    if (code.length !== 6) {
-      suShowOTPError('Please enter all 6 digits.'); return;
-    }
-
-    const verifyBtn = document.getElementById('su-btn-verify');
-    setLoading(verifyBtn, true, 'Verifying OTPâ€¦');
-
-    const result = await AuthEngine.verifyOTP(pendingPhone, 'phone', code);
-
-    if (!result.success) {
-      attemptCount++;
-      const ac = document.getElementById('su-attempt-count');
-      if (ac) ac.textContent = String(attemptCount);
-      suShowOTPError(result.error);
-      verifyBtn.classList.remove('loading');
-      verifyBtn.innerHTML = '<span>Verify &amp; Create Account</span>';
-      if (result.maxAttempts || result.remainingAttempts === 0) {
-        verifyBtn.disabled = true;
-      }
-      return;
-    }
-
-    // OTP verified â€” create account
-    setLoading(verifyBtn, true, 'Creating your accountâ€¦');
-
-    try {
-      const pending = JSON.parse(sessionStorage.getItem('bb_signup_pending') || '{}');
-      await AuthEngine.signup(
-        pending.fullName, pending.email, pending.phone, pending.password, pending.role
-      );
-
-      // All boxes green
-      for (let i = 1; i <= 6; i++) {
-        const b = document.getElementById(`su-d${i}`);
-        if (b) { b.classList.remove('error'); b.classList.add('success'); }
-      }
-
-      AuthEngine.stopTimer('su-expiry');
-      AuthEngine.stopTimer('su-resend');
-      sessionStorage.removeItem('bb_signup_pending');
-
-      // Show success step
-      setTimeout(() => { transition(suStep3, suSuccess); }, 400);
-
-    } catch (err) {
-      suShowOTPError(err.message || 'Account creation failed. Please try again.');
-      verifyBtn.classList.remove('loading');
-      verifyBtn.innerHTML = '<span>Verify &amp; Create Account</span>';
-    }
-  });
 
   // â”€â”€ Success: go to dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   document.getElementById('su-btn-go-dashboard')?.addEventListener('click', () => {
@@ -1138,213 +1086,7 @@ function initCoursesController() {
   const gridContainer = document.getElementById('courses-grid-container');
   if (!gridContainer) return; // Only execute on the course browse page
 
-  // 1. High-Fidelity Course Database
-  const coursesData = [
-    {
-      id: 1,
-      title: "Next.js 14 & Supabase: The Full-Stack SaaS Blueprint",
-      instructor: "Sarah Jenkins",
-      initials: "SJ",
-      verified: true,
-      category: "web-dev",
-      categoryLabel: "Web Dev",
-      rating: 4.9,
-      ratingCount: 420,
-      enrolled: 8240,
-      price: 499,
-      level: "advanced",
-      gradient: "linear-gradient(135deg, #667eea, #764ba2)",
-      newest: true,
-      popular: 8240
-    },
-    {
-      id: 2,
-      title: "Modern HTML5, CSS3 & Responsive Architecture",
-      instructor: "Dave Miller",
-      initials: "DM",
-      verified: true,
-      category: "web-dev",
-      categoryLabel: "Web Dev",
-      rating: 4.6,
-      ratingCount: 124,
-      enrolled: 3120,
-      price: 0,
-      level: "beginner",
-      gradient: "linear-gradient(135deg, #667eea, #764ba2)",
-      newest: false,
-      popular: 3120
-    },
-    {
-      id: 3,
-      title: "UI/UX Advanced Prototyping & Figma Design Systems",
-      instructor: "Elena Rostova",
-      initials: "ER",
-      verified: true,
-      category: "design",
-      categoryLabel: "Design",
-      rating: 4.8,
-      ratingCount: 215,
-      enrolled: 5430,
-      price: 699,
-      level: "intermediate",
-      gradient: "linear-gradient(135deg, #f093fb, #f5576c)",
-      newest: true,
-      popular: 5430
-    },
-    {
-      id: 4,
-      title: "Typography, Grid Systems & Branding Masterclass",
-      instructor: "Marc Aurel",
-      initials: "MA",
-      verified: false,
-      category: "design",
-      categoryLabel: "Design",
-      rating: 4.5,
-      ratingCount: 82,
-      enrolled: 1200,
-      price: 0,
-      level: "beginner",
-      gradient: "linear-gradient(135deg, #f093fb, #f5576c)",
-      newest: false,
-      popular: 1200
-    },
-    {
-      id: 5,
-      title: "Python for Data Science, Pandas & Visualization",
-      instructor: "Dr. Angela Yu",
-      initials: "AY",
-      verified: true,
-      category: "data-science",
-      categoryLabel: "Data Science",
-      rating: 4.7,
-      ratingCount: 510,
-      enrolled: 12850,
-      price: 799,
-      level: "intermediate",
-      gradient: "linear-gradient(135deg, #4facfe, #00f2fe)",
-      newest: true,
-      popular: 12850
-    },
-    {
-      id: 6,
-      title: "SQL & Relational Databases for Analytics",
-      instructor: "Kenji Gorom",
-      initials: "KG",
-      verified: false,
-      category: "data-science",
-      categoryLabel: "Data Science",
-      rating: 4.2,
-      ratingCount: 60,
-      enrolled: 1840,
-      price: 0,
-      level: "beginner",
-      gradient: "linear-gradient(135deg, #4facfe, #00f2fe)",
-      newest: false,
-      popular: 1840
-    },
-    {
-      id: 7,
-      title: "Flutter & Dart: Build iOS & Android Applications",
-      instructor: "Maximilian Schwarz",
-      initials: "MS",
-      verified: true,
-      category: "mobile",
-      categoryLabel: "Mobile Dev",
-      rating: 4.9,
-      ratingCount: 880,
-      enrolled: 18920,
-      price: 899,
-      level: "intermediate",
-      gradient: "linear-gradient(135deg, #43e97b, #38f9d7)",
-      newest: true,
-      popular: 18920
-    },
-    {
-      id: 8,
-      title: "SwiftUI Fundamentals: Declarative iOS Design",
-      instructor: "Paul Hudson",
-      initials: "PH",
-      verified: true,
-      category: "mobile",
-      categoryLabel: "Mobile Dev",
-      rating: 4.8,
-      ratingCount: 340,
-      enrolled: 9150,
-      price: 0,
-      level: "beginner",
-      gradient: "linear-gradient(135deg, #43e97b, #38f9d7)",
-      newest: false,
-      popular: 9150
-    },
-    {
-      id: 9,
-      title: "Deep Learning, PyTorch & Neural Networks Masterclass",
-      instructor: "Dr. Andrew Ng",
-      initials: "AN",
-      verified: true,
-      category: "ai-ml",
-      categoryLabel: "AI & ML",
-      rating: 5.0,
-      ratingCount: 1230,
-      enrolled: 32450,
-      price: 999,
-      level: "advanced",
-      gradient: "linear-gradient(135deg, #fa709a, #fee140)",
-      newest: true,
-      popular: 32450
-    },
-    {
-      id: 10,
-      title: "Intro to Machine Learning Models & Scikit-Learn",
-      instructor: "Alice Vance",
-      initials: "AV",
-      verified: true,
-      category: "ai-ml",
-      categoryLabel: "AI & ML",
-      rating: 4.4,
-      ratingCount: 110,
-      enrolled: 4310,
-      price: 0,
-      level: "beginner",
-      gradient: "linear-gradient(135deg, #fa709a, #fee140)",
-      newest: false,
-      popular: 4310
-    },
-    {
-      id: 11,
-      title: "TypeScript Deep Dive: Type Safety & Architecture",
-      instructor: "Sarah Jenkins",
-      initials: "SJ",
-      verified: true,
-      category: "web-dev",
-      categoryLabel: "Web Dev",
-      rating: 4.9,
-      ratingCount: 185,
-      enrolled: 3890,
-      price: 399,
-      level: "advanced",
-      gradient: "linear-gradient(135deg, #667eea, #764ba2)",
-      newest: true,
-      popular: 3890
-    },
-    {
-      id: 12,
-      title: "Figma to Webflow Production: Professional Development",
-      instructor: "Elena Rostova",
-      initials: "ER",
-      verified: true,
-      category: "design",
-      categoryLabel: "Design",
-      rating: 4.7,
-      ratingCount: 95,
-      enrolled: 2340,
-      price: 499,
-      level: "intermediate",
-      gradient: "linear-gradient(135deg, #f093fb, #f5576c)",
-      newest: false,
-      popular: 2340
-    }
-  ];
+  // coursesData is now referenceable globally from the top of main.js
 
   // 2. State Indicators
   const itemsPerPage = 6;
@@ -1636,8 +1378,8 @@ function initCoursesController() {
       const priceClass = course.price === 0 ? "free" : "paid";
       const isVerified = course.verified ? `<i class="bi bi-patch-check-fill text-primary ms-1" style="color: var(--violet-mid) !important;" title="Verified Author"></i>` : '';
 
-      // Create details query string for detailed stub redirects
-      const queryParams = `?title=${encodeURIComponent(course.title)}&instructor=${encodeURIComponent(course.instructor)}&level=${course.level}&price=${course.price}`;
+      // Create details query string for detailed stub redirects containing the exact ID
+      const queryParams = `?id=${course.id}&title=${encodeURIComponent(course.title)}&instructor=${encodeURIComponent(course.instructor)}&level=${course.level}&price=${course.price}`;
 
       // Star graphics builders
       let starsHTML = '';
@@ -1851,12 +1593,39 @@ function initCoursesController() {
     applyFilters(); // Re-renders pagination cleanly
   });
 
+  // On load: Parse category URL query parameter and pre-toggle filters
+  const urlParams = new URLSearchParams(window.location.search);
+  const catParam = urlParams.get('category');
+  if (catParam) {
+    const allCheckboxD = Array.from(catChecksD).find(c => c.value === 'all');
+    if (allCheckboxD) allCheckboxD.checked = false;
+    const allCheckboxM = Array.from(catChecksM).find(c => c.value === 'all');
+    if (allCheckboxM) allCheckboxM.checked = false;
+
+    let found = false;
+    catChecksD.forEach(cb => {
+      if (cb.value === catParam) {
+        cb.checked = true;
+        found = true;
+      }
+    });
+    catChecksM.forEach(cb => {
+      if (cb.value === catParam) {
+        cb.checked = true;
+      }
+    });
+
+    if (found) {
+      currentFilters.categories = [catParam];
+    }
+  }
+
   // Initial trigger call on load
   applyFilters();
 }
 
 /**
- * PAGE 03 â€” Course Detail Page Controller
+ * PAGE 03 — Course Detail Page Controller
  * Dynamically parses URL search query metadata to populate headings, prices, levels,
  * category badges, and gradient thumbnails. Programmatically controls tabs switching,
  * collapsible syllabus accordions, and click-enroll loaders.
@@ -1865,40 +1634,52 @@ function initCourseDetailController() {
   const detailBannerTitle = document.getElementById('banner-course-title');
   if (!detailBannerTitle) return; // Only execute on the course detail page
 
-  // 1. Dynamic URL Query Parameters Parser & Fallback
+  // Star graphics helper
+  const getStarsHTML = (rating) => {
+    let starsHTML = '';
+    const fullStars = Math.floor(rating);
+    const hasHalf = rating % 1 !== 0;
+    
+    for (let i = 1; i <= 5; i++) {
+      if (i <= fullStars) {
+        starsHTML += `<i class="bi bi-star-fill text-warning"></i>`;
+      } else if (i === fullStars + 1 && hasHalf) {
+        starsHTML += `<i class="bi bi-star-half text-warning"></i>`;
+      } else {
+        starsHTML += `<i class="bi bi-star text-muted"></i>`;
+      }
+    }
+    return starsHTML;
+  };
+
+  // 1. Dynamic URL Query Parameters Parser & Shared Data Array Migration
   const params = new URLSearchParams(window.location.search);
-  const title = params.get('title') || "Next.js 14 & Supabase: The Full-Stack SaaS Blueprint";
-  const instructor = params.get('instructor') || "Sarah Jenkins";
-  const level = params.get('level') || "advanced";
-  const priceVal = params.get('price') || "499";
-
-  // Category matching maps
-  let categoryLabel = "Web Dev";
-  let categorySlug = "web-dev";
-  let gradient = "linear-gradient(135deg, #667eea, #764ba2)";
-
-  const titleLower = title.toLowerCase();
-  if (titleLower.includes('next.js') || titleLower.includes('html') || titleLower.includes('typescript') || titleLower.includes('css')) {
-    categoryLabel = "Web Dev";
-    categorySlug = "web-dev";
-    gradient = "linear-gradient(135deg, #667eea, #764ba2)";
-  } else if (titleLower.includes('ui/ux') || titleLower.includes('design') || titleLower.includes('figma') || titleLower.includes('webflow') || titleLower.includes('branding') || titleLower.includes('typography')) {
-    categoryLabel = "Design";
-    categorySlug = "design";
-    gradient = "linear-gradient(135deg, #f093fb, #f5576c)";
-  } else if (titleLower.includes('python') || titleLower.includes('sql') || titleLower.includes('data')) {
-    categoryLabel = "Data Science";
-    categorySlug = "data-science";
-    gradient = "linear-gradient(135deg, #4facfe, #00f2fe)";
-  } else if (titleLower.includes('flutter') || titleLower.includes('swiftui') || titleLower.includes('ios') || titleLower.includes('mobile')) {
-    categoryLabel = "Mobile Dev";
-    categorySlug = "mobile";
-    gradient = "linear-gradient(135deg, #43e97b, #38f9d7)";
-  } else if (titleLower.includes('deep learning') || titleLower.includes('machine learning') || titleLower.includes('pytorch') || titleLower.includes('ai') || titleLower.includes('ml')) {
-    categoryLabel = "AI & ML";
-    categorySlug = "ai-ml";
-    gradient = "linear-gradient(135deg, #fa709a, #fee140)";
+  let course = null;
+  const urlId = params.get('id');
+  if (urlId) {
+    const parsedId = parseInt(urlId);
+    course = coursesData.find(c => c.id === parsedId);
   }
+  if (!course) {
+    const urlTitle = params.get('title');
+    if (urlTitle) {
+      const titleLower = urlTitle.toLowerCase();
+      course = coursesData.find(c => c.title.toLowerCase() === titleLower || titleLower.includes(c.title.toLowerCase()) || c.title.toLowerCase().includes(titleLower));
+    }
+  }
+  // Fallback to the first course if not found
+  if (!course) {
+    course = coursesData[0];
+  }
+
+  const title = course.title;
+  const instructor = course.instructor;
+  const level = course.level;
+  const priceVal = course.price.toString();
+  const categoryLabel = course.categoryLabel;
+  const categorySlug = course.category;
+  const gradient = course.gradient;
+  const initials = course.initials;
 
   // Author name initials maps
   const getInitials = (name) => {
@@ -1910,18 +1691,23 @@ function initCourseDetailController() {
     }
     return "BB";
   };
-  const initials = getInitials(instructor);
 
   // Instructor bios map
   let instructorBio = "An industry-expert cloud solution architect and software veteran with extensive experience structuring clean architectures at tech organizations.";
-  if (instructor.includes('Sarah')) {
+  if (instructor.includes('Sarah') || instructor.includes('Jenkins')) {
     instructorBio = "Sarah Jenkins is a Senior Solutions Architect with over 12 years of hands-on experience structuring SaaS database models and serverless APIs at leading web platforms. Her unique, logical, line-by-line developer teaching methods have helped thousands of students worldwide transition cleanly into high-growth software engineering career tracks.";
-  } else if (instructor.includes('Elena')) {
+  } else if (instructor.includes('Elena') || instructor.includes('Rostova')) {
     instructorBio = "Elena Rostova is a lead designer, branding strategist, and prototyping consultant. She has led digital design systems refactors at high-growth organizations and guides creatives on mastering Figma tools, typography standards, web development models, and micro-interactions architectures.";
-  } else if (instructor.includes('Yu')) {
+  } else if (instructor.includes('Angela') || instructor.includes('Yu')) {
     instructorBio = "Dr. Angela Yu is a renowned data scientist, machine learning model programmer, and developer curriculum director. Her structured lectures and visuals make pandas architectures, analytics charts, scikit-learn models, and PyTorch deep neural networks easily understandable for developers of all backgrounds.";
-  } else if (instructor.includes('Dave')) {
+  } else if (instructor.includes('Dave') || instructor.includes('Miller')) {
     instructorBio = "Dave Miller is a senior frontend web developer and standards engineer specializing in semantic HTML5 layout structures, CSS grid frameworks, responsive media queries, and clean components workflows. He focuses on accessibility, visibility ratios, and pixel-perfect design system compilations.";
+  } else if (instructor.includes('Arjun') || instructor.includes('Sharma')) {
+    instructorBio = "Arjun Sharma is a Co-Founder and senior systems architect with ex-Google and ex-Meta credentials. He has spent 8+ years designing high-scale API gateways and sharding PostgreSQL databases, helping developers master SaaS engineering blueprints.";
+  } else if (instructor.includes('Neha') || instructor.includes('Kapoor')) {
+    instructorBio = "Neha Kapoor is a Co-Founder and product designer committed to responsive heuristics and micro-interactions. She designs our premium Glassmorphic web components and guides designers on building professional UI/UX systems.";
+  } else if (instructor.includes('Rohan') || instructor.includes('Verma')) {
+    instructorBio = "Rohan Verma is a Co-Founder and lead full-stack developer specializing in Supabase database structures. He orchestrates secure database queries, webhook triggers, and cloud file uploading systems.";
   }
 
   // ================================================================
@@ -1949,16 +1735,33 @@ function initCourseDetailController() {
   }
   if (bannerName) bannerName.textContent = instructor;
 
+  // Render course ratings & stats dynamically
+  const bannerRatingScore = document.getElementById('banner-rating-score');
+  const bannerRatingStars = document.getElementById('banner-rating-stars');
+  const bannerRatingCount = document.getElementById('banner-rating-count');
+  const bannerEnrolledCount = document.getElementById('banner-enrolled-count');
+  const reviewsSummaryScore = document.getElementById('reviews-summary-score');
+
+  if (bannerRatingScore) bannerRatingScore.textContent = course.rating.toFixed(1);
+  if (bannerRatingStars) bannerRatingStars.innerHTML = getStarsHTML(course.rating);
+  if (bannerRatingCount) bannerRatingCount.textContent = `(${course.ratingCount.toLocaleString()} ratings)`;
+  if (bannerEnrolledCount) bannerEnrolledCount.textContent = course.enrolled.toLocaleString();
+  if (reviewsSummaryScore) reviewsSummaryScore.textContent = course.rating.toFixed(1);
+
   // Render course-specific descriptions dynamically
   if (bannerDesc) {
-    if (title.includes('TypeScript')) {
+    if (title.toLowerCase().includes('typescript')) {
       bannerDesc.textContent = "Dive deep into safety paradigms, strict typing architectures, abstract compilation targets, and scalable modular interfaces inside TypeScript.";
-    } else if (title.includes('UI/UX')) {
+    } else if (title.toLowerCase().includes('ui/ux') || title.toLowerCase().includes('design')) {
       bannerDesc.textContent = "Architect beautiful design systems, responsive layout structures, premium glass typography, and complex interactive prototypes inside Figma.";
-    } else if (title.includes('Python')) {
+    } else if (title.toLowerCase().includes('python')) {
       bannerDesc.textContent = "Master statistical analysis pipelines, raw data models, charts configurations, and advanced mathematical scripting with pandas and matplotlib.";
-    } else if (title.includes('Deep Learning')) {
+    } else if (title.toLowerCase().includes('deep learning') || title.toLowerCase().includes('pytorch')) {
       bannerDesc.textContent = "Construct neural layers, reverse-propagation models, neural weights optimizations, and transformer networks with PyTorch structures.";
+    } else if (title.toLowerCase().includes('next.js') || title.toLowerCase().includes('supabase')) {
+      bannerDesc.textContent = "Build serverless high-performance SaaS applications from scratch. Wire subscription models, database Row-Level Security, real-time channels, and gorgeous Tailwind CSS glassmorphisms.";
+    } else {
+      bannerDesc.textContent = "Master modern programming practices, compile scalable architectures, and build real-world applications with expert guidance.";
     }
   }
 
@@ -1988,9 +1791,9 @@ function initCourseDetailController() {
     }
   }
 
-  const isFree = (priceVal === '0' || priceVal.toLowerCase() === 'free');
+  const isFree = (course.price === 0);
   if (cardPrice) {
-    cardPrice.textContent = isFree ? "FREE" : `â‚¹${priceVal}`;
+    cardPrice.textContent = isFree ? "FREE" : `₹${course.price}`;
   }
 
   if (isFree) {
@@ -2145,171 +1948,7 @@ function initLibraryController() {
   const gridContainer = document.getElementById('library-grid-container');
   if (!gridContainer) return; // Only execute on the library page
 
-  // 1. High-Fidelity Free Resource Database (6 videos, 6 PDFs)
-  const libraryData = [
-    {
-      id: 1,
-      type: "video",
-      title: "Mastering CSS Grid & Subgrid in Production Architectures",
-      category: "web-dev",
-      categoryLabel: "Web Dev",
-      rating: 4.8,
-      views: 12400,
-      duration: "14:22",
-      level: "beginner",
-      levelLabel: "Beginner",
-      gradient: "linear-gradient(135deg, #667eea, #764ba2)",
-      initials: "WD"
-    },
-    {
-      id: 2,
-      type: "pdf",
-      title: "Figma Typography & Brand System Guidelines Cheat Sheet",
-      category: "design",
-      categoryLabel: "Design",
-      downloads: 18500,
-      pages: "4 pages",
-      size: "2.4 MB",
-      level: "beginner",
-      levelLabel: "Beginner",
-      initials: "UI"
-    },
-    {
-      id: 3,
-      type: "video",
-      title: "Supabase Row-Level Security (RLS) & Security Protocols",
-      category: "web-dev",
-      categoryLabel: "Web Dev",
-      rating: 4.9,
-      views: 8900,
-      duration: "22:15",
-      level: "advanced",
-      levelLabel: "Advanced",
-      gradient: "linear-gradient(135deg, #667eea, #764ba2)",
-      initials: "SB"
-    },
-    {
-      id: 4,
-      type: "pdf",
-      title: "SQL Joins & Relational Database Design Reference Book",
-      category: "data-science",
-      categoryLabel: "Data Science",
-      downloads: 14200,
-      pages: "12 pages",
-      size: "5.8 MB",
-      level: "beginner",
-      levelLabel: "Beginner",
-      initials: "SQL"
-    },
-    {
-      id: 5,
-      type: "video",
-      title: "Introduction to PyTorch Models & Deep Learning Nodes",
-      category: "ai-ml",
-      categoryLabel: "AI & ML",
-      rating: 5.0,
-      views: 32500,
-      duration: "45:30",
-      level: "advanced",
-      levelLabel: "Advanced",
-      gradient: "linear-gradient(135deg, #fa709a, #fee140)",
-      initials: "AI"
-    },
-    {
-      id: 6,
-      type: "pdf",
-      title: "SwiftUI Declarative Animation & Physics State Blueprint",
-      category: "mobile",
-      categoryLabel: "Mobile Dev",
-      downloads: 9150,
-      pages: "8 pages",
-      size: "3.2 MB",
-      level: "advanced",
-      levelLabel: "Advanced",
-      initials: "iOS"
-    },
-    {
-      id: 7,
-      type: "video",
-      title: "TypeScript Strict Mode Configuration & Advanced Mappings",
-      category: "web-dev",
-      categoryLabel: "Web Dev",
-      rating: 4.9,
-      views: 11400,
-      duration: "18:40",
-      level: "advanced",
-      levelLabel: "Advanced",
-      gradient: "linear-gradient(135deg, #667eea, #764ba2)",
-      initials: "TS"
-    },
-    {
-      id: 8,
-      type: "pdf",
-      title: "Data Visualization Best Practices & Seaborn Guides",
-      category: "data-science",
-      categoryLabel: "Data Science",
-      downloads: 16100,
-      pages: "6 pages",
-      size: "1.9 MB",
-      level: "beginner",
-      levelLabel: "Beginner",
-      initials: "DS"
-    },
-    {
-      id: 9,
-      type: "video",
-      title: "Responsive Media Queries & Fluid Typography Architectures",
-      category: "web-dev",
-      categoryLabel: "Web Dev",
-      rating: 4.7,
-      views: 9400,
-      duration: "12:05",
-      level: "beginner",
-      levelLabel: "Beginner",
-      gradient: "linear-gradient(135deg, #667eea, #764ba2)",
-      initials: "CSS"
-    },
-    {
-      id: 10,
-      type: "pdf",
-      title: "Machine Learning Regression Models & Scikit-Learn Sheets",
-      category: "ai-ml",
-      categoryLabel: "AI & ML",
-      downloads: 11300,
-      pages: "10 pages",
-      size: "4.1 MB",
-      level: "beginner",
-      levelLabel: "Beginner",
-      initials: "ML"
-    },
-    {
-      id: 11,
-      type: "video",
-      title: "Flutter Declarative Theme Configs & Dynamic Dark Modes",
-      category: "mobile",
-      categoryLabel: "Mobile Dev",
-      rating: 4.8,
-      views: 7120,
-      duration: "15:10",
-      level: "beginner",
-      levelLabel: "Beginner",
-      gradient: "linear-gradient(135deg, #43e97b, #38f9d7)",
-      initials: "FL"
-    },
-    {
-      id: 12,
-      type: "pdf",
-      title: "Webflow Production Best Practices & Page Speeds Protocols",
-      category: "design",
-      categoryLabel: "Design",
-      downloads: 8200,
-      pages: "5 pages",
-      size: "2.8 MB",
-      level: "advanced",
-      levelLabel: "Advanced",
-      initials: "WF"
-    }
-  ];
+  // libraryData is now referenceable globally from the top of main.js
 
   // 2. State Indicators
   let currentFilter = 'all';
@@ -2483,9 +2122,9 @@ function initLibraryController() {
       const colDiv = document.createElement('div');
       colDiv.className = 'col-md-6 col-lg-4 col-12 position-relative';
       
-      // Card metadata query parameters
+      // Card metadata query parameters containing the exact ID
       const statsValue = isVideo ? `${(item.views/1000).toFixed(1)}K Views` : `${(item.downloads/1000).toFixed(1)}K Downloads`;
-      const queryParams = `?title=${encodeURIComponent(item.title)}&type=${item.type}&metrics=${encodeURIComponent(statsValue + ' &bull; ' + (isVideo ? item.rating.toFixed(1) + 'â˜…' : item.size))}`;
+      const queryParams = `?id=${item.id}&title=${encodeURIComponent(item.title)}&type=${item.type}&metrics=${encodeURIComponent(statsValue + ' &bull; ' + (isVideo ? item.rating.toFixed(1) + '★' : item.size))}`;
       
       const clickTarget = sessionLogged ? `href="resource-detail.html${queryParams}"` : `href="login.html"`;
 
@@ -2600,7 +2239,7 @@ function initLibraryController() {
     applyLibraryFilters();
   };
 
-  if (btnClearEmpty) btnClearEmpty.addEventListener('click', resetLibraryFilters);
+  if (btnEmptyClear) btnEmptyClear.addEventListener('click', resetLibraryFilters);
 
   // Initial trigger initialization calls
   updateSessionView();
@@ -2618,43 +2257,34 @@ function initResourceDetailController() {
 
   // 1. Dynamic URL Query Parameters Parser & Fallback
   const params = new URLSearchParams(window.location.search);
-  const title = params.get('title') || "Mastering CSS Grid & Subgrid in Production Architectures";
-  const type = params.get('type') || "video"; // "video" or "pdf"
-  const metrics = params.get('metrics') || "12.4K Views &bull; 4.8â˜…";
+  let resource = null;
+  const urlId = params.get('id');
+  if (urlId) {
+    const parsedId = parseInt(urlId);
+    resource = libraryData.find(r => r.id === parsedId);
+  }
+  if (!resource) {
+    const urlTitle = params.get('title');
+    if (urlTitle) {
+      const titleLower = urlTitle.toLowerCase();
+      resource = libraryData.find(r => r.title.toLowerCase() === titleLower || titleLower.includes(r.title.toLowerCase()) || r.title.toLowerCase().includes(titleLower));
+    }
+  }
+  if (!resource) {
+    resource = libraryData[0];
+  }
+
+  const title = resource.title;
+  const type = resource.type;
+  
+  // Construct metrics string
+  const isVideo = type === 'video';
+  const metrics = isVideo ? `${(resource.views/1000).toFixed(1)}K Views &bull; ${resource.rating.toFixed(1)}★` : `${(resource.downloads/1000).toFixed(1)}K Downloads &bull; ${resource.size}`;
 
   // Determine category and level based on title or defaults
-  let categoryLabel = "Web Dev";
-  let levelLabel = "Beginner";
-  let initials = "WD";
-  let gradient = "linear-gradient(135deg, #667eea, #764ba2)";
-
-  const titleLower = title.toLowerCase();
-  if (titleLower.includes('figma') || titleLower.includes('design') || titleLower.includes('typography')) {
-    categoryLabel = "Design";
-    levelLabel = "Beginner";
-    initials = "UI";
-    gradient = "linear-gradient(135deg, #f093fb, #f5576c)";
-  } else if (titleLower.includes('supabase') || titleLower.includes('rls') || titleLower.includes('typescript') || titleLower.includes('query')) {
-    categoryLabel = "Web Dev";
-    levelLabel = "Advanced";
-    initials = "SB";
-    gradient = "linear-gradient(135deg, #667eea, #764ba2)";
-  } else if (titleLower.includes('sql') || titleLower.includes('database') || titleLower.includes('data')) {
-    categoryLabel = "Data Science";
-    levelLabel = "Beginner";
-    initials = "SQL";
-    gradient = "linear-gradient(135deg, #4facfe, #00f2fe)";
-  } else if (titleLower.includes('pytorch') || titleLower.includes('deep learning') || titleLower.includes('machine learning')) {
-    categoryLabel = "AI & ML";
-    levelLabel = "Advanced";
-    initials = "AI";
-    gradient = "linear-gradient(135deg, #fa709a, #fee140)";
-  } else if (titleLower.includes('swiftui') || titleLower.includes('ios') || titleLower.includes('flutter') || titleLower.includes('mobile')) {
-    categoryLabel = "Mobile Dev";
-    levelLabel = "Advanced";
-    initials = "iOS";
-    gradient = "linear-gradient(135deg, #43e97b, #38f9d7)";
-  }
+  const categoryLabel = resource.categoryLabel;
+  const categorySlug = resource.category;
+  const levelLabel = resource.levelLabel;
 
   // Update headings & details
   detailTitle.innerHTML = title;
@@ -2664,15 +2294,27 @@ function initResourceDetailController() {
   const lvlBadge = document.getElementById('detail-badge-level');
   const metBadge = document.getElementById('detail-badge-metrics');
 
-  if (typeBadge) typeBadge.innerHTML = type === 'video' ? 'ðŸ“¹ Video' : 'ðŸ“„ PDF';
+  if (typeBadge) typeBadge.innerHTML = type === 'video' ? '📹 Video' : '📄 PDF';
   if (catBadge) catBadge.innerHTML = categoryLabel;
   if (lvlBadge) lvlBadge.innerHTML = levelLabel;
-  if (metBadge) metBadge.innerHTML = metrics.replace('&bull;', 'â€¢');
+  if (metBadge) metBadge.innerHTML = metrics.replace('&bull;', '•');
 
   // 2. Conditional Display of Video Player vs PDF Viewer
   const videoWrapper = document.getElementById('video-player-wrapper');
   const pdfWrapper = document.getElementById('pdf-viewer-wrapper');
   const pdfActions = document.getElementById('pdf-actions-wrapper');
+  const videoElement = document.getElementById('html5-video');
+
+  if (videoElement) {
+    videoElement.setAttribute('preload', 'metadata');
+    let posterImg = 'assets/thumbnails/nextjs_supabase.png';
+    if (categorySlug === 'design') {
+      posterImg = 'assets/thumbnails/figma_uiux.png';
+    } else if (categorySlug === 'data-science' || categorySlug === 'ai-ml') {
+      posterImg = 'assets/thumbnails/pytorch_ai.png';
+    }
+    videoElement.setAttribute('poster', posterImg);
+  }
 
   if (type === 'video') {
     if (videoWrapper) videoWrapper.classList.remove('d-none');
@@ -2683,17 +2325,22 @@ function initResourceDetailController() {
     if (pdfWrapper) pdfWrapper.classList.remove('d-none');
     if (pdfActions) pdfActions.classList.remove('d-none');
 
-    // Update download PDF parameters if available
+    // Update download PDF parameters to point to local sample guide PDF
     const dlBtn = document.getElementById('btn-pdf-download-action');
     const fallbackDlBtn = document.getElementById('btn-fallback-pdf-download');
     const sizeLabel = document.getElementById('pdf-size-details-label');
     
-    // Extract size from metrics if present, e.g. "2.4 MB"
-    let pdfSize = "2.4 MB";
-    if (metrics.includes('MB') || metrics.includes('KB')) {
-      const match = metrics.match(/(\d+\.?\d*\s*[M|K]B)/i);
-      if (match) pdfSize = match[1];
+    if (dlBtn) {
+      dlBtn.setAttribute('href', 'assets/resources/sample_guide.pdf');
+      dlBtn.setAttribute('download', `${resource.title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
     }
+    if (fallbackDlBtn) {
+      fallbackDlBtn.setAttribute('href', 'assets/resources/sample_guide.pdf');
+      fallbackDlBtn.setAttribute('download', `${resource.title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+    }
+
+    // Extract size from metrics if present, e.g. "2.4 MB"
+    let pdfSize = resource.size || "2.4 MB";
     if (sizeLabel) sizeLabel.innerHTML = `Study Guide &bull; ${pdfSize}`;
   }
 
@@ -2704,7 +2351,6 @@ function initResourceDetailController() {
   const toggleBtnMember = document.getElementById('toggle-session-member');
   const guestCard = document.getElementById('resource-guest-card');
   const unlockedContainer = document.getElementById('resource-unlocked-container');
-  const videoElement = document.getElementById('html5-video');
 
   function updateClassroomSessionView() {
     if (sessionLogged) {
@@ -3253,11 +2899,18 @@ function initDashboardController() {
   // 3. MOBILE RESPONSIVE HAMBURGER SLIDE-IN DRAWER
   // ================================================================
   const btnToggleSidebar = document.getElementById('btn-mobile-sidebar-toggle');
+  const btnCloseSidebar = document.getElementById('btn-close-sidebar-trigger');
   
   if (btnToggleSidebar) {
     btnToggleSidebar.addEventListener('click', (e) => {
       e.stopPropagation();
       sidebar.classList.toggle('mobile-open');
+    });
+  }
+
+  if (btnCloseSidebar) {
+    btnCloseSidebar.addEventListener('click', () => {
+      sidebar.classList.remove('mobile-open');
     });
   }
 
@@ -3574,10 +3227,20 @@ function initInstructorController() {
   const sidebar = document.querySelector('.dashboard-sidebar');
   if (!sidebar || !document.getElementById('instructor-sidebar-profile')) return; // Only execute on instructor page
 
-  console.log("%c[BrainByte Instructor] Initializing Studio Portal...", "color: #06B6D4; font-weight: bold;");
+  const savedUserStr = localStorage.getItem('brainbyte_user');
+  let user = null;
+  if (savedUserStr) {
+    try {
+      user = JSON.parse(savedUserStr);
+    } catch (e) {}
+  }
 
-  const user = JSON.parse(
-    localStorage.getItem('brainbyte_user'));
+  if (!user || !user.isLoggedIn || (user.role !== 'instructor' && user.role !== 'teach')) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  console.log("%c[BrainByte Instructor] Initializing Studio Portal...", "color: #06B6D4; font-weight: bold;");
   if (user) {
     const instrName = document.getElementById(
       'instructor-sidebar-name');
@@ -3691,11 +3354,18 @@ function initInstructorController() {
   // 3. MOBILE RESPONSIVE DRAWERS
   // ================================================================
   const btnToggleSidebar = document.getElementById('btn-mobile-sidebar-toggle');
+  const btnCloseSidebar = document.getElementById('btn-close-sidebar-trigger');
   
   if (btnToggleSidebar) {
     btnToggleSidebar.addEventListener('click', (e) => {
       e.stopPropagation();
       sidebar.classList.toggle('mobile-open');
+    });
+  }
+
+  if (btnCloseSidebar) {
+    btnCloseSidebar.addEventListener('click', () => {
+      sidebar.classList.remove('mobile-open');
     });
   }
 

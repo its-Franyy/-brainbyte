@@ -1,0 +1,608 @@
+================================================================
+BRAINBYTE — FULL QA AUDIT REPORT
+================================================================
+URL: https://brainbyte-eight.vercel.app
+Type: EdTech / LMS Platform
+Pages Tested: 9 of 9
+Date: June 5, 2026
+Reviewer: Claude (QA + UX + Dev + PM)
+
+SUMMARY COUNTS:
+- Bugs Found: 14
+- UX Issues: 11
+- Security Flags: 8
+- SEO Gaps: 7
+- Missing Features: 9
+- Total Findings: 49
+
+================================================================
+SECTION 1 — CRITICAL BUGS & BROKEN FUNCTIONALITY
+================================================================
+
+[CRITICAL] Courses page shows zero courses — data never loads
+Page: courses.html
+Problem: The entire course catalog renders "No courses found" on
+first load. The heading says "Showing 24 courses" but the grid is
+completely empty. This is the primary revenue page and it is
+non-functional. Likely caused by JavaScript loading courses from
+a mock data source that doesn't initialize, or a filter state bug
+that fires before data populates.
+Fix: Ensure course data is injected into the DOM before filters
+run. Confirm the data array is populated and renderCourses() is
+called on DOMContentLoaded. Add a visible loading state.
+
+----------------------------------------------------------------
+
+[CRITICAL] Free Library shows no resources — same blank-state bug
+Page: library.html
+Problem: The Library page is also completely empty on load.
+"No resources found" is shown immediately despite 150+ resources
+advertised on the homepage. This kills the free-tier value
+proposition entirely.
+Fix: Same root cause as courses.html. Apply the same fix.
+Pre-populate featured resources in static HTML as a fallback.
+
+----------------------------------------------------------------
+
+[CRITICAL] OTP auth is cosmetic — no real backend, fake popup
+Page: login.html / signup.html
+Problem: The login advertises "Email OTP" and signup advertises
+"Phone OTP" verification. The page itself notes "OTP will appear
+as a popup card on screen" — meaning the code is displayed
+on-screen to the user client-side, not sent via email/SMS.
+Anyone can sign in without real verification.
+Fix: Integrate Supabase Auth, Firebase Auth, or Clerk. Never
+generate or display OTP codes client-side. All auth logic must
+live server-side.
+
+----------------------------------------------------------------
+
+[CRITICAL] Resource detail page title mismatch — wrong content
+Page: resource-detail.html?id=1
+Problem: Homepage links to resource ID=1 described as "Docker
+Containers & Kubernetes" but the detail page loads "Mastering
+CSS Grid & Subgrid." Content, view count, and tags don't match.
+Fix: Read the id query param and look it up against your data
+source. Ensure IDs are consistent between homepage and data array.
+
+----------------------------------------------------------------
+
+[CRITICAL] Video player uses unrelated Google sample video
+Page: resource-detail.html
+Problem: The embedded video player points to a generic Google
+sample video (ForBiggerBlazes.mp4) with zero relation to the
+described content. Destroys user trust immediately.
+Fix: Use real hosted video content or gate the player behind
+authentication. Replace all placeholder media before launch.
+
+----------------------------------------------------------------
+
+[CRITICAL] PDF download links to a W3C dummy file
+Page: resource-detail.html
+Problem: Both "Download Study Guide" and "Download PDF" buttons
+link to https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf
+Users download a blank dummy PDF with no real content.
+Fix: Host real PDF assets on Supabase Storage or Cloudflare R2.
+Run a global find-and-replace for "dummy.pdf" and "ForBiggerBlazes"
+across the entire codebase.
+
+----------------------------------------------------------------
+
+[CRITICAL] Teach page is accessible without authentication
+Page: teach.html
+Problem: The instructor dashboard is fully accessible to any
+unauthenticated visitor. It shows "Sarah Jenkins" instructor data
+with earnings, student lists, and course management — all without
+login. This is a major authorization failure.
+Fix: All dashboard pages must check for an authenticated session
+on load and redirect to /login.html if no valid session exists.
+
+----------------------------------------------------------------
+
+[IMPORTANT] Course detail page data doesn't match URL parameters
+Page: course-detail.html
+Problem: URL passes instructor=Arjun+Sharma and price=1499 but
+the page renders a Sarah Jenkins course at ₹499. Query params are
+being ignored and a hardcoded course is always shown.
+Fix: Parse URL query params and use them to look up the correct
+course from your data store.
+
+----------------------------------------------------------------
+
+[IMPORTANT] Newsletter subscribe button has no action
+Page: All pages (footer)
+Problem: The footer newsletter has no email input field, no form
+tag, and no submission handler. Clicking Subscribe does nothing.
+Fix: Add an email input field, proper validation, and integrate
+with Mailchimp or Resend. Show a success message on submission.
+
+----------------------------------------------------------------
+
+[IMPORTANT] Social media links are all dead "#" anchors
+Page: Footer (all pages), About page
+Problem: Every social media icon links to #. Instructor profiles
+on the About page also link to #. No real profiles exist anywhere.
+Fix: Link to real profiles or remove the icons entirely.
+
+----------------------------------------------------------------
+
+[IMPORTANT] Terms & Privacy Policy links are "#" anchors
+Page: Footer, Signup page
+Problem: Signup requires users to agree to Terms & Privacy Policy
+but these documents don't exist. Legal liability risk.
+Fix: Create real Terms of Service and Privacy Policy pages.
+Use Termly or Iubenda for a baseline. Required before launch.
+
+----------------------------------------------------------------
+
+[IMPORTANT] "How Earnings Work" CTA links to "#"
+Page: index.html (Teach section)
+Problem: The "How Earnings Work" button scrolls to top. Potential
+instructors are left with nothing when they click it.
+Fix: Link to /pricing.html or create a dedicated instructor
+revenue explainer page.
+
+----------------------------------------------------------------
+
+[IMPORTANT] Signup meta description has garbled encoding
+Page: signup.html
+Problem: Meta description reads "Join BrainByte â€" create your
+free developer account" — UTF-8 encoding failure. Appears as
+garbage characters in Google search results.
+Fix: Ensure file is saved as UTF-8. Replace â€" with — or a
+plain hyphen.
+
+----------------------------------------------------------------
+
+[NICE TO HAVE] Footer course links missing category query params
+Page: pricing.html, about.html footer
+Problem: Footer links "Web Development" etc. to plain /courses.html
+without category filters, unlike the homepage footer which correctly
+appends ?category=web-dev.
+Fix: Standardize all footer course links with category query
+parameters across every page.
+
+
+================================================================
+SECTION 2 — UI/UX ISSUES & DESIGN IMPROVEMENTS
+================================================================
+
+[CRITICAL] No visible mobile hamburger menu
+Page: All pages (nav)
+Problem: Navigation has 5 links + 2 CTAs. On mobile, if there's
+no hamburger menu, the nav overflows or collapses invisibly.
+Most Indian EdTech users are on mobile.
+Fix: Implement a hamburger menu for viewports under 768px. Test
+at 375px, 390px, and 414px widths.
+
+----------------------------------------------------------------
+
+[IMPORTANT] Pricing toggle (Monthly/Annual) appears to do nothing
+Page: pricing.html
+Problem: The annual billing toggle claims "20% OFF" but clicking
+it doesn't change any prices on the page. Users can't see the
+discounted price.
+Fix: When "Billed Annually" is selected, dynamically update price
+displays to show the discounted amount, cross out monthly price,
+and show total annual savings.
+
+----------------------------------------------------------------
+
+[IMPORTANT] Library requires login but this isn't clear upfront
+Page: library.html
+Problem: Shows filter UI and "No resources found" to logged-out
+users. Homepage advertises "No payment details required" for free
+library — but login IS required. Contradictory messaging.
+Fix: Show a blurred/teased preview grid of resources even when
+logged out. Login CTA should overlay cards, not replace them.
+
+----------------------------------------------------------------
+
+[IMPORTANT] Course rating inconsistency across pages
+Page: index.html vs course-detail.html
+Problem: Homepage shows Next.js course rated 4.9 with 1.2k reviews.
+Course detail shows 4.8 with 3,241 ratings. Different data for
+the same course.
+Fix: Ratings must be sourced from a single data record per course.
+Never hardcode them separately on two different pages.
+
+----------------------------------------------------------------
+
+[IMPORTANT] Pricing table comparison has empty cells
+Page: pricing.html
+Problem: Feature comparison table rows like "Verified On-Chain
+Credentials" show no values in any column — just empty cells.
+Unclear if all tiers have it, none have it, or content failed.
+Fix: Use explicit checkmark and cross symbols in every cell.
+Color-code them: green checks, red/gray crosses. No blank cells.
+
+----------------------------------------------------------------
+
+[IMPORTANT] Teach page is a pre-populated fictional dashboard
+Page: teach.html
+Problem: Auto-loads "Sarah Jenkins" instructor dashboard for any
+visitor. New visitors see someone else's data — jarring UX that
+could be confused for a data leak.
+Fix: If intentionally a demo, add a visible "Demo Preview" banner.
+Otherwise gate behind real auth and show a marketing page for
+logged-out users.
+
+----------------------------------------------------------------
+
+[IMPORTANT] "Try Demo Account" has no demo credentials shown
+Page: login.html
+Problem: "Try Demo Account — no signup needed" link exists but
+it's unclear what happens when clicked or what credentials to use.
+Fix: On click, auto-fill email/password with demo credentials AND
+show a tooltip: e.g., "Demo: demo@brainbyte.in / demo123"
+
+----------------------------------------------------------------
+
+[IMPORTANT] Testimonial contains placeholder UI instruction text
+Page: index.html
+Problem: The Priya Singh testimonial contains "Click the stars to
+rate your own learning experience!" — a UI instruction that
+accidentally ended up inside a testimonial quote block.
+Fix: Replace with a real testimonial quote. The rating widget
+should be a separate UI element, not embedded in a review card.
+
+----------------------------------------------------------------
+
+[NICE TO HAVE] No breadcrumb on courses.html
+Page: courses.html
+Problem: Course-detail page has breadcrumbs but courses listing
+page does not. Category filter pages like "Web Development" would
+benefit from breadcrumb context.
+
+----------------------------------------------------------------
+
+[NICE TO HAVE] No dark/light mode toggle
+Page: Global
+Problem: Site is dark-only. Some users prefer light mode,
+especially in bright environments. A simple CSS variable toggle
+stored in localStorage would handle this.
+
+----------------------------------------------------------------
+
+[NICE TO HAVE] No back-to-top button on long pages
+Page: index.html, courses.html, library.html
+Problem: Long scroll pages lack a floating "Back to Top" button.
+Standard UX pattern, especially important for mobile users.
+
+
+================================================================
+SECTION 3 — SECURITY VULNERABILITIES
+================================================================
+
+[CRITICAL] Client-side OTP generation — auth is bypassable
+Page: login.html, signup.html
+Problem: OTP is displayed client-side. Anyone can open DevTools,
+find the OTP in JavaScript state, and authenticate as anyone.
+Every account can be compromised by any visitor with DevTools.
+Fix: Migrate to Supabase Auth or Firebase Auth immediately.
+OTPs must be generated server-side, sent via SMS/email, and
+verified server-side. Never trust the client for auth.
+
+----------------------------------------------------------------
+
+[CRITICAL] No CSRF protection on any form
+Page: All forms
+Problem: None of the forms include CSRF tokens. Once real auth
+is added, all state-changing forms must include CSRF protection.
+Fix: Use SameSite=Strict cookie attributes and/or synchronizer
+token pattern. Supabase Auth handles this for auth endpoints.
+
+----------------------------------------------------------------
+
+[CRITICAL] No Content Security Policy (CSP) headers
+Page: Global
+Problem: No CSP header means injected scripts via XSS can execute
+freely. Ironically the site hosts an "OWASP Top 10 Security"
+resource without implementing basic security headers.
+Fix: Add Content-Security-Policy header via Vercel's vercel.json
+headers config. Whitelist only origins you actually use.
+
+----------------------------------------------------------------
+
+[IMPORTANT] Dashboard pages accessible without authentication
+Page: teach.html, dashboard.html
+Problem: Instructor dashboard is publicly accessible. Any visitor
+can view earnings data, student lists, and course management
+without any login.
+Fix: Implement auth guards on page load that redirect
+unauthenticated users to /login.html.
+
+----------------------------------------------------------------
+
+[IMPORTANT] No real rate limiting on OTP / login attempts
+Page: login.html, signup.html
+Problem: The "Attempt 0/5" OTP counter resets on page refresh —
+it's entirely client-side. No real rate limiting exists.
+Fix: Implement server-side rate limiting per IP and per account
+on auth endpoints. Show lockout timers from server-returned data.
+
+----------------------------------------------------------------
+
+[IMPORTANT] No HSTS headers
+Page: Global
+Problem: No Strict-Transport-Security header to prevent protocol
+downgrade attacks.
+Fix: Add "Strict-Transport-Security: max-age=31536000;
+includeSubDomains" via vercel.json headers.
+
+----------------------------------------------------------------
+
+[IMPORTANT] No real payment integration
+Page: course-detail.html, pricing.html
+Problem: "Enroll Now" and "Upgrade to Pro" link to signup page
+without any payment handling. No transaction occurs.
+Fix: Integrate Razorpay (primary, for Indian market) and Stripe
+(secondary, for international). Wire up before any real sales.
+
+----------------------------------------------------------------
+
+[NICE TO HAVE] No X-Frame-Options / clickjacking protection
+Page: Global
+Problem: Without X-Frame-Options: DENY, the site can be embedded
+in an iframe for clickjacking attacks on login/payment pages.
+Fix: Add "X-Frame-Options: DENY" or "Content-Security-Policy:
+frame-ancestors 'none'" via vercel.json.
+
+
+================================================================
+SECTION 4 — SEO DEFICIENCIES
+================================================================
+
+[CRITICAL] Course catalog is JS-rendered — invisible to Google
+Page: courses.html, library.html
+Problem: Since courses only render via JavaScript (and currently
+fail to render at all), Google's crawler sees an empty page.
+All 200+ courses and 150+ resources are completely unindexable.
+No organic traffic for queries like "Next.js course India."
+Fix: Server-side render (SSR) the course catalog, or use static
+generation (SSG) with pre-built HTML per course. Consider
+migrating to Next.js for proper SSR.
+
+----------------------------------------------------------------
+
+[CRITICAL] No Open Graph / Twitter Card meta tags on any page
+Page: All pages
+Problem: No og:title, og:description, og:image, or Twitter Card
+tags. Sharing any BrainByte link shows a blank, unbranded preview
+on LinkedIn, Twitter, or WhatsApp.
+Fix: Add OG tags to every page. For course detail pages, populate
+og:title and og:image dynamically with course data. Create a
+default site OG image (1200x630px) for generic pages.
+
+----------------------------------------------------------------
+
+[IMPORTANT] No sitemap.xml or robots.txt
+Page: Root
+Problem: No sitemap to help search engines discover pages.
+No robots.txt to guide crawlers.
+Fix: Generate sitemap.xml listing all static and course detail
+URLs. Add robots.txt allowing public pages and blocking admin
+routes. Submit sitemap to Google Search Console.
+
+----------------------------------------------------------------
+
+[IMPORTANT] No structured data (JSON-LD) for courses
+Page: course-detail.html
+Problem: Google supports Course schema that shows ratings, price,
+and instructor in search results. Competitors like Udemy use this
+heavily. BrainByte has none.
+Fix: Add JSON-LD structured data to each course detail page with:
+name, description, provider, url, offers (price), aggregateRating.
+
+----------------------------------------------------------------
+
+[IMPORTANT] Course detail page has generic meta description
+Page: course-detail.html
+Problem: Meta description is identical for every course. Dynamic
+meta tags must be populated per course from query params.
+
+----------------------------------------------------------------
+
+[IMPORTANT] Missing canonical tags
+Page: All pages
+Problem: Course pages use query string parameters. Without
+canonical tags, Google may index multiple URL variants of the
+same page — duplicate content issue.
+Fix: Add <link rel="canonical"> to each page. For course detail
+pages, canonicalize to a clean slug-based URL like
+/courses/nextjs-supabase-blueprint.
+
+----------------------------------------------------------------
+
+[NICE TO HAVE] Page titles not updated for category filter states
+Page: courses.html with filters
+Problem: Filtering by "Web Development" doesn't update the page
+title to "Web Development Courses — BrainByte." Unique titles
+per category would improve Google rankings for category searches.
+
+
+================================================================
+SECTION 5 — PERFORMANCE PROBLEMS
+================================================================
+
+[IMPORTANT] Course thumbnails have no lazy loading or dimensions
+Page: index.html, course-detail.html
+Problem: Thumbnail images lack width/height attributes or
+loading="lazy". Causes Cumulative Layout Shift (CLS) and loads
+all images regardless of visibility.
+Fix: Add loading="lazy", width, height, and decoding="async" to
+all non-hero images. Serve images in WebP format.
+
+----------------------------------------------------------------
+
+[IMPORTANT] No font display swap
+Page: Global
+Problem: Without font-display: swap, users on slow connections
+see invisible text while fonts load. Affects LCP and CLS scores.
+Fix: Add &display=swap to Google Fonts URL. Or self-host fonts
+with font-display: swap.
+
+----------------------------------------------------------------
+
+[IMPORTANT] External video loads unconditionally on page load
+Page: resource-detail.html
+Problem: Video player loads a full MP4 from external CDN without
+a poster image or progressive loading. Consumes mobile data.
+Fix: Add a poster attribute with a thumbnail. Lazy-initialize the
+player only on user interaction. Host videos on Cloudflare Stream
+or Mux for adaptive bitrate streaming.
+
+----------------------------------------------------------------
+
+[NICE TO HAVE] No PWA / offline capability
+Page: Global
+Problem: Many Indian users are on mobile with inconsistent
+connectivity. Offline access to PDFs and course progress syncing
+would be a strong differentiator.
+
+
+================================================================
+SECTION 6 — MISSING FEATURES (Industry Standard Gaps)
+================================================================
+
+[CRITICAL] No student dashboard / "My Learning" page
+Problem: No page for enrolled students to see purchased courses,
+track progress, resume lessons, or access certificates. Without
+it there is no retention mechanism.
+Fix: Build /dashboard.html with enrolled courses grid, continue
+where you left off, progress bars, and certificate downloads.
+
+----------------------------------------------------------------
+
+[CRITICAL] No course player / lesson viewer
+Problem: No actual course player page exists. Users can enroll
+but nowhere to watch lessons, track completion, or take quizzes.
+The core learning experience is missing.
+Fix: Build /course-player.html with lesson sidebar, video player,
+progress tracking, notes, and next/previous lesson controls.
+
+----------------------------------------------------------------
+
+[IMPORTANT] No search functionality
+Problem: No global search bar anywhere on the site. Users can't
+search for specific courses or resources. All major EdTech
+platforms treat search as a primary navigation feature.
+Fix: Add a search bar in navigation and a search results page.
+Implement client-side fuzzy search using Fuse.js as a start.
+
+----------------------------------------------------------------
+
+[IMPORTANT] No Razorpay / Indian payment gateway
+Problem: Site targets Indian market (INR pricing, Indian founders)
+but only references Stripe. Indian users strongly prefer UPI,
+Paytm, and Net Banking. Not supporting these causes abandonment.
+Fix: Integrate Razorpay as primary payment gateway. It supports
+UPI, all Indian banks, credit/debit cards, and EMI options.
+
+----------------------------------------------------------------
+
+[IMPORTANT] No wishlist / save for later on courses
+Problem: Course cards have no bookmark button. Users browsing
+multiple courses can't save ones they're interested in.
+
+----------------------------------------------------------------
+
+[IMPORTANT] No course preview / free lesson unlock
+Problem: No "Preview this course" button on course detail page.
+Industry standard is 1-3 free preview lessons. High-impact
+conversion driver — lets users evaluate teaching style first.
+
+----------------------------------------------------------------
+
+[NICE TO HAVE] No learning path / roadmap feature
+Problem: Competitors offer curated learning paths like "Full-Stack
+Developer in 6 months." BrainByte's dual-track concept is well
+suited for structured multi-course paths.
+
+----------------------------------------------------------------
+
+[NICE TO HAVE] No referral / affiliate program
+Problem: A referral program ("Share this course, earn INR 100
+credit") would drive viral growth through developer WhatsApp
+groups and Telegram communities — primary channels for Indian
+EdTech distribution.
+
+----------------------------------------------------------------
+
+[NICE TO HAVE] No discussion / Q&A forum per course
+Problem: No structured Q&A per course lesson. Udemy's Q&A is
+heavily used by students. Discord is mentioned but not integrated
+into the course experience.
+
+
+================================================================
+SECTION 7 — OVERALL SCORES
+================================================================
+
+Functionality:        2/10  (catalog empty, auth fake, no player)
+UI Design:            6/10  (strong aesthetic, dark glassmorphic)
+UX Flow:              5/10  (friction in key flows)
+Security:             2/10  (no real auth, no headers)
+SEO:                  4/10  (no OG tags, JS-only catalog)
+Performance:          4/10  (no lazy loading, no font swap)
+Production Readiness: 2/10  (not ready for real users)
+Concept & Vision:     7/10  (dual-track model is genuinely strong)
+
+NOTE: The design vision is strong — dark, developer-centric,
+dual-track model is compelling. But core functionality (courses
+loading, auth, payments) is non-operational. This is a
+high-quality prototype that needs a full engineering pass.
+
+
+================================================================
+SECTION 8 — RECOMMENDED FIX ROADMAP (Priority Order)
+================================================================
+
+CRITICAL PRIORITY (Do these first):
+--------------------------------------
+1. Fix courses.html & library.html data rendering     [1-2 days]
+2. Implement real backend auth (Supabase Auth)         [3-5 days]
+3. Gate teach.html & dashboard behind auth            [1 day]
+4. Replace dummy video & PDF with real content        [1 day]
+5. Build student dashboard + course player page       [5-7 days]
+6. Implement Razorpay payment integration             [3-4 days]
+
+IMPORTANT PRIORITY (Do these next):
+--------------------------------------
+7.  Add OG meta tags across all pages                 [4 hours]
+8.  Fix newsletter form (add email input + backend)   [2 hours]
+9.  Create real Terms of Service & Privacy Policy     [1 day]
+10. Fix pricing page annual/monthly toggle            [2 hours]
+11. Add global search bar (Fuse.js)                   [1-2 days]
+12. Fix mobile nav hamburger menu                     [4 hours]
+13. Add CSP, HSTS, X-Frame-Options in vercel.json     [2 hours]
+14. Add sitemap.xml, robots.txt, JSON-LD schema       [4 hours]
+
+NICE TO HAVE (Polish & growth):
+--------------------------------------
+15. Dark/light mode toggle                            [4 hours]
+16. Course wishlist / save for later                  [1 day]
+17. Course preview / free lesson unlock               [1-2 days]
+18. Referral program                                  [3-5 days]
+19. PWA / offline mode                                [3-5 days]
+20. Learning path / roadmap feature                   [5-7 days]
+
+================================================================
+HOW TO USE THIS REPORT WITH AN AI CODING PLATFORM
+================================================================
+
+Recommended prompt for Antigravity or similar tools:
+
+"Here is a QA audit report for my website BrainByte
+(https://brainbyte-eight.vercel.app). Please start with the
+Critical priority fixes only. Fix one issue at a time and
+explain what you changed before moving to the next."
+
+Feed one section at a time — don't paste the full report at once.
+Start with Section 1 (Bugs), then Section 3 (Security), then
+Section 4 (SEO). This prevents conflicting changes.
+
+================================================================
+END OF REPORT
+© 2026 BrainByte QA Audit — Generated by Claude
+================================================================
