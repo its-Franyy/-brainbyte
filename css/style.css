@@ -1734,6 +1734,12 @@ a {
   transition: var(--transition);
 }
 
+.glass-input option,
+select option {
+  background-color: #0d0e1a !important;
+  color: #ffffff !important;
+}
+
 .glass-input::placeholder {
   color: #475569 !important;
   font-weight: 500;
