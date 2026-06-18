@@ -25,7 +25,7 @@ if (typeof window !== 'undefined' && window.supabase && typeof window.supabase.c
 }
 
 // 2. Global Event Bindings & Session States
-document.addEventListener('DOMContentLoaded', () => {
+const initSupabaseConfig = () => {
   // A. Dynamic Page Fade-In Effect CSS Injector
   const injectPageFadeIn = () => {
     // Disabled to prevent page loading flickering/flashing in MPA
@@ -369,4 +369,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     });
-  });
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initSupabaseConfig);
+} else {
+  initSupabaseConfig();
+}

@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Player — BrainByte</title>
+  <meta name="description" content="Access premium structure lessons, interactive code workspaces, downloadable assets, and notes on the ultimate developer learning platform.">
+  
+  <!-- Preload and load Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Premium Theme CSS -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    body {
+      background-color: #0D0E1A !important;
+      font-family: var(--font-body), sans-serif;
+    }
+
+    /* Glassmorphic Panel Base Styles */
+    .glass-player-panel {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      border-left: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      box-shadow: var(--shadow-md);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .glass-player-panel-hover:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.08);
+    }
+
+    /* Video Section Custom Styles */
+    .player-video-wrapper {
+      position: relative;
+      background: #000;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .player-video-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 1.5rem;
+      background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0) 100%);
+      z-index: 10;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .player-video-wrapper:hover .player-video-controls,
+    .player-video-wrapper:focus-within .player-video-controls {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .video-progress-container {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 100px;
+      cursor: pointer;
+      position: relative;
+      transition: height 0.2s ease;
+    }
+
+    .video-progress-container:hover {
+      height: 8px;
+    }
+
+    .video-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--violet-primary) 0%, var(--brand-pink) 100%);
+      width: 0%;
+      border-radius: 100px;
+      position: relative;
+      transition: width 0.1s linear;
+    }
+
+    .video-progress-handle {
+      position: absolute;
+      right: -6px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 8px var(--violet-glow);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .video-progress-container:hover .video-progress-handle {
+      opacity: 1;
+    }
+
+    .control-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      opacity: 0.8;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem;
+      border-radius: 8px;
+    }
+
+    .control-btn:hover {
+      opacity: 1;
+      color: var(--violet-mid);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .player-tabs-header {
+      display: flex;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      gap: 1.5rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .player-tabs-header::-webkit-scrollbar {
+      display: none;
+    }
+
+    .player-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 1rem 0.5rem;
+      position: relative;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .player-tab-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .player-tab-btn.active {
+      color: var(--teal-primary);
+    }
+
+    .player-tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--teal-primary);
+      box-shadow: 0 0 10px var(--teal-glow);
+    }
+
+    /* Curriculum Playlist Sidebar */
+    .curriculum-module-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+    }
+
+    .curriculum-lesson-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: 1px solid transparent;
+      text-decoration: none !important;
+    }
+
+    .curriculum-lesson-item:hover {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .curriculum-lesson-item.active {
+      background: rgba(139, 92, 246, 0.08);
+      border-color: rgba(139, 92, 246, 0.15);
+    }
+
+    .curriculum-indicator {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+
+    .curriculum-lesson-item.completed .curriculum-indicator {
+      border-color: var(--teal-primary);
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--teal-primary);
+      box-shadow: 0 0 8px rgba(6, 182, 212, 0.3);
+    }
+
+    .curriculum-lesson-item.active .curriculum-indicator {
+      border-color: var(--violet-primary);
+      background: rgba(139, 92, 246, 0.2);
+    }
+
+    .curriculum-lesson-item.active .curriculum-indicator::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--violet-primary);
+      box-shadow: 0 0 6px var(--violet-glow);
+    }
+
+    .curriculum-title-text {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: color 0.2s ease;
+    }
+
+    .curriculum-lesson-item.active .curriculum-title-text {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .curriculum-lesson-item.completed .curriculum-title-text {
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+
+    .curriculum-lesson-item:hover .curriculum-title-text {
+      color: var(--text-primary);
+    }
+
+    .tab-pane-content {
+      display: none;
+      animation: fadeInTab 0.3s ease;
+    }
+
+    .tab-pane-content.active {
+      display: block;
+    }
+
+    @keyframes fadeInTab {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .resource-download-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s ease;
+      text-decoration: none !important;
+    }
+
+    .resource-download-card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .resource-icon-box {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    /* Speed and settings menu */
+    .settings-dropdown-menu {
+      position: absolute;
+      bottom: 50px;
+      right: 0;
+      background: rgba(13, 14, 26, 0.95);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 8px;
+      min-width: 150px;
+      box-shadow: var(--shadow-lg);
+      display: none;
+      z-index: 100;
+    }
+
+    .settings-dropdown-menu.show {
+      display: block;
+    }
+
+    .settings-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text-muted);
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .settings-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-primary);
+    }
+
+    .settings-item.active {
+      color: var(--teal-primary);
+      font-weight: 600;
+    }
+
+    /* Q&A section styles */
+    .qa-message-card {
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .qa-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--violet-primary) 0%, var(--brand-pink) 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.85rem;
+    }
+
+    /* Giant Play overlay toggle */
+    .giant-play-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      background: rgba(0, 0, 0, 0.3);
+      transition: opacity 0.3s ease;
+      cursor: pointer;
+    }
+
+    .giant-play-button {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: rgba(139, 92, 246, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 2.2rem;
+      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .player-video-wrapper:hover .giant-play-button {
+      transform: scale(1.1);
+      background: rgba(139, 92, 246, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 25px var(--violet-glow);
+    }
+
+    /* Slim Header Styles */
+    .player-slim-header {
+      background: rgba(3, 0, 20, 0.5);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 0.75rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .player-slim-header-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Mobile curriculum accordion styles */
+    .module-accordion-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      cursor: pointer;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      margin-bottom: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .module-accordion-header:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+  </style>
+</head>
+<body class="login-body">
+
+  <!-- Ambient background glow elements -->
+  <div class="bg-blob-violet" style="top: -100px; left: -100px; opacity: 0.08;"></div>
+  <div class="bg-blob-teal" style="bottom: 20%; right: -100px; opacity: 0.08;"></div>
+
+  <!-- ================================================================
+    SLIM PLAYER HEADER
+  ================================================================ -->
+  <header class="player-slim-header">
+    <div class="container-fluid px-lg-5">
+      <div class="player-slim-header-container">
+        <!-- Logo & Title -->
+        <div class="d-flex align-items-center gap-3">
+          <a class="navbar-brand d-flex align-items-center m-0" href="index.html" style="font-size: 1.25rem;">
+            <span>Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
+          </a>
+          <div class="vr bg-white opacity-20 d-none d-md-block" style="height: 20px;"></div>
+          <span class="text-white fw-bold d-none d-md-inline" style="font-size: 0.95rem; font-family: var(--font-display);">
+            Next.js App Router Architecture
+          </span>
+        </div>
+
+        <!-- Back & Log out buttons -->
+        <div class="d-flex align-items-center gap-3">
+          <a href="dashboard.html" class="btn btn-bb-ghost py-1.5 px-3 d-flex align-items-center gap-1.5 text-white" style="font-size: 0.82rem; font-weight: 600; border-radius: 30px;">
+            <i class="bi bi-grid-1x2-fill text-muted" style="font-size: 0.78rem;"></i> Dashboard
+          </a>
+          <button id="player-btn-logout" class="btn btn-bb-primary py-1.5 px-4" style="font-size: 0.82rem; font-weight: 600; border-radius: 30px;">
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================================================================
+    MAIN SPLIT SCREEN CONTAINER
+  ================================================================ -->
+  <main class="py-4 py-lg-5">
+    <div class="container-fluid px-lg-5">
+      <div class="row g-4">
+        
+        <!-- ============================================================
+          LEFT COLUMN: VIDEO & LESSON DOCUMENTATION CANVAS
+        ============================================================ -->
+        <div class="col-lg-8">
+          <div class="d-flex flex-col gap-4">
+            
+            <!-- A. Video Player Frame -->
+            <div class="player-video-wrapper">
+              <video id="main-course-video" class="w-100 h-100" style="object-fit: cover; aspect-ratio: 16/9;" poster="https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ6Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpZCiVodG1sXzQ0OTIwMTRkMjEyZTQ0YzliZTgyNDNhOGFkYzhiNmM0EgsSBxD8k6fClwgYAZIBIgoKcHJvamVjdF9pZBIUQhI2MzIzMTU5OTU1MDA3ODk5MDY&filename=&opi=96797242">
+                <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+
+              <!-- Premium Glassmorphic Badge -->
+              <div class="position-absolute" style="top: 16px; left: 16px; z-index: 10;">
+                <div class="glass-player-panel py-1 px-3" style="border-radius: 100px; background: rgba(13, 14, 26, 0.4);">
+                  <span class="d-inline-block rounded-circle bg-violet-primary me-2" style="width: 8px; height: 8px; box-shadow: 0 0 6px var(--violet-primary);"></span>
+                  <span class="text-white font-monospace text-uppercase fw-bold" style="font-size: 10px; letter-spacing: 1px;">Premium Lesson</span>
+                </div>
+              </div>
+
+              <!-- Giant Center Play Toggle Overlay -->
+              <div id="video-giant-play-overlay" class="giant-play-overlay">
+                <div class="giant-play-button">
+                  <i class="bi bi-play-fill" style="margin-left: 4px;"></i>
+                </div>
+              </div>
+
+              <!-- Premium Glassmorphic Control Overlay Bar -->
+              <div class="player-video-controls">
+                
+                <!-- Progress Scrubber -->
+                <div class="video-progress-container mb-3" id="progress-scrubber">
+                  <div class="video-progress-bar" id="progress-bar-fill">
+                    <div class="video-progress-handle"></div>
+                  </div>
+                </div>
+
+                <!-- Controllers Row -->
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-3">
+                    <button class="control-btn" id="ctrl-play-pause" title="Play">
+                      <i class="bi bi-play-fill fs-4" id="play-pause-icon"></i>
+                    </button>
+                    <button class="control-btn" id="ctrl-skip-forward" title="Forward 10s">
+                      <i class="bi bi-arrow-clockwise fs-5"></i>
+                    </button>
+                    
+                    <div class="d-flex align-items-center gap-2">
+                      <button class="control-btn" id="ctrl-volume" title="Mute">
+                        <i class="bi bi-volume-up-fill fs-5" id="volume-icon"></i>
+                      </button>
+                      <span class="text-white opacity-80 font-monospace" style="font-size: 0.8rem;" id="time-display">00:00 / 00:00</span>
+                    </div>
+                  </div>
+
+                  <div class="d-flex align-items-center gap-3 position-relative">
+                    <button class="glass-player-panel text-white px-2.5 py-1 control-btn" style="font-size: 0.78rem; font-weight: 600; border-radius: 6px;" id="ctrl-speed-btn" title="Playback Speed">
+                      1.0x
+                    </button>
+                    <!-- Speed Dropdown Menu -->
+                    <div class="settings-dropdown-menu" id="speed-dropdown-menu">
+                      <div class="settings-item" data-speed="0.75">0.75x</div>
+                      <div class="settings-item active" data-speed="1.0">1.0x (Normal)</div>
+                      <div class="settings-item" data-speed="1.25">1.25x</div>
+                      <div class="settings-item" data-speed="1.5">1.5x</div>
+                      <div class="settings-item" data-speed="2.0">2.0x</div>
+                    </div>
+
+                    <button class="control-btn" id="ctrl-fullscreen" title="Fullscreen">
+                      <i class="bi bi-fullscreen fs-5"></i>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- B. Lesson Text Content Panel -->
+            <div class="mt-4">
+              <span class="badge bg-violet-light text-violet-mid mb-2.5 px-3 py-1.5" style="border: 1px solid rgba(139, 92, 246, 0.15); font-size: 0.78rem; font-weight: 600;">Module 1: Advanced Routing</span>
+              <h2 class="text-white fw-bold mb-2.5" id="display-lesson-title" style="font-family: var(--font-display); font-size: 1.85rem;">
+                Next.js App Router Architecture
+              </h2>
+              <p class="text-muted" id="display-lesson-description" style="line-height: 1.6; font-size: 0.95rem;">
+                Deep dive into the modern routing paradigm. We'll explore Server Components, nested layouts, and loading states to build resilient, highly-performant web applications.
+              </p>
+            </div>
+
+            <!-- C. Glassmorphism Bento-styled tab container -->
+            <div class="glass-player-panel p-4 mt-4">
+              <div class="player-tabs-header mb-4">
+                <button class="player-tab-btn active" data-tab-id="tab-overview">Overview</button>
+                <button class="player-tab-btn" data-tab-id="tab-qa">Q&A Discussion</button>
+                <button class="player-tab-btn" data-tab-id="tab-resources">Resources</button>
+                <button class="player-tab-btn" data-tab-id="tab-notes">Notepad</button>
+              </div>
+
+              <!-- TAB 1: OVERVIEW -->
+              <div class="tab-pane-content active" id="tab-overview">
+                <div class="row g-4 align-items-center">
+                  <div class="col-md-7">
+                    <h5 class="text-white fw-bold mb-3">About this Lesson</h5>
+                    <p class="text-muted" style="font-size: 0.9rem; line-height: 1.6;">
+                      This lesson covers the fundamentals of routing in Next.js. We look at how folders create URL routes, how files define layout and page layouts, and the performance differences of rendering server vs client-side code structure.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                      <span class="badge bg-dark border border-white-5 text-muted px-2.5 py-1.5">Next.js 14</span>
+                      <span class="badge bg-dark border border-white-5 text-muted px-2.5 py-1.5">React Server Components</span>
+                      <span class="badge bg-dark border border-white-5 text-muted px-2.5 py-1.5">Architecture</span>
+                    </div>
+                  </div>
+                  <div class="col-md-5">
+                    <div class="glass-player-panel p-3.5" style="border-radius: 12px; background: rgba(255,255,255,0.01);">
+                      <h6 class="text-white mb-3" style="font-size: 0.88rem; font-weight: 700;">Instructor profile</h6>
+                      <div class="d-flex align-items-center gap-3">
+                        <div class="qa-avatar" style="background: linear-gradient(135deg, var(--teal-primary) 0%, var(--violet-primary) 100%);">
+                          RA
+                        </div>
+                        <div>
+                          <p class="text-white fw-bold m-0" style="font-size: 0.9rem;">Rahul Arora</p>
+                          <span class="text-muted" style="font-size: 0.78rem;">Senior Dev Advocate</span>
+                        </div>
+                      </div>
+                      <div class="mt-3 pt-3 border-top border-white-5 d-flex justify-content-between align-items-center">
+                        <span class="text-muted" style="font-size: 0.78rem;">Students taught:</span>
+                        <span class="text-white fw-bold" style="font-size: 0.82rem;">12,500+</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB 2: Q&A DISCUSSION -->
+              <div class="tab-pane-content" id="tab-qa">
+                <div class="d-flex flex-column gap-3 mb-4">
+                  <h5 class="text-white fw-bold">Student Community Hub</h5>
+                  <p class="text-muted" style="font-size: 0.88rem; margin: 0;">Ask questions, share code snippets, or reply to fellow peers learning this module.</p>
+                </div>
+
+                <!-- Create Question Form -->
+                <form id="qa-post-form" class="mb-4">
+                  <div class="mb-3">
+                    <textarea class="form-control bg-dark text-white border-secondary shadow-none px-3.5 py-3" id="qa-question-text" rows="3" placeholder="Describe your issue or ask a question..." style="border-radius: 10px; background: rgba(0,0,0,0.3) !important; border: 1px solid rgba(255,255,255,0.1) !important; font-size: 0.9rem;"></textarea>
+                  </div>
+                  <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-bb-primary px-4 py-2" style="border-radius: 50px; font-size: 0.82rem; font-weight: 700;">Post Question</button>
+                  </div>
+                </form>
+
+                <!-- Q&A List -->
+                <div id="qa-list-container">
+                  <div class="qa-message-card">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                      <div class="d-flex align-items-center gap-2.5">
+                        <div class="qa-avatar">JD</div>
+                        <div>
+                          <p class="text-white fw-bold m-0" style="font-size: 0.85rem;">John Doe</p>
+                          <span class="text-muted" style="font-size: 0.7rem;">3 hours ago</span>
+                        </div>
+                      </div>
+                      <span class="badge bg-teal-light text-teal-primary" style="font-size: 0.7rem;">Solved</span>
+                    </div>
+                    <p class="text-on-surface-variant mb-2" style="font-size: 0.88rem; line-height: 1.5;">
+                      Why does my Next.js server component fail when fetching local data inside the layout file? Do I need an absolute URL for internal API routes?
+                    </p>
+                    <div class="p-3 mt-3 border-start border-teal-primary bg-teal-light" style="border-radius: 8px;">
+                      <p class="text-teal-primary fw-bold mb-1" style="font-size: 0.78rem;"><i class="bi bi-patch-check-fill me-1"></i> Rahul Arora (Instructor)</p>
+                      <p class="text-muted m-0" style="font-size: 0.82rem; line-height: 1.5;">
+                        Yes! Next.js Server Components require absolute URLs when fetching from internal API routes during server-side renders (e.g. <code>http://localhost:3000/api/data</code>). However, fetching directly from DB or helper files is preferred.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="qa-message-card">
+                    <div class="d-flex align-items-center gap-2.5 mb-3">
+                      <div class="qa-avatar" style="background: linear-gradient(135deg, var(--brand-pink) 0%, var(--violet-primary) 100%);">SK</div>
+                      <div>
+                        <p class="text-white fw-bold m-0" style="font-size: 0.85rem;">Sarah K.</p>
+                        <span class="text-muted" style="font-size: 0.7rem;">Yesterday</span>
+                      </div>
+                    </div>
+                    <p class="text-on-surface-variant m-0" style="font-size: 0.88rem; line-height: 1.5;">
+                      Loving the layout animations! Simple transitions make the pages feel incredibly fast. Boilerplate works flawlessly.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB 3: DOWNLOADABLE RESOURCES -->
+              <div class="tab-pane-content" id="tab-resources">
+                <h5 class="text-white fw-bold mb-3 flex items-center gap-2" style="font-size: 1.1rem;">
+                  <i class="bi bi-download text-teal-primary"></i> Lecture Attachments
+                </h5>
+                <p class="text-muted mb-4" style="font-size: 0.88rem;">Download supporting boilerplates, reference blueprints, and cheat sheets associated with this lesson.</p>
+                
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <a href="#" class="resource-download-card">
+                      <div class="resource-icon-box bg-teal-light border border-teal-primary" style="color: var(--teal-primary);">
+                        <i class="bi bi-file-zip-fill"></i>
+                      </div>
+                      <div class="overflow-hidden flex-grow-1">
+                        <p class="text-white fw-bold m-0 text-truncate" style="font-size: 0.88rem;">project-boilerplate-v1.zip</p>
+                        <span class="text-muted" style="font-size: 0.75rem;">Boilerplate code • 2.4 MB</span>
+                      </div>
+                      <i class="bi bi-download text-muted fs-5"></i>
+                    </a>
+                  </div>
+                  <div class="col-md-6">
+                    <a href="#" class="resource-download-card">
+                      <div class="resource-icon-box bg-violet-light border border-violet-primary" style="color: var(--violet-primary);">
+                        <i class="bi bi-file-earmark-pdf-fill"></i>
+                      </div>
+                      <div class="overflow-hidden flex-grow-1">
+                        <p class="text-white fw-bold m-0 text-truncate" style="font-size: 0.88rem;">nextjs-cheat-sheet.pdf</p>
+                        <span class="text-muted" style="font-size: 0.75rem;">Cheat Sheet • 840 KB</span>
+                      </div>
+                      <i class="bi bi-download text-muted fs-5"></i>
+                    </a>
+                  </div>
+                  <div class="col-md-6">
+                    <a href="#" class="resource-download-card">
+                      <div class="resource-icon-box bg-dark border border-white-5" style="color: var(--text-muted);">
+                        <i class="bi bi-image-fill"></i>
+                      </div>
+                      <div class="overflow-hidden flex-grow-1">
+                        <p class="text-white fw-bold m-0 text-truncate" style="font-size: 0.88rem;">db-schema-blueprints.png</p>
+                        <span class="text-muted" style="font-size: 0.75rem;">Database Layout • 1.2 MB</span>
+                      </div>
+                      <i class="bi bi-download text-muted fs-5"></i>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB 4: NOTEBOOK -->
+              <div class="tab-pane-content" id="tab-notes">
+                <div class="d-flex flex-column gap-3">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="text-white fw-bold m-0">Personal Lesson Notebook</h5>
+                    <span class="badge bg-violet-light text-violet-mid" id="note-saved-status" style="font-size: 0.72rem; display: none;"><i class="bi bi-check-circle-fill me-1"></i> Saved to local storage</span>
+                  </div>
+                  <p class="text-muted" style="font-size: 0.88rem; margin: 0;">Type out notes, snippet thoughts, or code structures. Notes are persisted locally for your session.</p>
+                  
+                  <textarea class="form-control bg-dark text-white border-secondary shadow-none p-3 font-monospace" id="notes-textarea" rows="8" placeholder="Start typing notes here (Markdown/plain text)..." style="border-radius: 12px; background: rgba(0,0,0,0.3) !important; border: 1px solid rgba(255,255,255,0.1) !important; font-size: 0.85rem; line-height: 1.5; color: var(--text-primary);"></textarea>
+                  
+                  <div class="d-flex justify-content-end mt-2">
+                    <button id="save-note-btn" class="btn btn-bb-primary px-4 py-2.5" style="border-radius: 50px; font-size: 0.82rem; font-weight: 700;">
+                      <i class="bi bi-floppy2-fill me-1.5"></i> Save Note
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ============================================================
+          RIGHT COLUMN: PLAYLIST SIDEBAR (Curriculum list)
+        ============================================================ -->
+        <div class="col-lg-4">
+          <div class="glass-player-panel p-4 sticky-top" style="top: 88px;">
+            
+            <!-- Sidebar Header & Progress -->
+            <div class="border-b border-white-5 pb-3 mb-3">
+              <h4 class="text-white fw-bold mb-2.5" style="font-family: var(--font-display); font-size: 1.15rem;">Course Curriculum</h4>
+              
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted" style="font-size: 0.82rem;">Progress status:</span>
+                <span class="text-teal-primary fw-bold" id="curriculum-percent-display" style="font-size: 0.85rem;">33% Complete</span>
+              </div>
+              <div class="progress bg-dark-subtle" style="height: 6px; border-radius: 100px;">
+                <div class="progress-bar bg-teal-primary" id="curriculum-progress-bar" role="progressbar" style="width: 33%; border-radius: 100px; box-shadow: 0 0 8px var(--teal-glow);" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </div>
+
+            <!-- Curriculum Playlist list -->
+            <div class="d-flex flex-column gap-3">
+              
+              <!-- Module 1 -->
+              <div>
+                <div class="module-accordion-header" id="module-1-header">
+                  <span class="curriculum-module-title">Module 1: Advanced Routing</span>
+                  <i class="bi bi-chevron-up text-muted"></i>
+                </div>
+                
+                <div class="d-flex flex-column gap-2" id="module-1-lessons">
+                  <!-- Lesson Item 1 (Completed) -->
+                  <div class="curriculum-lesson-item completed" data-lesson-index="0">
+                    <div class="curriculum-indicator">
+                      <i class="bi bi-check" style="font-size: 14px;"></i>
+                    </div>
+                    <div class="overflow-hidden flex-grow-1">
+                      <p class="curriculum-title-text m-0 text-truncate">1. Setup &amp; Installation</p>
+                      <span class="text-muted" style="font-size: 0.75rem;">8:15 mins</span>
+                    </div>
+                    <input type="checkbox" class="lesson-check-box form-check-input bg-transparent border-secondary shadow-none ms-auto" data-lesson-index="0" checked style="border-radius: 4px; width: 15px; height: 15px; cursor: pointer; border-color: rgba(255,255,255,0.2) !important;">
+                  </div>
+
+                  <!-- Lesson Item 2 (Active) -->
+                  <div class="curriculum-lesson-item active" data-lesson-index="1">
+                    <div class="curriculum-indicator"></div>
+                    <div class="overflow-hidden flex-grow-1">
+                      <p class="curriculum-title-text m-0 text-truncate">2. App Router Architecture</p>
+                      <span class="text-muted" style="font-size: 0.75rem;">12:04 mins</span>
+                    </div>
+                    <input type="checkbox" class="lesson-check-box form-check-input bg-transparent border-secondary shadow-none ms-auto" data-lesson-index="1" style="border-radius: 4px; width: 15px; height: 15px; cursor: pointer; border-color: rgba(255,255,255,0.2) !important;">
+                  </div>
+
+                  <!-- Lesson Item 3 (Upcoming) -->
+                  <div class="curriculum-lesson-item" data-lesson-index="2">
+                    <div class="curriculum-indicator"></div>
+                    <div class="overflow-hidden flex-grow-1">
+                      <p class="curriculum-title-text m-0 text-truncate">3. Data Fetching Patterns</p>
+                      <span class="text-muted" style="font-size: 0.75rem;">15:30 mins</span>
+                    </div>
+                    <input type="checkbox" class="lesson-check-box form-check-input bg-transparent border-secondary shadow-none ms-auto" data-lesson-index="2" style="border-radius: 4px; width: 15px; height: 15px; cursor: pointer; border-color: rgba(255,255,255,0.2) !important;">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Module 2 -->
+              <div>
+                <div class="module-accordion-header" id="module-2-header" style="opacity: 0.85;">
+                  <span class="curriculum-module-title text-muted">Module 2: Server Rendering</span>
+                  <i class="bi bi-chevron-down text-muted"></i>
+                </div>
+                <!-- Simulating collapsed states for secondary modules -->
+                <div class="d-none flex-column gap-2" id="module-2-lessons">
+                  <div class="curriculum-lesson-item">
+                    <div class="curriculum-indicator"><i class="bi bi-lock-fill text-muted" style="font-size: 10px;"></i></div>
+                    <div class="overflow-hidden flex-grow-1">
+                      <p class="curriculum-title-text m-0 text-muted">4. Server vs Client Components</p>
+                      <span class="text-muted" style="font-size: 0.75rem;">10:45 mins</span>
+                    </div>
+                  </div>
+                  <div class="curriculum-lesson-item">
+                    <div class="curriculum-indicator"><i class="bi bi-lock-fill text-muted" style="font-size: 10px;"></i></div>
+                    <div class="overflow-hidden flex-grow-1">
+                      <p class="curriculum-title-text m-0 text-muted">5. Suspense &amp; Streaming</p>
+                      <span class="text-muted" style="font-size: 0.75rem;">14:12 mins</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Bootstrap 5 JS Bundle CDN (including Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Supabase Config -->
+  <script src="js/supabase-config.js"></script>
+  <!-- Auth Engine -->
+  <script src="js/auth-engine.js"></script>
+
+  <!-- Interactive Player Script -->
+  <script>
+    // 1. Dataset of lessons in player
+    const lessonsData = [
+      {
+        id: "l_setup_installation",
+        title: "1. Setup & Installation",
+        duration: "8:15",
+        videoSrc: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        description: "Setting up a Next.js project from scratch. Installing dependencies, configuring ESLint, Prettier, Tailwind CSS, and getting the dev server running. Perfect foundation for dynamic layouts."
+      },
+      {
+        id: "l_app_router",
+        title: "2. App Router Architecture",
+        duration: "12:04",
+        videoSrc: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        description: "Deep dive into the modern routing layout structure. We'll explore Server Components, nested layouts, loading states, and directory file conventions to build resilient web applications."
+      },
+      {
+        id: "l_data_fetching",
+        title: "3. Data Fetching Patterns",
+        duration: "15:30",
+        videoSrc: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        description: "Exploring data fetching in Next.js Server Components. Learn how static generation, Dynamic rendering, ISR, fetching configuration, caching tags, and streaming with Suspense function."
+      }
+    ];
+
+    let currentLessonIndex = 1; // start on Lesson 2 by default
+
+    // DOM Elements
+    const video = document.getElementById('main-course-video');
+    const giantPlayOverlay = document.getElementById('video-giant-play-overlay');
+    const playPauseBtn = document.getElementById('ctrl-play-pause');
+    const playPauseIcon = document.getElementById('play-pause-icon');
+    const skipForwardBtn = document.getElementById('ctrl-skip-forward');
+    const volumeBtn = document.getElementById('ctrl-volume');
+    const volumeIcon = document.getElementById('volume-icon');
+    const timeDisplay = document.getElementById('time-display');
+    const speedBtn = document.getElementById('ctrl-speed-btn');
+    const speedMenu = document.getElementById('speed-dropdown-menu');
+    const fullscreenBtn = document.getElementById('ctrl-fullscreen');
+    const progressScrubber = document.getElementById('progress-scrubber');
+    const progressBarFill = document.getElementById('progress-bar-fill');
+
+    const displayTitle = document.getElementById('display-lesson-title');
+    const displayDesc = document.getElementById('display-lesson-description');
+
+    const notepad = document.getElementById('notes-textarea');
+    const saveNoteBtn = document.getElementById('save-note-btn');
+    const noteSavedStatus = document.getElementById('note-saved-status');
+
+    const curriculumPercent = document.getElementById('curriculum-percent-display');
+    const curriculumProgressBar = document.getElementById('curriculum-progress-bar');
+    const checkBoxes = document.querySelectorAll('.lesson-check-box');
+    const lessonItems = document.querySelectorAll('.curriculum-lesson-item');
+
+    // ================================================================
+    // A. VIDEO PLAYER CONTROLS IMPLEMENTATION
+    // ================================================================
+    
+    // Toggle Play/Pause
+    function togglePlay() {
+      if (video.paused || video.ended) {
+        video.play();
+        playPauseIcon.className = "bi bi-pause-fill fs-4";
+        giantPlayOverlay.style.opacity = "0";
+        giantPlayOverlay.style.pointerEvents = "none";
+      } else {
+        video.pause();
+        playPauseIcon.className = "bi bi-play-fill fs-4";
+        giantPlayOverlay.style.opacity = "1";
+        giantPlayOverlay.style.pointerEvents = "auto";
+      }
+    }
+
+    giantPlayOverlay.addEventListener('click', togglePlay);
+    playPauseBtn.addEventListener('click', togglePlay);
+
+    // Skip Forward 10s
+    skipForwardBtn.addEventListener('click', () => {
+      video.currentTime = Math.min(video.currentTime + 10, video.duration);
+    });
+
+    // Mute/Unmute
+    volumeBtn.addEventListener('click', () => {
+      video.muted = !video.muted;
+      if (video.muted) {
+        volumeIcon.className = "bi bi-volume-mute-fill fs-5";
+      } else {
+        volumeIcon.className = "bi bi-volume-up-fill fs-5";
+      }
+    });
+
+    // Format time helpers (mm:ss)
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return "00:00";
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+    }
+
+    // Update progress scrubber & time display
+    video.addEventListener('timeupdate', () => {
+      const pct = (video.currentTime / video.duration) * 100;
+      progressBarFill.style.width = `${pct}%`;
+      timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+    });
+
+    video.addEventListener('loadedmetadata', () => {
+      timeDisplay.textContent = `00:00 / ${formatTime(video.duration)}`;
+    });
+
+    // Scrub video timeline on click
+    progressScrubber.addEventListener('click', (e) => {
+      const rect = progressScrubber.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const width = rect.width;
+      const pct = clickX / width;
+      video.currentTime = pct * video.duration;
+    });
+
+    // Speed Selection dropdown toggles
+    speedBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      speedMenu.classList.toggle('show');
+    });
+
+    document.addEventListener('click', () => {
+      speedMenu.classList.remove('show');
+    });
+
+    document.querySelectorAll('.settings-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.settings-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        const speed = parseFloat(item.dataset.speed);
+        video.playbackRate = speed;
+        speedBtn.textContent = `${speed === 1 ? '1.0' : speed}x`;
+      });
+    });
+
+    // Fullscreen toggles
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        video.requestFullscreen().catch(err => {
+          console.error(`Error requesting fullscreen: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    // ================================================================
+    // B. LESSON SWAPPING LOGIC
+    // ================================================================
+    function loadLesson(index) {
+      currentLessonIndex = index;
+      const data = lessonsData[index];
+
+      // Update Active Sidebar Card
+      lessonItems.forEach((item, idx) => {
+        item.classList.toggle('active', idx === index);
+      });
+
+      // Update Text Panels
+      displayTitle.textContent = data.title;
+      displayDesc.textContent = data.description;
+      document.title = `${data.title} — BrainByte`;
+
+      // Update video source & poster
+      video.src = data.videoSrc;
+      video.load();
+
+      // Reset controls UI
+      playPauseIcon.className = "bi bi-play-fill fs-4";
+      giantPlayOverlay.style.opacity = "1";
+      giantPlayOverlay.style.pointerEvents = "auto";
+      progressBarFill.style.width = "0%";
+
+      // Load notepad notes for this lesson
+      loadNotes(data.id);
+    }
+
+    lessonItems.forEach((item, idx) => {
+      // Clicking item titles changes lesson
+      const titleWrapper = item.querySelector('.overflow-hidden');
+      if (titleWrapper) {
+        titleWrapper.addEventListener('click', (e) => {
+          e.preventDefault();
+          loadLesson(idx);
+        });
+      }
+      const indicator = item.querySelector('.curriculum-indicator');
+      if (indicator) {
+        indicator.addEventListener('click', (e) => {
+          e.preventDefault();
+          loadLesson(idx);
+        });
+      }
+    });
+
+    // ================================================================
+    // C. TAB NAVIGATION LOGIC
+    // ================================================================
+    document.querySelectorAll('.player-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.player-tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const tabId = btn.dataset.tabId;
+        document.querySelectorAll('.tab-pane-content').forEach(pane => {
+          pane.classList.toggle('active', pane.id === tabId);
+        });
+      });
+    });
+
+    // ================================================================
+    // D. DYNAMIC CHECKLIST PROGRESS
+    // ================================================================
+    function updateProgress() {
+      let completedCount = 0;
+      checkBoxes.forEach((box, idx) => {
+        const item = lessonItems[idx];
+        if (box.checked) {
+          completedCount++;
+          item.classList.add('completed');
+          item.querySelector('.curriculum-indicator').innerHTML = '<i class="bi bi-check" style="font-size: 14px;"></i>';
+        } else {
+          item.classList.remove('completed');
+          item.querySelector('.curriculum-indicator').innerHTML = '';
+        }
+      });
+
+      const pct = Math.round((completedCount / checkBoxes.length) * 100);
+      curriculumPercent.textContent = `${pct}% Complete`;
+      curriculumProgressBar.style.width = `${pct}%`;
+      curriculumProgressBar.setAttribute('aria-valuenow', pct);
+    }
+
+    checkBoxes.forEach(box => {
+      box.addEventListener('change', updateProgress);
+    });
+
+    // ================================================================
+    // E. PERSONAL NOTEBOOK LOCAL STORAGE SYSTEM
+    // ================================================================
+    function loadNotes(lessonId) {
+      const savedNotes = localStorage.getItem(`bb_notes_${lessonId}`) || '';
+      notepad.value = savedNotes;
+      noteSavedStatus.style.display = 'none';
+    }
+
+    saveNoteBtn.addEventListener('click', () => {
+      const lessonId = lessonsData[currentLessonIndex].id;
+      localStorage.setItem(`bb_notes_${lessonId}`, notepad.value);
+      
+      // Show saved success toast status
+      noteSavedStatus.style.display = 'inline-block';
+      setTimeout(() => {
+        noteSavedStatus.style.opacity = '0';
+        setTimeout(() => {
+          noteSavedStatus.style.display = 'none';
+          noteSavedStatus.style.opacity = '1';
+        }, 500);
+      }, 2500);
+    });
+
+    // ================================================================
+    // F. QA FORM INTERACTIVITY MOCK
+    // ================================================================
+    const qaForm = document.getElementById('qa-post-form');
+    const qaText = document.getElementById('qa-question-text');
+    const qaList = document.getElementById('qa-list-container');
+
+    qaForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = qaText.value.trim();
+      if (!text) return;
+
+      const user = JSON.parse(localStorage.getItem('brainbyte_user') || '{"full_name": "Student"}');
+      const initials = (user.full_name || 'ST').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+      const html = `
+        <div class="qa-message-card" style="animation: fadeInTab 0.3s ease;">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="d-flex align-items-center gap-2.5">
+              <div class="qa-avatar" style="background: linear-gradient(135deg, var(--violet-primary) 0%, var(--brand-pink) 100%);">${initials}</div>
+              <div>
+                <p class="text-white fw-bold m-0" style="font-size: 0.85rem;">${user.full_name || 'You'}</p>
+                <span class="text-muted" style="font-size: 0.7rem;">Just now</span>
+              </div>
+            </div>
+            <span class="badge bg-secondary-subtle text-muted" style="font-size: 0.7rem;">Open</span>
+          </div>
+          <p class="text-on-surface-variant m-0" style="font-size: 0.88rem; line-height: 1.5;">
+            ${text}
+          </p>
+        </div>
+      `;
+
+      qaList.insertAdjacentHTML('afterbegin', html);
+      qaText.value = '';
+    });
+
+    // ================================================================
+    // G. COLLAPSIBLE MODULE ACCORDIONS
+    // ================================================================
+    document.getElementById('module-1-header').addEventListener('click', () => {
+      const lessons = document.getElementById('module-1-lessons');
+      const icon = document.querySelector('#module-1-header i');
+      lessons.classList.toggle('d-none');
+      lessons.classList.toggle('d-flex');
+      icon.classList.toggle('bi-chevron-up');
+      icon.classList.toggle('bi-chevron-down');
+    });
+
+    document.getElementById('module-2-header').addEventListener('click', () => {
+      const lessons = document.getElementById('module-2-lessons');
+      const icon = document.querySelector('#module-2-header i');
+      lessons.classList.toggle('d-none');
+      lessons.classList.toggle('d-flex');
+      icon.classList.toggle('bi-chevron-up');
+      icon.classList.toggle('bi-chevron-down');
+    });
+
+    // Logout handling
+    document.getElementById('player-btn-logout').addEventListener('click', async () => {
+      try {
+        const { AuthEngine } = window;
+        if (AuthEngine) {
+          await AuthEngine.logout();
+        } else {
+          localStorage.removeItem('brainbyte_user');
+          sessionStorage.clear();
+        }
+        window.location.href = 'index.html';
+      } catch (e) {
+        window.location.href = 'index.html';
+      }
+    });
+
+    // INITIALIZATION
+    window.addEventListener('DOMContentLoaded', () => {
+      loadLesson(1); // default load Lesson 2
+      updateProgress();
+    });
+  </script>
+</body>
+</html>

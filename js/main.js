@@ -380,7 +380,7 @@ const libraryData = [
   }
 ];
 
-document.addEventListener('DOMContentLoaded', () => {
+const initAllControllers = () => {
   initStickyNavbar();
   initStatsCounter();
   initInteractiveRating();
@@ -394,7 +394,13 @@ document.addEventListener('DOMContentLoaded', () => {
   initDashboardController();
   initInstructorController();
   initVerificationController();
-});
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAllControllers);
+} else {
+  initAllControllers();
+}
 
 /**
  * Sticky Glass Navbar Controller
@@ -671,7 +677,7 @@ function initSmoothScroll() {
  */
 /**
  * ================================================================
- *  LOGIN CONTROLLER â€” Email + Password â†’ Email OTP â†’ Dashboard
+ *  LOGIN CONTROLLER — Email + Password → Email OTP → Dashboard
  *  Uses: AuthEngine (js/auth-engine.js)
  *  HTML IDs: li-* (login.html)
  * ================================================================
@@ -682,7 +688,7 @@ function initLoginController() {
   const liStep2    = document.getElementById('li-step-2');
   if (!liForm) return;
 
-  // â”€â”€ Toggle password visibility â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Toggle password visibility ──────────────────────────────
   const liTogglePw = document.getElementById('li-toggle-pw');
   const liPwInput  = document.getElementById('li-password');
   if (liTogglePw && liPwInput) {
@@ -693,8 +699,7 @@ function initLoginController() {
     });
   }
 
-  // â”€â”€ UI helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // ── UI helpers ────────────────────────────────────────────────
+  // ── UI helpers ───────────────────────────────────────────────
   const liShowError = (msg) => {
     const el = document.getElementById('li-error');
     const txt = document.getElementById('li-error-text');
@@ -715,7 +720,32 @@ function initLoginController() {
     }
   };
 
-  // ── Brute-force lockout banner ──────────────────────────────
+  const goToOTPStep = () => {
+    liStep1.classList.remove('active');
+    liStep2.classList.add('active');
+    // Update step nodes
+    const n1 = document.getElementById('li-node-1');
+    const c1 = document.getElementById('li-conn-1');
+    const n2 = document.getElementById('li-node-2');
+    if (n1) { n1.classList.remove('active'); n1.classList.add('done'); n1.textContent = '✓'; }
+    if (c1) c1.classList.add('done');
+    if (n2) n2.classList.add('active');
+  };
+
+  const goBackToStep1 = () => {
+    liStep2.classList.remove('active');
+    liStep1.classList.add('active');
+    const n1 = document.getElementById('li-node-1');
+    const c1 = document.getElementById('li-conn-1');
+    const n2 = document.getElementById('li-node-2');
+    if (n1) { n1.classList.add('active'); n1.classList.remove('done'); n1.textContent = '1'; }
+    if (c1) c1.classList.remove('done');
+    if (n2) n2.classList.remove('active');
+    AuthEngine.stopTimer('li-expiry');
+    AuthEngine.stopTimer('li-resend');
+  };
+
+  // ── Brute-force lockout banner ───────────────────────────────
   const liEmail = document.getElementById('li-email');
   if (liEmail) {
     liEmail.addEventListener('blur', () => {
@@ -733,7 +763,7 @@ function initLoginController() {
     });
   }
 
-  // ── Form submit: Direct Login ─────────────────────────────────────
+  // ── STEP 1: Form submit ──────────────────────────────────────
   liForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     liHideError();
@@ -752,36 +782,45 @@ function initLoginController() {
     setLoading(btn, true, 'Verifying credentials…');
 
     try {
-      const res = await AuthEngine.loginWithPassword(email, password);
+      await AuthEngine.loginWithPassword(email, password);
 
-      // Complete login directly without OTP verification
-      await AuthEngine.completeLogin(res.profile);
+      // Send Email OTP
+      setLoading(btn, true, 'Sending OTP to email…');
+      await AuthEngine.sendOTP(email, 'email');
 
-      btn.innerHTML = '<span>✅ Redirecting…</span>';
-      btn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+      // Update OTP panel UI
+      const display = document.getElementById('li-otp-email-display');
+      if (display) display.textContent = AuthEngine.maskEmail(email);
 
-      setTimeout(() => {
-        const role = res.profile.role || 'student';
-        window.location.href = (role === 'instructor' || role === 'teach') ? 'teach-verify.html' : 'dashboard.html';
-      }, 800);
+      goToOTPStep();
+
+      // Wire OTP boxes
+      liBindOTPBoxes();
+
+      // Start expiry countdown
+      const timerEl = document.getElementById('li-otp-timer');
+      AuthEngine.startExpiryCountdown('li-expiry', {
+        displayEl: timerEl,
+        onExpire: () => {
+          if (timerEl) timerEl.classList.add('urgent');
+          liShowOTPError('OTP expired. Click "Resend OTP" to get a new code.');
+          document.getElementById('li-btn-verify').disabled = true;
+        }
+      });
+
+      // Start resend timer
+      liStartResend(email);
+
+      // Focus first box
+      setTimeout(() => document.getElementById('li-d1')?.focus(), 120);
+
+      // Reset attempt counter
+      const ac = document.getElementById('li-attempt-count');
+      if (ac) ac.textContent = '0';
 
     } catch (err) {
-      const msg = err.message || 'Login failed. Please try again.';
-
-      // "Account not found" -> show sign-up link inside error
-      if (err.code === 'NOT_FOUND') {
-        const el  = document.getElementById('li-error');
-        const txt = document.getElementById('li-error-text');
-        if (el && txt) {
-          el.innerHTML = '<i class="bi bi-person-x-fill me-1"></i> ' + msg +
-            ' <a href="signup.html" style="color:#C084FC;font-weight:800;text-decoration:underline;">Sign up free</a>';
-          el.classList.add('show');
-        }
-      } else {
-        liShowError(msg);
-      }
-
-      // Show lockout banner if applicable
+      liShowError(err.message || 'Login failed. Please try again.');
+      // Show lockout if applicable
       const bf = AuthEngine.checkBruteForce(email);
       if (bf.locked) {
         const lockBar  = document.getElementById('li-lockout-bar');
@@ -790,8 +829,191 @@ function initLoginController() {
       }
     } finally {
       btn.classList.remove('loading');
+      btn.innerHTML = '<span>Continue <i class="bi bi-arrow-right-short fs-5"></i></span>';
     }
   });
+
+  // ── STEP 2: OTP helpers ──────────────────────────────────────
+  const liShowOTPError = (msg) => {
+    const el  = document.getElementById('li-otp-error');
+    const txt = document.getElementById('li-otp-error-text');
+    if (el && txt) { txt.textContent = msg; el.classList.add('show'); }
+    // Shake all boxes
+    for (let i = 1; i <= 6; i++) {
+      const b = document.getElementById(`li-d${i}`);
+      if (b) { b.classList.remove('error'); void b.offsetWidth; b.classList.add('error'); }
+    }
+  };
+  const liHideOTPError = () => {
+    const elOtp = document.getElementById('li-otp-error');
+    if (elOtp) elOtp.classList.remove('show');
+    for (let i = 1; i <= 6; i++) {
+      const b = document.getElementById(`li-d${i}`);
+      if (b) b.classList.remove('error');
+    }
+  };
+
+  // OTP digit box binding
+  function liBindOTPBoxes() {
+    const boxes = [];
+    for (let i = 1; i <= 6; i++) {
+      const b = document.getElementById(`li-d${i}`);
+      if (b) { b.value = ''; b.classList.remove('filled','error','success'); boxes.push(b); }
+    }
+
+    boxes.forEach((box, idx) => {
+      box.addEventListener('input', (ev) => {
+        const val = ev.target.value.replace(/\D/g, '').slice(-1);
+        box.value = val;
+        box.classList.toggle('filled', !!val);
+        if (val && boxes[idx + 1]) boxes[idx + 1].focus();
+      });
+      box.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Backspace' && !box.value && boxes[idx - 1]) boxes[idx - 1].focus();
+        if (ev.key === 'ArrowLeft'  && boxes[idx - 1]) boxes[idx - 1].focus();
+        if (ev.key === 'ArrowRight' && boxes[idx + 1]) boxes[idx + 1].focus();
+      });
+      box.addEventListener('paste', (ev) => {
+        ev.preventDefault();
+        const pasted = (ev.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+        pasted.split('').forEach((ch, i) => {
+          if (boxes[i]) { boxes[i].value = ch; boxes[i].classList.add('filled'); }
+        });
+        const next = boxes[Math.min(pasted.length, 5)];
+        if (next) next.focus();
+      });
+    });
+  }
+
+  function liGetOTPCode() {
+    let code = '';
+    for (let i = 1; i <= 6; i++) {
+      const b = document.getElementById(`li-d${i}`);
+      code += (b?.value || '');
+    }
+    return code;
+  }
+
+  // Resend timer
+  function liStartResend(email) {
+    const btn      = document.getElementById('li-btn-resend');
+    const timerRow = document.getElementById('li-resend-timer');
+    const secEl    = document.getElementById('li-resend-sec');
+
+    AuthEngine.startResendTimer('li-resend', {
+      btn,
+      timerEl: { style: {}, textContent: '' }, // handled manually below
+      onExpire: null
+    });
+
+    // Manual countdown display
+    if (timerRow) timerRow.style.display = 'inline';
+    let sec = 30;
+    if (secEl) secEl.textContent = sec;
+
+    const interval = setInterval(() => {
+      sec--;
+      if (secEl) secEl.textContent = sec;
+      if (sec <= 0) {
+        clearInterval(interval);
+        if (timerRow) timerRow.style.display = 'none';
+      }
+    }, 1000);
+
+    if (btn) {
+      btn.onclick = async () => {
+        clearInterval(interval);
+        try {
+          await AuthEngine.sendOTP(email, 'email');
+          liHideOTPError();
+          // Reset expiry countdown
+          AuthEngine.stopTimer('li-expiry');
+          const timerEl = document.getElementById('li-otp-timer');
+          if (timerEl) { timerEl.classList.remove('urgent'); }
+          AuthEngine.startExpiryCountdown('li-expiry', {
+            displayEl: timerEl,
+            onExpire: () => {
+              if (timerEl) timerEl.classList.add('urgent');
+              liShowOTPError('OTP expired. Click "Resend OTP" for a new code.');
+              document.getElementById('li-btn-verify').disabled = true;
+            }
+          });
+          document.getElementById('li-btn-verify').disabled = false;
+          const ac = document.getElementById('li-attempt-count');
+          if (ac) ac.textContent = '0';
+          liStartResend(email);
+          liBindOTPBoxes();
+          document.getElementById('li-d1')?.focus();
+        } catch (err) {
+          liShowOTPError('Failed to resend. Please try again.');
+        }
+      };
+    }
+  }
+
+  // ── STEP 2: Verify OTP button ────────────────────────────────
+  const liVerifyBtn = document.getElementById('li-btn-verify');
+  if (liVerifyBtn) {
+    liVerifyBtn.addEventListener('click', async () => {
+      liHideOTPError();
+      const code  = liGetOTPCode();
+      const email = (liEmail?.value || '').trim();
+
+      if (code.length !== 6) {
+        liShowOTPError('Please enter all 6 digits.'); return;
+      }
+
+      setLoading(liVerifyBtn, true, 'Verifying…');
+
+      const result = await AuthEngine.verifyOTP(email, 'email', code);
+
+      if (!result.success) {
+        const ac = document.getElementById('li-attempt-count');
+        if (ac) {
+          const cur = parseInt(ac.textContent) || 0;
+          ac.textContent = cur + 1;
+        }
+        liShowOTPError(result.error);
+        liVerifyBtn.classList.remove('loading');
+        liVerifyBtn.innerHTML = '<span>Verify &amp; Sign In</span>';
+
+        if (result.maxAttempts || result.remainingAttempts === 0) {
+          liVerifyBtn.disabled = true;
+        }
+        return;
+      }
+
+      // Success — complete login
+      const pending = JSON.parse(sessionStorage.getItem('bb_pending_login') || '{}');
+      await AuthEngine.completeLogin(pending);
+
+      // All boxes green
+      for (let i = 1; i <= 6; i++) {
+        const b = document.getElementById(`li-d${i}`);
+        if (b) { b.classList.remove('error'); b.classList.add('success'); }
+      }
+      AuthEngine.stopTimer('li-expiry');
+      AuthEngine.stopTimer('li-resend');
+
+      liVerifyBtn.innerHTML = '<span>✅ Verified! Redirecting…</span>';
+      liVerifyBtn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+
+      setTimeout(() => {
+        const role = pending.role || 'student';
+        window.location.href = (role === 'instructor' || role === 'teach') ? 'teach-verify.html' : 'dashboard.html';
+      }, 900);
+    });
+  }
+
+  // ── Back to step 1 ───────────────────────────────────────────
+  const liBackBtn = document.getElementById('li-btn-back');
+  if (liBackBtn) {
+    liBackBtn.addEventListener('click', () => {
+      liHideOTPError();
+      goBackToStep1();
+      sessionStorage.removeItem('bb_pending_login');
+    });
+  }
 
   // Demo Account button
   var liDemoBtnEl = document.getElementById('li-btn-demo');
@@ -819,7 +1041,7 @@ function initLoginController() {
   }
 
 
-  // â”€â”€ Google OAuth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Google OAuth ─────────────────────────────────────────────
   const liGoogleBtn = document.getElementById('li-btn-google');
   if (liGoogleBtn) {
     liGoogleBtn.addEventListener('click', async () => {
@@ -854,13 +1076,13 @@ function initSignupController() {
   let pendingPhone  = '';
   let attemptCount  = 0;
 
-  // â”€â”€ UI helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── UI helpers ───────────────────────────────────────────────
   const setNodeState = (nodeId, state /* 'active'|'done'|'idle' */) => {
     const n = document.getElementById(nodeId);
     if (!n) return;
     n.classList.remove('active', 'done');
     if (state === 'active') n.classList.add('active');
-    if (state === 'done')   { n.classList.add('done'); n.textContent = 'âœ“'; }
+    if (state === 'done')   { n.classList.add('done'); n.textContent = '✓'; }
   };
   const setConnDone = (id, done) => {
     const c = document.getElementById(id);
@@ -904,7 +1126,7 @@ function initSignupController() {
     if (toEl)   toEl.classList.add('active');
   };
 
-  // â”€â”€ STEP 1: Role selection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── STEP 1: Role selection ───────────────────────────────────
   const roleCards = document.querySelectorAll('.role-card');
   roleCards.forEach(card => {
     card.addEventListener('click', () => {
@@ -936,7 +1158,7 @@ function initSignupController() {
     transition(suStep1, suStep2);
   });
 
-  // â”€â”€ STEP 2: Password toggle + strength â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── STEP 2: Password toggle + strength ───────────────────────
   const suTogglePw = document.getElementById('su-toggle-pw');
   const suPwInput  = document.getElementById('su-password');
   if (suTogglePw && suPwInput) {
@@ -983,7 +1205,7 @@ function initSignupController() {
     hideGlobalError();
   });
 
-  // â”€â”€ STEP 2: Form submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── STEP 2: Form submit ──────────────────────────────────────
   document.getElementById('su-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     hideGlobalError();
@@ -1022,7 +1244,7 @@ function initSignupController() {
     if (!valid) return;
 
     const btn = document.getElementById('su-btn-submit');
-    setLoading(btn, true, 'Creating account…');
+    setLoading(btn, true, 'Checking availability…');
 
     try {
       // Check duplicates
@@ -1031,42 +1253,239 @@ function initSignupController() {
         if (dup.field === 'email') showFieldError('su-err-email', dup.message);
         else showFieldError('su-err-phone', dup.message);
         btn.classList.remove('loading');
-        btn.innerHTML = '<span>Create Account <i class="bi bi-arrow-right-short fs-5"></i></span>';
+        btn.innerHTML = '<span>Send Phone OTP <i class="bi bi-arrow-right-short fs-5"></i></span>';
         return;
       }
 
-      // Complete signup directly without Phone OTP verification
-      const suResult = await AuthEngine.signup(fullName, email, phone, password, selectedRole);
+      // Store data for step 3
+      pendingPhone = phone;
+      sessionStorage.setItem('bb_signup_pending', JSON.stringify({
+        fullName, email, phone, password, role: selectedRole
+      }));
 
-      if (suResult.success) {
-        // Advance to success step
-        setNodeState('su-node-2', 'done');
-        setConnDone('su-conn-2', true);
-        
-        transition(suStep2, suSuccess);
-      } else {
-        throw new Error(suResult.error || 'Signup failed.');
-      }
+      // Send phone OTP
+      setLoading(btn, true, 'Sending OTP to phone…');
+      await AuthEngine.sendOTP(phone, 'phone');
+
+      // Update OTP display
+      const display = document.getElementById('su-otp-phone-display');
+      if (display) display.textContent = AuthEngine.maskPhone(phone);
+
+      // Advance to step 3
+      setNodeState('su-node-2', 'done');
+      setConnDone('su-conn-2', true);
+      setNodeState('su-node-3', 'active');
+      transition(suStep2, suStep3);
+
+      // Wire OTP boxes
+      suBindOTPBoxes();
+      attemptCount = 0;
+      const ac = document.getElementById('su-attempt-count');
+      if (ac) ac.textContent = '0';
+      document.getElementById('su-btn-verify').disabled = false;
+
+      // Start expiry countdown
+      const timerEl = document.getElementById('su-otp-timer');
+      AuthEngine.startExpiryCountdown('su-expiry', {
+        displayEl: timerEl,
+        onExpire: () => {
+          if (timerEl) timerEl.classList.add('urgent');
+          suShowOTPError('OTP expired. Click "Resend OTP" to get a new code.');
+          document.getElementById('su-btn-verify').disabled = true;
+        }
+      });
+
+      // Start resend timer
+      suStartResend(phone);
+      setTimeout(() => document.getElementById('su-d1')?.focus(), 120);
 
     } catch (err) {
       showGlobalError(err.message || 'Something went wrong. Please try again.');
     } finally {
       btn.classList.remove('loading');
-      btn.innerHTML = '<span>Create Account <i class="bi bi-arrow-right-short fs-5"></i></span>';
+      btn.innerHTML = '<span>Send Phone OTP <i class="bi bi-arrow-right-short fs-5"></i></span>';
     }
   });
 
+  // ── STEP 3: OTP helpers ──────────────────────────────────────
+  const suShowOTPError = (msg) => {
+    const el  = document.getElementById('su-otp-error');
+    const txt = document.getElementById('su-otp-error-text');
+    if (el && txt) { txt.textContent = msg; el.classList.add('show'); }
+    for (let i = 1; i <= 6; i++) {
+      const b = document.getElementById(`su-d${i}`);
+      if (b) { b.classList.remove('error'); void b.offsetWidth; b.classList.add('error'); }
+    }
+  };
+  const suHideOTPError = () => {
+    const el = document.getElementById('su-otp-error');
+    if (el) el.classList.remove('show');
+    for (let i = 1; i <= 6; i++) {
+      const b = document.getElementById(`su-d${i}`);
+      if (b) b.classList.remove('error');
+    }
+  };
 
+  function suBindOTPBoxes() {
+    const boxes = [];
+    for (let i = 1; i <= 6; i++) {
+      const b = document.getElementById(`su-d${i}`);
+      if (b) { b.value = ''; b.classList.remove('filled','error','success'); boxes.push(b); }
+    }
+    boxes.forEach((box, idx) => {
+      box.addEventListener('input', (ev) => {
+        const val = ev.target.value.replace(/\D/g, '').slice(-1);
+        box.value = val;
+        box.classList.toggle('filled', !!val);
+        if (val && boxes[idx + 1]) boxes[idx + 1].focus();
+      });
+      box.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Backspace' && !box.value && boxes[idx - 1]) boxes[idx - 1].focus();
+        if (ev.key === 'ArrowLeft'  && boxes[idx - 1]) boxes[idx - 1].focus();
+        if (ev.key === 'ArrowRight' && boxes[idx + 1]) boxes[idx + 1].focus();
+      });
+      box.addEventListener('paste', (ev) => {
+        ev.preventDefault();
+        const pasted = (ev.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+        pasted.split('').forEach((ch, i) => {
+          if (boxes[i]) { boxes[i].value = ch; boxes[i].classList.add('filled'); }
+        });
+        const next = boxes[Math.min(pasted.length, 5)];
+        if (next) next.focus();
+      });
+    });
+  }
 
+  function suGetOTPCode() {
+    let code = '';
+    for (let i = 1; i <= 6; i++) code += (document.getElementById(`su-d${i}`)?.value || '');
+    return code;
+  }
 
-  // â”€â”€ Success: go to dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  function suStartResend(phone) {
+    const btn      = document.getElementById('su-btn-resend');
+    const timerRow = document.getElementById('su-resend-timer');
+    const secEl    = document.getElementById('su-resend-sec');
+
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; }
+    if (timerRow) timerRow.style.display = 'inline';
+    let sec = 30;
+    if (secEl) secEl.textContent = sec;
+
+    const interval = setInterval(() => {
+      sec--;
+      if (secEl) secEl.textContent = sec;
+      if (sec <= 0) {
+        clearInterval(interval);
+        if (timerRow) timerRow.style.display = 'none';
+        if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+      }
+    }, 1000);
+
+    if (btn) {
+      btn.onclick = async () => {
+        clearInterval(interval);
+        try {
+          await AuthEngine.sendOTP(phone, 'phone');
+          suHideOTPError();
+          AuthEngine.stopTimer('su-expiry');
+          const timerEl = document.getElementById('su-otp-timer');
+          if (timerEl) timerEl.classList.remove('urgent');
+          AuthEngine.startExpiryCountdown('su-expiry', {
+            displayEl: timerEl,
+            onExpire: () => {
+              if (timerEl) timerEl.classList.add('urgent');
+              suShowOTPError('OTP expired. Click "Resend OTP" to get a new code.');
+              document.getElementById('su-btn-verify').disabled = true;
+            }
+          });
+          document.getElementById('su-btn-verify').disabled = false;
+          attemptCount = 0;
+          const ac = document.getElementById('su-attempt-count');
+          if (ac) ac.textContent = '0';
+          suStartResend(phone);
+          suBindOTPBoxes();
+          document.getElementById('su-d1')?.focus();
+        } catch { suShowOTPError('Failed to resend. Please try again.'); }
+      };
+    }
+  }
+
+  // Back to step 2
+  document.getElementById('su-btn-back-2')?.addEventListener('click', () => {
+    AuthEngine.stopTimer('su-expiry');
+    AuthEngine.stopTimer('su-resend');
+    suHideOTPError();
+    setNodeState('su-node-3', 'idle');
+    setConnDone('su-conn-2', false);
+    setNodeState('su-node-2', 'active');
+    transition(suStep3, suStep2);
+  });
+
+  // ── STEP 3: Verify OTP ───────────────────────────────────────
+  document.getElementById('su-btn-verify')?.addEventListener('click', async () => {
+    suHideOTPError();
+    const code = suGetOTPCode();
+
+    if (code.length !== 6) {
+      suShowOTPError('Please enter all 6 digits.'); return;
+    }
+
+    const verifyBtn = document.getElementById('su-btn-verify');
+    setLoading(verifyBtn, true, 'Verifying OTP…');
+
+    const result = await AuthEngine.verifyOTP(pendingPhone, 'phone', code);
+
+    if (!result.success) {
+      attemptCount++;
+      const ac = document.getElementById('su-attempt-count');
+      if (ac) ac.textContent = String(attemptCount);
+      suShowOTPError(result.error);
+      verifyBtn.classList.remove('loading');
+      verifyBtn.innerHTML = '<span>Verify &amp; Create Account</span>';
+      if (result.maxAttempts || result.remainingAttempts === 0) {
+        verifyBtn.disabled = true;
+      }
+      return;
+    }
+
+    // OTP verified — create account
+    setLoading(verifyBtn, true, 'Creating your account…');
+
+    try {
+      const pending = JSON.parse(sessionStorage.getItem('bb_signup_pending') || '{}');
+      await AuthEngine.signup(
+        pending.fullName, pending.email, pending.phone, pending.password, pending.role
+      );
+
+      // All boxes green
+      for (let i = 1; i <= 6; i++) {
+        const b = document.getElementById(`su-d${i}`);
+        if (b) { b.classList.remove('error'); b.classList.add('success'); }
+      }
+
+      AuthEngine.stopTimer('su-expiry');
+      AuthEngine.stopTimer('su-resend');
+      sessionStorage.removeItem('bb_signup_pending');
+
+      // Show success step
+      setTimeout(() => { transition(suStep3, suSuccess); }, 400);
+
+    } catch (err) {
+      suShowOTPError(err.message || 'Account creation failed. Please try again.');
+      verifyBtn.classList.remove('loading');
+      verifyBtn.innerHTML = '<span>Verify &amp; Create Account</span>';
+    }
+  });
+
+  // ── Success: go to dashboard ─────────────────────────────────
   document.getElementById('su-btn-go-dashboard')?.addEventListener('click', () => {
     const user = JSON.parse(localStorage.getItem('brainbyte_user') || '{}');
     const role = user.role || 'student';
     window.location.href = (role === 'teach' || role === 'instructor') ? 'teach-verify.html' : 'dashboard.html';
   });
 
-  // â”€â”€ Google OAuth (signup) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Google OAuth (signup) ────────────────────────────────────
   document.getElementById('su-btn-google')?.addEventListener('click', async () => {
     try {
       const client = window.supabaseClient;
@@ -1868,19 +2287,22 @@ function initCourseDetailController() {
   // ================================================================
   const btnEnroll = document.getElementById('btn-enroll-submit');
   if (btnEnroll) {
-    btnEnroll.addEventListener('click', () => {
-      // Check login status first
-      const savedUserStr = localStorage.getItem('brainbyte_user');
-      let isLoggedIn = false;
-      if (savedUserStr) {
-        try {
-          const user = JSON.parse(savedUserStr);
-          if (user && user.isLoggedIn) {
-            isLoggedIn = true;
-          }
-        } catch (e) {}
-      }
+    // Check login status first
+    const savedUserStr = localStorage.getItem('brainbyte_user');
+    let isLoggedIn = false;
+    if (savedUserStr) {
+      try {
+        const user = JSON.parse(savedUserStr);
+        if (user && user.isLoggedIn) {
+          isLoggedIn = true;
+        }
+      } catch (e) {}
+    }
+    if (isLoggedIn) {
+      btnEnroll.textContent = "Start Learning";
+    }
 
+    btnEnroll.addEventListener('click', () => {
       if (!isLoggedIn) {
         // Redirection alert effect
         btnEnroll.disabled = true;
@@ -1896,19 +2318,18 @@ function initCourseDetailController() {
         return;
       }
 
-      const originalEnrollContent = btnEnroll.innerHTML;
       btnEnroll.disabled = true;
       btnEnroll.innerHTML = `<span class="alert-spinner"></span> <span>Enrolling...</span>`;
       
       console.log(`%c[BrainByte Enrollment] Enrolling user inside course: "${title}"`, 'color: #8B5CF6; font-weight: bold;');
       
       setTimeout(() => {
-        btnEnroll.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Success! Opening HUD...</span>`;
+        btnEnroll.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Success! Opening Player...</span>`;
         btnEnroll.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
         btnEnroll.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.4)';
         
         setTimeout(() => {
-          window.location.href = 'dashboard.html';
+          window.location.href = 'course-player.html';
         }, 1200);
       }, 1500);
     });
