@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Manager — Admin Portal</title>
+  <meta name="description" content="Manage paid and free courses for BrainByte members.">
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Premium Theme CSS -->
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=DM+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* Admin specific helper overrides */
+    body {
+      background-color: #030014 !important;
+      overflow-x: hidden;
+    }
+    .glass-input option, select option {
+      background-color: #0d0e1a !important;
+      color: #ffffff !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Aura nebula blobs -->
+  <div class="bg-blob-violet" style="top: -10%; left: -10%; width: 50%; height: 50%; opacity: 0.12;"></div>
+  <div class="bg-blob-teal" style="bottom: -15%; right: -10%; width: 55%; height: 55%; opacity: 0.12;"></div>
+
+  <!-- Centralized Admin Layout Wrapper -->
+  <div class="dashboard-grid-layout">
+    
+    <!-- ==============================================================
+      LEFT PANEL: STICKY FROSTED SIDEBAR NAVIGATION
+    ============================================================== -->
+    <aside class="dashboard-sidebar" id="dashboard-sidebar">
+      <!-- 1. Brand Logo Header -->
+      <div class="sidebar-brand-wrapper">
+        <a href="admin-dashboard.html" class="sidebar-brand-logo">
+          <span class="logo-bracket">&lt;</span>
+          <span class="logo-text">Brain<span class="text-violet">Byte</span></span>
+          <span class="logo-bracket">/&gt;</span>
+        </a>
+        <button type="button" class="btn-close-sidebar" id="btn-close-sidebar-trigger" aria-label="Close menu drawer">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- User Admin Profile Stub -->
+      <div class="sidebar-profile-box mb-4">
+        <div class="d-flex align-items-center gap-3">
+          <div class="sidebar-avatar-circle" style="background: linear-gradient(135deg, #A855F7 0%, #EC4899 100%); font-weight: 800; font-family: var(--font-display);">AD</div>
+          <div>
+            <h6 class="text-white fw-bold m-0" style="font-size: 0.88rem;" id="admin-profile-name">Super Admin</h6>
+            <span class="badge" style="background: rgba(236,72,153,0.12); border: 1px solid rgba(236,72,153,0.25); color: #EC4899; font-size: 0.65rem; font-weight: bold; padding: 0.2rem 0.5rem; border-radius: 50px; margin-top: 3px; display: inline-block;">ADMIN</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Vertical Navigation Menu -->
+      <nav class="sidebar-nav-menu flex-grow-1">
+        <a href="admin-dashboard.html" class="admin-sidebar-nav-link">
+          <i class="bi bi-grid-1x2-fill"></i> Dashboard
+        </a>
+        <a href="admin-verify.html" class="admin-sidebar-nav-link">
+          <i class="bi bi-shield-check"></i> Verifications
+        </a>
+        <a href="admin-library.html" class="admin-sidebar-nav-link">
+          <i class="bi bi-journal-bookmark-fill"></i> Free Library
+        </a>
+        <a href="admin-courses.html" class="admin-sidebar-nav-link active">
+          <i class="bi bi-collection-play-fill"></i> Manage Courses
+        </a>
+        <a href="#" class="admin-sidebar-nav-link" onclick="alert('Admin settings are pre-configured by secure environment variables.');">
+          <i class="bi bi-gear-fill"></i> Settings
+        </a>
+      </nav>
+
+      <!-- 3. Bottom triggers -->
+      <div class="d-flex flex-column gap-2 border-top pt-3" style="border-color: rgba(255,255,255,0.06) !important;">
+        <a href="index.html" class="btn btn-bb-ghost py-2 text-center text-white d-flex align-items-center justify-content-center gap-1.5" style="border-radius: 50px; font-size: 0.78rem; text-decoration: none; font-weight: 600;">
+          <i class="bi bi-arrow-left"></i> Back to Site
+        </a>
+        <a href="admin.html" class="btn btn-bb-ghost py-2 text-center text-danger d-flex align-items-center justify-content-center gap-1.5" id="btn-admin-logout" style="border-radius: 50px; font-size: 0.78rem; text-decoration: none; font-weight: 700; background: transparent; color: #EF4444 !important; border-color: rgba(239, 68, 68, 0.15) !important;">
+          <i class="bi bi-power"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <!-- ==============================================================
+      RIGHT PANEL: MAIN CONTENT VIEWPORT
+    ============================================================== -->
+    <main class="dashboard-main-content py-4.5 px-sm-4 px-3">
+      
+      <!-- TOP STATUS BAR -->
+      <div class="d-flex flex-sm-row flex-column justify-content-between align-items-sm-start gap-3 mb-4">
+        <div>
+          <a href="admin-dashboard.html" class="text-decoration-none text-muted mb-2 d-inline-flex align-items-center gap-1.5" style="font-size: 0.8rem; font-weight: 600; transition: color 0.2s;" onmouseover="this.style.color='#FFFFFF';" onmouseout="this.style.color='#94A3B8';">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+          </a>
+          <h1 class="text-white fw-bold mb-1" style="font-size: 1.8rem; font-family: var(--font-display); letter-spacing: -0.02em;">Course Manager</h1>
+          <p style="color: #94A3B8; font-size: 0.9rem; margin: 0; font-weight: 500;">Manage paid and free courses for members</p>
+        </div>
+        <div class="align-self-sm-center align-self-start">
+          <button type="button" class="btn py-2.5 px-4 text-white d-inline-flex align-items-center justify-content-center gap-2" id="btn-add-course-trigger" style="background: #7C3AED; box-shadow: 0 0 15px rgba(124, 58, 237, 0.35); font-weight: bold; border-radius: 50px; font-size: 0.82rem; border: none; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 0 25px rgba(124, 58, 237, 0.65)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 0 15px rgba(124, 58, 237, 0.35)';">
+            <i class="bi bi-plus-circle-fill"></i> Add New Course
+          </button>
+        </div>
+      </div>
+
+      <!-- SUCCESS TOAST NOTIFICATION -->
+      <div class="toast-notification-panel" id="course-success-toast">
+        <div class="toast-glass-wrapper p-3 d-flex align-items-center gap-3">
+          <div class="toast-icon-circle-success"><i class="bi bi-check-lg"></i></div>
+          <div class="flex-grow-1">
+            <h6 class="text-white fw-bold m-0" style="font-size:0.8rem;">Database Success</h6>
+            <p class="text-muted m-0" style="font-size:0.75rem;" id="toast-message-text">Operation completed successfully.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS ROW (4 cards) -->
+      <div class="row g-3.5 mb-4" id="stats-cards-row">
+        <!-- Total Courses -->
+        <div class="col-xl-3 col-sm-6 col-12">
+          <div class="floating-glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+              <span class="text-muted d-block font-semibold mb-1" style="font-size: 0.78rem;">Total Courses</span>
+              <h4 class="fw-bold m-0 kpi-number-cyan" style="font-size: 1.65rem; font-family: var(--font-display);" id="stats-courses-count">0</h4>
+            </div>
+            <div class="admin-kpi-icon-circle kpi-cyan" style="width:40px; height:40px; font-size:1rem;">
+              <i class="bi bi-collection-play-fill"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paid Courses -->
+        <div class="col-xl-3 col-sm-6 col-12">
+          <div class="floating-glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+              <span class="text-muted d-block font-semibold mb-1" style="font-size: 0.78rem;">Paid Courses</span>
+              <h4 class="fw-bold m-0 kpi-number-purple" style="font-size: 1.65rem; font-family: var(--font-display);" id="stats-paid-count">0</h4>
+            </div>
+            <div class="admin-kpi-icon-circle kpi-purple" style="width:40px; height:40px; font-size:1rem;">
+              <i class="bi bi-credit-card-fill"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Free Courses -->
+        <div class="col-xl-3 col-sm-6 col-12">
+          <div class="floating-glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+              <span class="text-muted d-block font-semibold mb-1" style="font-size: 0.78rem;">Free Courses</span>
+              <h4 class="fw-bold m-0 kpi-number-cyan" style="font-size: 1.65rem; font-family: var(--font-display);" id="stats-free-count">0</h4>
+            </div>
+            <div class="admin-kpi-icon-circle kpi-cyan" style="width:40px; height:40px; font-size:1rem;">
+              <i class="bi bi-gift-fill"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Category -->
+        <div class="col-xl-3 col-sm-6 col-12">
+          <div class="floating-glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+              <span class="text-muted d-block font-semibold mb-1" style="font-size: 0.78rem;">Top Category</span>
+              <h4 class="fw-bold m-0 kpi-number-gold" style="font-size: 1.35rem; font-family: var(--font-display);" id="stats-category-count">Web Dev 🏆</h4>
+            </div>
+            <div class="admin-kpi-icon-circle kpi-amber" style="width:40px; height:40px; font-size:1rem; background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.25); color:#F59E0B;">
+              <i class="bi bi-award-fill"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTER + SEARCH BAR -->
+      <div class="floating-glass-card p-3 mb-4 text-start">
+        <div class="row g-3 align-items-center justify-content-between">
+          <!-- Left Search Input -->
+          <div class="col-lg-4 col-md-5 col-12">
+            <div class="validation-input-container">
+              <span style="position: absolute; left: 14px; top: 12px; color: #94A3B8; font-size: 1.1rem;"><i class="bi bi-search"></i></span>
+              <input type="text" class="glass-input ps-5" id="courses-search-input" placeholder="Search courses by title or instructor...">
+            </div>
+          </div>
+
+          <!-- Middle Type filter tabs -->
+          <div class="col-lg-5 col-md-4 col-12 d-flex justify-content-md-center justify-content-start overflow-x-auto">
+            <div class="admin-filter-tabs pb-1">
+              <button class="admin-filter-tab-cyan active" data-category-filter="all" id="btn-filter-all">
+                All <span class="badge" style="background: rgba(255,255,255,0.08); color: white;" id="badge-count-all">0</span>
+              </button>
+              <button class="admin-filter-tab-cyan" data-category-filter="web-dev" id="btn-filter-web-dev">
+                Web Dev <span class="badge text-white" style="background: rgba(6,182,212,0.15);" id="badge-count-web-dev">0</span>
+              </button>
+              <button class="admin-filter-tab-cyan" data-category-filter="design" id="btn-filter-design">
+                Design <span class="badge text-white" style="background: rgba(168,85,247,0.15);" id="badge-count-design">0</span>
+              </button>
+              <button class="admin-filter-tab-cyan" data-category-filter="ai-ml" id="btn-filter-ai">
+                AI & ML <span class="badge text-white" style="background: rgba(236,72,153,0.15);" id="badge-count-ai">0</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right Status select filter -->
+          <div class="col-lg-3 col-md-3 col-12">
+            <select class="glass-input" id="courses-status-select" style="background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); font-size: 0.8rem; font-weight: 600;">
+              <option value="all">All Statuses</option>
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- COURSES TABLE (glass card) -->
+      <div class="floating-glass-card p-0 mb-4 overflow-hidden" id="table-container-card">
+        <div class="table-responsive">
+          <table class="table text-start m-0 align-middle" style="background: transparent;">
+            <thead>
+              <tr style="border-bottom: 2px solid rgba(255, 255, 255, 0.08); background: rgba(255,255,255,0.01);">
+                <th class="py-3 px-3 text-center" style="width: 50px; border-bottom: none;">
+                  <input type="checkbox" class="admin-table-checkbox" id="bulk-toggle-select-all" aria-label="Select all rows">
+                </th>
+                <th class="py-3 px-2 text-white font-semibold" style="font-size: 0.82rem; border-bottom: none;">Course Title</th>
+                <th class="py-3 px-2 text-white font-semibold text-center" style="font-size: 0.82rem; border-bottom: none; width: 110px;">Level</th>
+                <th class="py-3 px-2 text-white font-semibold text-center" style="font-size: 0.82rem; border-bottom: none; width: 120px;">Category</th>
+                <th class="py-3 px-2 text-white font-semibold text-center" style="font-size: 0.82rem; border-bottom: none; width: 110px;">Price</th>
+                <th class="py-3 px-2 text-white font-semibold text-center" style="font-size: 0.82rem; border-bottom: none; width: 120px;">Status</th>
+                <th class="py-3 px-3 text-white font-semibold text-center" style="font-size: 0.82rem; border-bottom: none; width: 160px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-courses-tbody">
+              <!-- Dynamically rendered course row rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- EMPTY STATE LAYOUT (hidden by default) -->
+      <div class="floating-glass-card py-5 px-4 text-center d-none" id="courses-empty-state">
+        <div class="mx-auto mb-4 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(124, 88, 237, 0.1); border: 1px solid rgba(124, 88, 237, 0.2); color: #7C3AED; font-size: 2.2rem; box-shadow: 0 0 20px rgba(124, 88, 237, 0.2);">
+          <i class="bi bi-collection-play-fill"></i>
+        </div>
+        <h3 class="text-white fw-bold mb-2" style="font-family: var(--font-display); font-size: 1.3rem;">No courses yet</h3>
+        <p style="color: #94A3B8; font-size: 0.88rem; max-width: 320px;" class="mx-auto mb-4">Create your first paid or free developer training course for members!</p>
+        <button type="button" class="btn py-2.5 px-4 text-white d-inline-flex align-items-center justify-content-center gap-2" id="btn-empty-add-course" style="background: #7C3AED; box-shadow: 0 0 15px rgba(124, 58, 237, 0.35); font-weight: bold; border-radius: 50px; font-size: 0.82rem; border: none; transition: all 0.3s ease;">
+          <i class="bi bi-plus-circle-fill"></i> Add Course
+        </button>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ================================================================
+    BULK ACTIONS FLOATING BAR (Hidden by default)
+  ================================================================ -->
+  <div class="bulk-actions-bar" id="courses-bulk-bar">
+    <div style="font-size: 0.82rem; font-weight: 700; color: #FFFFFF; font-family: var(--font-display);">
+      <i class="bi bi-check2-square text-cyan me-1.5" style="color:#06B6D4;"></i> <span id="bulk-count-label">0 selected</span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-bb-ghost py-1.5 px-3 border-0 text-white" style="font-size:0.75rem; border-radius:50px; background:rgba(255,255,255,0.04);" id="btn-bulk-publish">Publish Selected</button>
+      <button class="btn btn-bb-ghost py-1.5 px-3 border-0 text-white" style="font-size:0.75rem; border-radius:50px; background:rgba(255,255,255,0.04);" id="btn-bulk-draft">Move to Draft</button>
+      <button class="btn py-1.5 px-3 border-0 text-white" style="font-size:0.75rem; border-radius:50px; background:#EF4444; font-weight:bold;" id="btn-bulk-delete">Delete Selected</button>
+    </div>
+  </div>
+
+  <!-- ================================================================
+    MODAL 1: ADD COURSE OVERLAY MODAL
+  ================================================================ -->
+  <div class="modal-glass-overlay" id="add-modal-overlay"></div>
+  <div class="modal-glass-card p-4 text-start" id="add-modal-card" style="max-width: 600px;">
+    <div class="d-flex align-items-center justify-content-between pb-3 border-bottom mb-4" style="border-color: rgba(255,255,255,0.08) !important;">
+      <h3 class="text-white fw-bold m-0" style="font-size: 1.15rem; font-family: var(--font-display);"><i class="bi bi-plus-circle text-violet me-2" style="color:#A855F7;"></i>Add New Course</h3>
+      <button type="button" class="btn-close-modal-x btn-modal-close" aria-label="Close modal"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <form id="add-course-form" class="d-flex flex-column gap-3.5">
+      <!-- Title -->
+      <div>
+        <label class="glass-input-label">Course Title *</label>
+        <input type="text" class="glass-input" id="add-input-title" placeholder="e.g. React Native & Redux Toolkit: Production Guide" required>
+        <span class="d-none mt-1 text-danger font-semibold" style="font-size:0.75rem;" id="add-title-error">Course title is required.</span>
+      </div>
+
+      <div class="row g-3">
+        <!-- Instructor -->
+        <div class="col-md-6 col-12">
+          <label class="glass-input-label">Instructor Name *</label>
+          <input type="text" class="glass-input" id="add-input-instructor" placeholder="e.g. Sarah Jenkins" required>
+        </div>
+        <!-- Initials -->
+        <div class="col-md-6 col-12">
+          <label class="glass-input-label">Instructor Initials *</label>
+          <input type="text" class="glass-input" id="add-input-initials" placeholder="e.g. SJ" maxlength="3" required>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <!-- Category -->
+        <div class="col-md-6 col-12">
+          <label class="glass-input-label">Category *</label>
+          <select class="glass-input" id="add-select-category" required>
+            <option value="web-dev">Web Dev</option>
+            <option value="design">Design</option>
+            <option value="ai-ml">AI & ML</option>
+            <option value="mobile">Mobile Dev</option>
+            <option value="data-science">Data Science</option>
+          </select>
+        </div>
+
+        <!-- Level -->
+        <div class="col-md-6 col-12">
+          <label class="glass-input-label">Difficulty Level *</label>
+          <select class="glass-input" id="add-select-level" required>
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <!-- Price -->
+        <div class="col-md-6 col-12">
+          <label class="glass-input-label">Sales Price (₹) *</label>
+          <input type="number" class="glass-input" id="add-input-price" value="499" placeholder="e.g. 499" required>
+        </div>
+
+        <!-- Status -->
+        <div class="col-md-6 col-12">
+          <label class="glass-input-label">Publication Status *</label>
+          <select class="glass-input" id="add-select-status" required>
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Is Free Checkbox -->
+      <div class="d-flex align-items-center gap-2">
+        <input type="checkbox" id="add-check-free" class="glass-checkbox" style="width:18px; height:18px; cursor:pointer;">
+        <label for="add-check-free" class="text-white font-semibold m-0" style="font-size:0.82rem; cursor:pointer;">Make this course completely free for students</label>
+      </div>
+
+      <div class="d-flex align-items-center justify-content-end gap-2.5 pt-3 mt-2 border-top" style="border-color: rgba(255,255,255,0.08) !important;">
+        <button type="button" class="btn btn-bb-ghost py-2.5 px-4 btn-modal-close" style="font-size: 0.8rem; border-radius:50px;">Cancel</button>
+        <button type="submit" class="btn py-2.5 px-4 text-white" id="btn-add-save" style="background:#7C3AED; font-weight:bold; border-radius:50px; font-size:0.8rem; border:none; box-shadow:0 0 15px rgba(124,58,237,0.35);">Add Course</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ================================================================
+    MODAL 2: EDIT COURSE OVERLAY MODAL
+  ================================================================ -->
+  <div class="modal-glass-overlay" id="edit-modal-overlay"></div>
+  <div class="modal-glass-card p-4 text-start" id="edit-modal-card" style="max-width: 600px;">
+    <div class="d-flex align-items-center justify-content-between pb-3 border-bottom mb-4" style="border-color: rgba(255,255,255,0.08) !important;">
+      <h3 class="text-white fw-bold m-0" style="font-size: 1.15rem; font-family: var(--font-display);"><i class="bi bi-pencil-square text-purple me-2" style="color:#A855F7;"></i>Edit Course Details</h3>
+      <button type="button" class="btn-close-modal-x btn-edit-close" aria-label="Close modal"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <div class="d-flex flex-column gap-3.5">
+      <!-- Title -->
+      <div>
+        <label class="glass-input-label">Course Title *</label>
+        <input type="text" class="glass-input" id="edit-input-title" placeholder="e.g. Next.js 14 App Router Blueprint" required>
+        <span class="d-none mt-1 text-danger font-semibold" style="font-size:0.75rem;" id="edit-title-error">Course title is required.</span>
+      </div>
+
+      <div class="row g-3">
+        <!-- Instructor -->
+        <div class="col-md-6 col-12">
+          <label class="glass-input-label">Instructor Name *</label>
+          <input type="text" class="glass-input" id="edit-input-instructor" placeholder="e.g. Sarah Jenkins" required>
+        </div>
+        <!-- Initials -->
+        <div class="col-md-6 col-12">
+          <label class="glass-input-label">Instructor Initials *</label>
+          <input type="text" class="glass-input" id="edit-input-initials" placeholder="e.g. SJ" maxlength="3" required>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <!-- Category -->
+        <div class="col-md-6 col-12">
+          <label class="glass-input-label">Category *</label>
+          <select class="glass-input" id="edit-select-category" required>
+            <option value="web-dev">Web Dev</option>
+            <option value="design">Design</option>
+            <option value="ai-ml">AI & ML</option>
+            <option value="mobile">Mobile Dev</option>
+            <option value="data-science">Data Science</option>
+          </select>
+        </div>
+
+        <!-- Level -->
+        <div class="col-md-6 col-12">
+          <label class="glass-input-label">Difficulty Level *</label>
+          <select class="glass-input" id="edit-select-level" required>
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <!-- Price -->
+        <div class="col-md-6 col-12">
+          <label class="glass-input-label">Sales Price (₹) *</label>
+          <input type="number" class="glass-input" id="edit-input-price" placeholder="e.g. 499" required>
+        </div>
+
+        <!-- Status -->
+        <div class="col-md-6 col-12">
+          <label class="glass-input-label">Publication Status *</label>
+          <select class="glass-input" id="edit-select-status" required>
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Is Free Checkbox -->
+      <div class="d-flex align-items-center gap-2">
+        <input type="checkbox" id="edit-check-free" class="glass-checkbox" style="width:18px; height:18px; cursor:pointer;">
+        <label for="edit-check-free" class="text-white font-semibold m-0" style="font-size:0.82rem; cursor:pointer;">Make this course completely free for students</label>
+      </div>
+
+      <div class="d-flex align-items-center justify-content-end gap-2.5 pt-3 mt-2 border-top" style="border-color: rgba(255,255,255,0.08) !important;">
+        <button type="button" class="btn btn-bb-ghost py-2.5 px-4 btn-edit-close" style="font-size: 0.8rem; border-radius:50px;">Cancel</button>
+        <button type="button" class="btn py-2.5 px-4 text-white" id="btn-edit-save" style="background:#7C3AED; font-weight:bold; border-radius:50px; font-size:0.8rem; border:none; box-shadow:0 0 15px rgba(124,58,237,0.35);">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Central Configurations scripts dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/main.js"></script>
+
+  <!-- State Controllers & Operation Scripts -->
+  <script>
+    // 1. Load custom courses from localStorage or default lists
+    let courses = JSON.parse(localStorage.getItem('bb_custom_courses')) || [];
+
+    let activeCourse = null;
+    let selectedCategoryFilter = 'all';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Load from global coursesData initialized in main.js
+      if (typeof coursesData !== 'undefined' && courses.length === 0) {
+        courses = coursesData;
+      }
+
+      // ── SIDEBAR DRAWER INTERACTIVITY ──
+      const sidebar = document.getElementById('dashboard-sidebar');
+      const toggleBtn = document.getElementById('btn-mobile-sidebar-toggle');
+      const closeBtn = document.getElementById('btn-close-sidebar-trigger');
+
+      if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => sidebar.classList.add('mobile-open'));
+      }
+      if (closeBtn && sidebar) {
+        closeBtn.addEventListener('click', () => sidebar.classList.remove('mobile-open'));
+      }
+
+      // Close sidebar if clicking outside of it on mobile
+      document.addEventListener('click', (e) => {
+        if (sidebar && sidebar.classList.contains('mobile-open')) {
+          if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+            sidebar.classList.remove('mobile-open');
+          }
+        }
+      });
+
+      // ── LOGOUT SPINNER EFFECT ──
+      const logoutBtn = document.getElementById('btn-admin-logout');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          logoutBtn.disabled = true;
+          logoutBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 0.4rem;"></span> <span>Exiting...</span>`;
+          setTimeout(() => {
+            localStorage.removeItem('bb_admin_session');
+            window.location.href = 'admin.html';
+          }, 1200);
+        });
+      }
+
+      // ── SYSTEM COMPONENT BINDINGS ──
+      const tbody = document.getElementById('admin-courses-tbody');
+      const searchInput = document.getElementById('courses-search-input');
+      const categoryTabs = document.querySelectorAll('[data-category-filter]');
+      const statusSelect = document.getElementById('courses-status-select');
+      const bulkSelectAll = document.getElementById('bulk-toggle-select-all');
+
+      // Empty State elements
+      const tableContainerCard = document.getElementById('table-container-card');
+      const emptyState = document.getElementById('courses-empty-state');
+      const btnEmptyAddCourse = document.getElementById('btn-empty-add-course');
+
+      // Add Modal elements
+      const addOverlay = document.getElementById('add-modal-overlay');
+      const addCard = document.getElementById('add-modal-card');
+      const btnAddTrigger = document.getElementById('btn-add-course-trigger');
+      const addForm = document.getElementById('add-course-form');
+      const addTitleInput = document.getElementById('add-input-title');
+      const addInstructorInput = document.getElementById('add-input-instructor');
+      const addInitialsInput = document.getElementById('add-input-initials');
+      const addCategorySelect = document.getElementById('add-select-category');
+      const addLevelSelect = document.getElementById('add-select-level');
+      const addPriceInput = document.getElementById('add-input-price');
+      const addStatusSelect = document.getElementById('add-select-status');
+      const addFreeCheck = document.getElementById('add-check-free');
+
+      // Edit Modal elements
+      const editOverlay = document.getElementById('edit-modal-overlay');
+      const editCard = document.getElementById('edit-modal-card');
+      const editTitleInput = document.getElementById('edit-input-title');
+      const editInstructorInput = document.getElementById('edit-input-instructor');
+      const editInitialsInput = document.getElementById('edit-input-initials');
+      const editCategorySelect = document.getElementById('edit-select-category');
+      const editLevelSelect = document.getElementById('edit-select-level');
+      const editPriceInput = document.getElementById('edit-input-price');
+      const editStatusSelect = document.getElementById('edit-select-status');
+      const editFreeCheck = document.getElementById('edit-check-free');
+      const btnEditSave = document.getElementById('btn-edit-save');
+
+      // Save helper
+      async function saveToLocalStorage() {
+        localStorage.setItem('bb_custom_courses', JSON.stringify(courses));
+        if (typeof coursesData !== 'undefined') {
+          coursesData.length = 0;
+          courses.forEach(c => coursesData.push(c));
+        }
+
+        // Try syncing with Supabase in background
+        if (window.supabaseClient) {
+          try {
+            await window.supabaseClient
+              .from('courses')
+              .upsert(courses);
+          } catch (err) {
+            console.warn("[Supabase Sync] Database sync unavailable:", err);
+          }
+        }
+      }
+
+      // Toast helper
+      function showToast(msg) {
+        const toast = document.getElementById('course-success-toast');
+        const txt = document.getElementById('toast-message-text');
+        if (toast && txt) {
+          txt.innerText = msg;
+          toast.classList.add('active');
+          setTimeout(() => toast.classList.remove('active'), 3000);
+        }
+      }
+
+      // Add Modal Show/Hide
+      function openAddModal() {
+        addOverlay.classList.add('active');
+        addCard.classList.add('active');
+        addForm.reset();
+      }
+      function closeAddModal() {
+        addOverlay.classList.remove('active');
+        addCard.classList.remove('active');
+      }
+
+      if (btnAddTrigger) btnAddTrigger.addEventListener('click', openAddModal);
+      if (btnEmptyAddCourse) btnEmptyAddCourse.addEventListener('click', openAddModal);
+      
+      document.querySelectorAll('.btn-modal-close').forEach(btn => {
+        btn.addEventListener('click', closeAddModal);
+      });
+      if (addOverlay) addOverlay.addEventListener('click', closeAddModal);
+
+      // Handle Add Free Checkbox
+      if (addFreeCheck && addPriceInput) {
+        addFreeCheck.addEventListener('change', () => {
+          if (addFreeCheck.checked) {
+            addPriceInput.value = 0;
+            addPriceInput.disabled = true;
+          } else {
+            addPriceInput.value = 499;
+            addPriceInput.disabled = false;
+          }
+        });
+      }
+
+      // Edit Modal Show/Hide
+      function openEditModal(item) {
+        editTitleInput.value = item.title;
+        editInstructorInput.value = item.instructor;
+        editInitialsInput.value = item.initials || '';
+        editCategorySelect.value = item.category;
+        editLevelSelect.value = item.level;
+        editPriceInput.value = item.price;
+        editStatusSelect.value = item.status || 'published';
+        editFreeCheck.checked = item.price === 0;
+        editPriceInput.disabled = item.price === 0;
+
+        editOverlay.classList.add('active');
+        editCard.classList.add('active');
+      }
+
+      function closeEditModal() {
+        editOverlay.classList.remove('active');
+        editCard.classList.remove('active');
+        activeCourse = null;
+      }
+
+      document.querySelectorAll('.btn-edit-close').forEach(btn => {
+        btn.addEventListener('click', closeEditModal);
+      });
+      if (editOverlay) editOverlay.addEventListener('click', closeEditModal);
+
+      // Handle Edit Free Checkbox
+      if (editFreeCheck && editPriceInput) {
+        editFreeCheck.addEventListener('change', () => {
+          if (editFreeCheck.checked) {
+            editPriceInput.value = 0;
+            editPriceInput.disabled = true;
+          } else {
+            editPriceInput.value = 499;
+            editPriceInput.disabled = false;
+          }
+        });
+      }
+
+      // Add Course Form Submit
+      if (addForm) {
+        addForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const title = addTitleInput.value.trim();
+          const instructor = addInstructorInput.value.trim();
+          const initials = addInitialsInput.value.trim().toUpperCase();
+          const category = addCategorySelect.value;
+          const level = addLevelSelect.value;
+          const price = addFreeCheck.checked ? 0 : parseFloat(addPriceInput.value) || 0;
+          const status = addStatusSelect.value;
+
+          const gradients = [
+            "linear-gradient(135deg, #667eea, #764ba2)",
+            "linear-gradient(135deg, #f093fb, #f5576c)",
+            "linear-gradient(135deg, #fa709a, #fee140)",
+            "linear-gradient(135deg, #43e97b, #38f9d7)",
+            "linear-gradient(135deg, #0c1a2e, #0a2540)",
+            "linear-gradient(135deg, #8B5CF6, #EC4899)"
+          ];
+          const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
+
+          const categoryLabels = {
+            'web-dev': 'Web Dev',
+            'design': 'Design',
+            'ai-ml': 'AI & ML',
+            'mobile': 'Mobile Dev',
+            'data-science': 'Data Science'
+          };
+
+          const newCourse = {
+            id: courses.length + 1,
+            title,
+            instructor,
+            initials,
+            verified: true,
+            category,
+            categoryLabel: categoryLabels[category] || 'Web Dev',
+            rating: 5.0,
+            ratingCount: 1,
+            enrolled: 0,
+            price,
+            level,
+            gradient: randomGradient,
+            newest: true,
+            popular: 0,
+            status: status
+          };
+
+          courses.push(newCourse);
+          await saveToLocalStorage();
+          closeAddModal();
+          renderTable();
+          updateMetrics();
+          showToast(`Course "${title.slice(0, 25)}..." added successfully! 🚀`);
+        });
+      }
+
+      // Save Edited Course Click
+      if (btnEditSave) {
+        btnEditSave.addEventListener('click', async () => {
+          if (!activeCourse) return;
+
+          const title = editTitleInput.value.trim();
+          const instructor = editInstructorInput.value.trim();
+          const initials = editInitialsInput.value.trim().toUpperCase();
+          const category = editCategorySelect.value;
+          const level = editLevelSelect.value;
+          const price = editFreeCheck.checked ? 0 : parseFloat(editPriceInput.value) || 0;
+          const status = editStatusSelect.value;
+
+          if (title === '' || instructor === '' || initials === '') {
+            alert('All fields marked * are required.');
+            return;
+          }
+
+          const categoryLabels = {
+            'web-dev': 'Web Dev',
+            'design': 'Design',
+            'ai-ml': 'AI & ML',
+            'mobile': 'Mobile Dev',
+            'data-science': 'Data Science'
+          };
+
+          activeCourse.title = title;
+          activeCourse.instructor = instructor;
+          activeCourse.initials = initials;
+          activeCourse.category = category;
+          activeCourse.categoryLabel = categoryLabels[category] || 'Web Dev';
+          activeCourse.level = level;
+          activeCourse.price = price;
+          activeCourse.status = status;
+
+          await saveToLocalStorage();
+          closeEditModal();
+          renderTable();
+          updateMetrics();
+          showToast(`Course properties updated successfully! 💾`);
+        });
+      }
+
+      // ── COURSES TABLE RENDER ENGINE ──
+      function renderTable() {
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        const searchQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        const statusFilter = statusSelect ? statusSelect.value : 'all';
+
+        // Filter courses
+        const filtered = courses.filter(item => {
+          const matchesSearch = item.title.toLowerCase().includes(searchQuery) || item.instructor.toLowerCase().includes(searchQuery);
+
+          let matchesCategory = true;
+          if (selectedCategoryFilter !== 'all') {
+            matchesCategory = item.category === selectedCategoryFilter;
+          }
+
+          let matchesStatus = true;
+          if (statusFilter !== 'all') {
+            matchesStatus = (item.status || 'published') === statusFilter;
+          }
+
+          return matchesSearch && matchesCategory && matchesStatus;
+        });
+
+        // Toggle Empty state panels
+        if (courses.length === 0) {
+          if (tableContainerCard) tableContainerCard.classList.add('d-none');
+          if (emptyState) emptyState.classList.remove('d-none');
+          return;
+        } else {
+          if (tableContainerCard) tableContainerCard.classList.remove('d-none');
+          if (emptyState) emptyState.classList.add('d-none');
+        }
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="text-center text-muted py-5 font-semibold" style="font-size:0.88rem;">
+                <i class="bi bi-inbox-fill fs-2 mb-2 d-block text-cyan" style="color:#06B6D4;"></i> No courses match your query
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        filtered.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.className = 'admin-verify-table-row';
+          tr.id = `row-${item.id}`;
+
+          // Thumbnail placeholder
+          const initials = item.initials || item.instructor.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+          const thumbnailHtml = `
+            <div class="resource-thumbnail-box" style="background: ${item.gradient || 'linear-gradient(135deg, #8B5CF6, #EC4899)'}; font-weight: bold; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-family: var(--font-display);">
+              ${initials}
+            </div>
+          `;
+
+          // Level Badge
+          let levelColor = '#06B6D4';
+          if (item.level === 'advanced') levelColor = '#EF4444';
+          else if (item.level === 'intermediate') levelColor = '#A855F7';
+          const levelBadgeHtml = `<span class="badge" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: ${levelColor}; font-weight: bold; font-size: 0.72rem; font-family: var(--font-display); padding: 0.35rem 0.75rem; border-radius: 50px;">${item.level ? item.level.toUpperCase() : 'BEGINNER'}</span>`;
+
+          // Category Badge
+          const categoryHtml = `<span class="badge" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: white; font-size: 0.72rem; font-weight: 600; padding: 0.35rem 0.7rem; border-radius: 50px;">${item.categoryLabel || item.category}</span>`;
+
+          // Price Tag
+          const priceHtml = item.price === 0 
+            ? `<span class="text-success font-semibold" style="font-size:0.8rem; font-family: var(--font-display);">FREE</span>`
+            : `<span class="text-white font-semibold" style="font-size:0.8rem; font-family: var(--font-display);">₹${item.price}</span>`;
+
+          // Status Badges
+          let statusBadgeClass = 'badge-pending'; // Draft
+          let statusLabel = 'Draft';
+          const itemStatus = item.status || 'published';
+          if (itemStatus === 'published') {
+            statusBadgeClass = 'badge-approved'; // Published
+            statusLabel = 'Published';
+          }
+
+          const switchChecked = itemStatus === 'published' ? 'checked' : '';
+
+          tr.innerHTML = `
+            <td class="py-3 px-3 text-center">
+              <input type="checkbox" class="admin-table-checkbox row-select-checkbox" data-id="${item.id}">
+            </td>
+            <td class="py-3 px-2">
+              <div class="d-flex align-items-center gap-3">
+                ${thumbnailHtml}
+                <div class="flex-grow-1 min-width-0">
+                  <span class="text-white d-block" style="font-size: 14px; font-weight: 500; line-height: 1.35; max-width: 280px; word-break: break-word;">${item.title}</span>
+                  <span class="text-muted d-block mt-1" style="font-size: 0.76rem; font-weight: 500;">By ${item.instructor}</span>
+                </div>
+              </div>
+            </td>
+            <td class="py-3 px-2 text-center">${levelBadgeHtml}</td>
+            <td class="py-3 px-2 text-center">${categoryHtml}</td>
+            <td class="py-3 px-2 text-center">${priceHtml}</td>
+            <td class="py-3 px-2 text-center">
+              <span class="admin-verify-badge ${statusBadgeClass}" id="badge-${item.id}">${statusLabel}</span>
+            </td>
+            <td class="py-3 px-3 text-center">
+              <div class="d-flex align-items-center justify-content-center gap-1.5">
+                <!-- Toggle switch publish -->
+                <label class="glass-switch-container me-1" title="Toggle publication status">
+                  <input type="checkbox" class="glass-switch-input toggle-publish-switch" data-id="${item.id}" ${switchChecked}>
+                  <div class="glass-switch-track">
+                    <div class="glass-switch-thumb"></div>
+                  </div>
+                </label>
+
+                <!-- Edit trigger -->
+                <button type="button" class="btn btn-bb-ghost p-1.5 btn-edit-trigger text-purple border-0" style="background: transparent; color:#A855F7 !important;" data-id="${item.id}" title="Edit Course">
+                  <i class="bi bi-pencil-fill"></i>
+                </button>
+
+                <!-- Delete trigger -->
+                <button type="button" class="btn btn-bb-ghost p-1.5 btn-delete-trigger text-danger border-0" style="background: transparent; color:#EF4444 !important;" data-id="${item.id}" title="Delete Course">
+                  <i class="bi bi-trash-fill"></i>
+                </button>
+              </div>
+            </td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+
+        attachRowEvents();
+        syncBulkActionsBar();
+      }
+
+      // ── SYNC COUNTS & KPI METRICS ──
+      function updateMetrics() {
+        const counts = {
+          all: courses.length,
+          webDev: courses.filter(i => i.category === 'web-dev').length,
+          design: courses.filter(i => i.category === 'design').length,
+          ai: courses.filter(i => i.category === 'ai-ml').length,
+          free: courses.filter(i => i.price === 0).length,
+          paid: courses.filter(i => i.price > 0).length
+        };
+
+        const badgeAll = document.getElementById('badge-count-all');
+        const badgeWebDev = document.getElementById('badge-count-web-dev');
+        const badgeDesign = document.getElementById('badge-count-design');
+        const badgeAi = document.getElementById('badge-count-ai');
+
+        if (badgeAll) badgeAll.innerText = counts.all;
+        if (badgeWebDev) badgeWebDev.innerText = counts.webDev;
+        if (badgeDesign) badgeDesign.innerText = counts.design;
+        if (badgeAi) badgeAi.innerText = counts.ai;
+
+        // KPI card aggregates
+        const statsCourses = document.getElementById('stats-courses-count');
+        const statsPaid = document.getElementById('stats-paid-count');
+        const statsFree = document.getElementById('stats-free-count');
+        const statsCategory = document.getElementById('stats-category-count');
+
+        if (statsCourses) statsCourses.innerText = courses.length;
+        if (statsPaid) statsPaid.innerText = counts.paid;
+        if (statsFree) statsFree.innerText = counts.free;
+
+        let categoryCounts = {};
+        courses.forEach(item => {
+          const cat = item.categoryLabel || item.category;
+          categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+        });
+
+        let topCat = 'Web Dev';
+        let topVal = 0;
+        for (let key in categoryCounts) {
+          if (categoryCounts[key] > topVal) {
+            topVal = categoryCounts[key];
+            topCat = key;
+          }
+        }
+
+        if (statsCategory) statsCategory.innerHTML = `${topCat} 🏆`;
+      }
+
+      // ── BULK ACTIONS CONTROLLER ──
+      const bulkBar = document.getElementById('courses-bulk-bar');
+      const bulkCountLabel = document.getElementById('bulk-count-label');
+
+      function syncBulkActionsBar() {
+        if (!bulkSelectAll || !tbody) return;
+        const checkboxes = tbody.querySelectorAll('.row-select-checkbox');
+        const checked = tbody.querySelectorAll('.row-select-checkbox:checked');
+
+        if (checkboxes.length > 0 && checked.length === checkboxes.length) {
+          bulkSelectAll.checked = true;
+          bulkSelectAll.indeterminate = false;
+        } else if (checked.length > 0) {
+          bulkSelectAll.checked = false;
+          bulkSelectAll.indeterminate = true;
+        } else {
+          bulkSelectAll.checked = false;
+          bulkSelectAll.indeterminate = false;
+        }
+
+        if (bulkBar && bulkCountLabel) {
+          if (checked.length > 0) {
+            bulkCountLabel.innerText = `${checked.length} selected`;
+            bulkBar.classList.add('active');
+          } else {
+            bulkBar.classList.remove('active');
+          }
+        }
+      }
+
+      if (bulkSelectAll) {
+        bulkSelectAll.addEventListener('change', () => {
+          if (!tbody) return;
+          const checkboxes = tbody.querySelectorAll('.row-select-checkbox');
+          checkboxes.forEach(cb => cb.checked = bulkSelectAll.checked);
+          syncBulkActionsBar();
+        });
+      }
+
+      // ── DYNAMIC TABLE ACTION ROW EVENTS ──
+      function attachRowEvents() {
+        if (!tbody) return;
+
+        // Checkbox changes
+        tbody.querySelectorAll('.row-select-checkbox').forEach(cb => {
+          cb.addEventListener('change', syncBulkActionsBar);
+        });
+
+        // Inline switch toggles
+        tbody.querySelectorAll('.toggle-publish-switch').forEach(toggle => {
+          toggle.addEventListener('change', async (e) => {
+            const id = parseInt(toggle.getAttribute('data-id'));
+            const item = courses.find(r => r.id === id);
+            if (!item) return;
+
+            const badge = document.getElementById(`badge-${item.id}`);
+            if (toggle.checked) {
+              item.status = 'published';
+              if (badge) {
+                badge.className = 'admin-verify-badge badge-approved';
+                badge.innerText = 'Published';
+              }
+              console.log(`%c[BrainByte Courses] Published: ID=${item.id}`, "color:#06B6D4; font-weight:bold;");
+            } else {
+              item.status = 'draft';
+              if (badge) {
+                badge.className = 'admin-verify-badge badge-pending';
+                badge.innerText = 'Draft';
+              }
+              console.log(`%c[BrainByte Courses] Draft: ID=${item.id}`, "color:#EF4444; font-weight:bold;");
+            }
+            await saveToLocalStorage();
+            updateMetrics();
+          });
+        });
+
+        // Edit trigger
+        tbody.querySelectorAll('.btn-edit-trigger').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = parseInt(btn.getAttribute('data-id'));
+            const item = courses.find(r => r.id === id);
+            if (!item) return;
+
+            activeCourse = item;
+            openEditModal(item);
+          });
+        });
+
+        // Delete trigger
+        tbody.querySelectorAll('.btn-delete-trigger').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const id = parseInt(btn.getAttribute('data-id'));
+            const item = courses.find(r => r.id === id);
+            if (!item) return;
+
+            const confirmDel = confirm(`Are you sure you want to permanently delete this course?\n\n"${item.title}"`);
+            if (confirmDel) {
+              courses = courses.filter(r => r.id !== id);
+              console.log(`%c[BrainByte Courses] Deleted: ID=${id}`, "color:#EF4444; font-weight:bold;");
+              await saveToLocalStorage();
+              if (window.supabaseClient) {
+                try {
+                  await window.supabaseClient.from('courses').delete().eq('id', id);
+                } catch (e) {}
+              }
+              renderTable();
+              updateMetrics();
+              showToast("Course deleted permanently.");
+            }
+          });
+        });
+      }
+
+      // ── BULK OPERATIONS COMMAND HANDLERS ──
+      const btnBulkPublish = document.getElementById('btn-bulk-publish');
+      const btnBulkDraft = document.getElementById('btn-bulk-draft');
+      const btnBulkDelete = document.getElementById('btn-bulk-delete');
+
+      if (btnBulkPublish) {
+        btnBulkPublish.addEventListener('click', () => {
+          if (!tbody) return;
+          const checked = tbody.querySelectorAll('.row-select-checkbox:checked');
+          if (checked.length === 0) return;
+
+          btnBulkPublish.disabled = true;
+          btnBulkPublish.innerText = 'Publishing...';
+
+          setTimeout(async () => {
+            checked.forEach(cb => {
+              const id = parseInt(cb.getAttribute('data-id'));
+              const item = courses.find(r => r.id === id);
+              if (item && item.status !== 'published') {
+                item.status = 'published';
+              }
+            });
+
+            btnBulkPublish.disabled = false;
+            btnBulkPublish.innerText = 'Publish Selected';
+            bulkSelectAll.checked = false;
+
+            await saveToLocalStorage();
+            renderTable();
+            updateMetrics();
+            showToast(`${checked.length} courses published!`);
+          }, 1000);
+        });
+      }
+
+      if (btnBulkDraft) {
+        btnBulkDraft.addEventListener('click', () => {
+          if (!tbody) return;
+          const checked = tbody.querySelectorAll('.row-select-checkbox:checked');
+          if (checked.length === 0) return;
+
+          btnBulkDraft.disabled = true;
+          btnBulkDraft.innerText = 'Drafting...';
+
+          setTimeout(async () => {
+            checked.forEach(cb => {
+              const id = parseInt(cb.getAttribute('data-id'));
+              const item = courses.find(r => r.id === id);
+              if (item && item.status !== 'draft') {
+                item.status = 'draft';
+              }
+            });
+
+            btnBulkDraft.disabled = false;
+            btnBulkDraft.innerText = 'Move to Draft';
+            bulkSelectAll.checked = false;
+
+            await saveToLocalStorage();
+            renderTable();
+            updateMetrics();
+            showToast(`${checked.length} courses moved to Draft.`);
+          }, 1000);
+        });
+      }
+
+      if (btnBulkDelete) {
+        btnBulkDelete.addEventListener('click', () => {
+          if (!tbody) return;
+          const checked = tbody.querySelectorAll('.row-select-checkbox:checked');
+          if (checked.length === 0) return;
+
+          const confirmBulkDel = confirm(`Are you sure you want to permanently delete all ${checked.length} selected courses?`);
+          if (!confirmBulkDel) return;
+
+          btnBulkDelete.disabled = true;
+          btnBulkDelete.innerText = 'Deleting...';
+
+          setTimeout(async () => {
+            const idsToDelete = [];
+            checked.forEach(cb => {
+              const id = parseInt(cb.getAttribute('data-id'));
+              courses = courses.filter(r => r.id !== id);
+              idsToDelete.push(id);
+            });
+
+            await saveToLocalStorage();
+            if (window.supabaseClient) {
+              try {
+                await window.supabaseClient.from('courses').delete().in('id', idsToDelete);
+              } catch (e) {}
+            }
+
+            btnBulkDelete.disabled = false;
+            btnBulkDelete.innerText = 'Delete Selected';
+            bulkSelectAll.checked = false;
+
+            renderTable();
+            updateMetrics();
+            showToast(`${checked.length} courses deleted permanently.`);
+          }, 1200);
+        });
+      }
+
+      // ── REAL-TIME EVENT FILTERS ──
+      if (searchInput) {
+        searchInput.addEventListener('input', renderTable);
+      }
+
+      if (statusSelect) {
+        statusSelect.addEventListener('change', renderTable);
+      }
+
+      categoryTabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+          categoryTabs.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          selectedCategoryFilter = btn.getAttribute('data-category-filter');
+          renderTable();
+        });
+      });
+
+      // Mount Render Initialization
+      renderTable();
+      updateMetrics();
+    });
+  </script>
+</body>
+</html>

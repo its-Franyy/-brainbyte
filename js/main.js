@@ -8,7 +8,7 @@
 // ================================================================
 // SHARED HIGH-FIDELITY DATABASE ARRAYS (File-level Scope)
 // ================================================================
-const coursesData = [
+const defaultCourses = [
   {
     id: 1,
     title: "Next.js 14 & Supabase: The Full-Stack SaaS Blueprint",
@@ -380,6 +380,36 @@ const libraryData = [
   }
 ];
 
+let coursesData = JSON.parse(localStorage.getItem('bb_custom_courses'));
+if (!coursesData || !Array.isArray(coursesData)) {
+  coursesData = defaultCourses;
+  localStorage.setItem('bb_custom_courses', JSON.stringify(coursesData));
+}
+
+const syncCoursesFromSupabase = async () => {
+  if (window.supabaseClient) {
+    try {
+      const { data, error } = await window.supabaseClient
+        .from('courses')
+        .select('*');
+      if (!error && data && Array.isArray(data) && data.length > 0) {
+        data.forEach(item => {
+          if (!coursesData.some(c => c.id === item.id)) {
+            coursesData.push(item);
+          }
+        });
+        localStorage.setItem('bb_custom_courses', JSON.stringify(coursesData));
+        if (typeof window.applyCoursesFilters === 'function') {
+          window.applyCoursesFilters();
+        }
+      }
+    } catch (err) {
+      console.warn("Supabase courses fetch failed:", err);
+    }
+  }
+};
+
+
 const parseCustomResource = (item) => {
   let viewsCount = 0;
   if (item.views) {
@@ -475,6 +505,7 @@ const syncLibraryDataWithCustom = async () => {
 };
 
 const initAllControllers = () => {
+  syncCoursesFromSupabase();
   syncLibraryDataWithCustom();
   initStickyNavbar();
   initStatsCounter();
@@ -1697,6 +1728,7 @@ function initCoursesController() {
     // 11. Render Pagination controllers
     renderPagination(totalPages);
   }
+  window.applyCoursesFilters = applyFilters;
 
   function renderGrid(courses) {
     gridContainer.innerHTML = '';
