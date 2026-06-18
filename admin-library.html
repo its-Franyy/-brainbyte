@@ -503,7 +503,7 @@
   <!-- State Controllers & Operation Scripts -->
   <script>
     // 1. Initial Mock Resources Array
-    let resources = [
+    const defaultResources = [
       {
         id: "res-nextjs-route",
         title: "Next.js Advanced App Routing Structures",
@@ -559,6 +559,28 @@
         status: "published"
       }
     ];
+
+    let resources = JSON.parse(localStorage.getItem('bb_custom_resources'));
+    if (!resources || !Array.isArray(resources)) {
+      resources = defaultResources;
+      localStorage.setItem('bb_custom_resources', JSON.stringify(resources));
+    }
+
+    async function saveToLocalStorage() {
+      localStorage.setItem('bb_custom_resources', JSON.stringify(resources));
+
+      // Try syncing with Supabase in background
+      if (window.supabaseClient) {
+        try {
+          const { error } = await window.supabaseClient
+            .from('free_resources')
+            .upsert(resources);
+          if (error) console.error("[Supabase Sync] Upsert failed:", error);
+        } catch (err) {
+          console.warn("[Supabase Sync] Database sync unavailable:", err);
+        }
+      }
+    }
 
     let activeResource = null;
     let selectedTypeFilter = 'all';
@@ -907,6 +929,7 @@
               }
               console.log(`%c[BrainByte Library] Resource Unpublished: ID=${item.id}`, "color:#EF4444; font-weight:bold;");
             }
+            saveToLocalStorage();
             updateMetrics();
           });
         });
@@ -944,6 +967,10 @@
             if (confirmDel) {
               resources = resources.filter(r => r.id !== id);
               console.log(`%c[BrainByte Library] Deleted Resource: ID=${id}`, "color:#EF4444; font-weight:bold;");
+              saveToLocalStorage();
+              if (window.supabaseClient) {
+                window.supabaseClient.from('free_resources').delete().eq('id', id).then(() => {});
+              }
               renderTable();
               updateMetrics();
             }
@@ -1082,6 +1109,8 @@
 
             console.log(`%c[BrainByte Library] Resource Properties Saved: ID=${activeResource.id}`, "color:#A855F7; font-weight:bold;");
 
+            saveToLocalStorage();
+
             closeEditModal();
             renderTable();
             updateMetrics();
@@ -1117,6 +1146,8 @@
             btnBulkPublish.innerText = 'Publish Selected';
             bulkSelectAll.checked = false;
 
+            saveToLocalStorage();
+
             renderTable();
             updateMetrics();
           }, 1200);
@@ -1146,6 +1177,8 @@
             btnBulkUnpublish.innerText = 'Unpublish Selected';
             bulkSelectAll.checked = false;
 
+            saveToLocalStorage();
+
             renderTable();
             updateMetrics();
           }, 1200);
@@ -1165,11 +1198,18 @@
           btnBulkDelete.innerText = 'Deleting...';
 
           setTimeout(() => {
+            const idsToDelete = [];
             checked.forEach(cb => {
               const id = cb.getAttribute('data-id');
               resources = resources.filter(r => r.id !== id);
+              idsToDelete.push(id);
               console.log(`%c[BrainByte Bulk Delete] Deleted: ID=${id}`, "color:#EF4444; font-weight:bold;");
             });
+
+            saveToLocalStorage();
+            if (window.supabaseClient) {
+              window.supabaseClient.from('free_resources').delete().in('id', idsToDelete).then(() => {});
+            }
 
             btnBulkDelete.disabled = false;
             btnBulkDelete.innerText = 'Delete Selected';

@@ -1072,10 +1072,13 @@
       wireCharCounter('pdf-details-description', 'pdf-desc-counter', 500);
 
       // Tags managers
+      const videoTagsList = [];
+      const pdfTagsList = [];
+
       function wireTagsEngine(inputId, listId, isPdf) {
         const input = document.getElementById(inputId);
         const list = document.getElementById(listId);
-        let tags = [];
+        const tags = isPdf ? pdfTagsList : videoTagsList;
 
         if (input && list) {
           input.addEventListener('keydown', (e) => {
@@ -1150,10 +1153,131 @@
       // ================================================================
       //   💾 UPLOAD & PUBLISH REDIRECTIONS & TOAST PAYLOADS
       // ================================================================
-      function setupPublishHandler(triggerId, titleInputId, errorId, type) {
+      const defaultResources = [
+        {
+          id: "res-nextjs-route",
+          title: "Next.js Advanced App Routing Structures",
+          type: "video",
+          category: "Web Dev",
+          views: "12.5K",
+          downloads: "8.2K",
+          status: "published"
+        },
+        {
+          id: "res-grid-cheat",
+          title: "CSS Grid & Flexbox Ultimate Cheat Sheet",
+          type: "pdf",
+          category: "Design",
+          views: "8.4K",
+          downloads: "6.2K",
+          status: "published"
+        },
+        {
+          id: "res-swiftui-state",
+          title: "SwiftUI Architectures, Core Data, and Global State",
+          type: "video",
+          category: "Mobile",
+          views: "4.3K",
+          downloads: "1.1K",
+          status: "draft"
+        },
+        {
+          id: "res-ai-llm-guide",
+          title: "Generative AI & LLMs Developers Guide Manual",
+          type: "pdf",
+          category: "AI & ML",
+          views: "2.1K",
+          downloads: "1.8K",
+          status: "unpublished"
+        },
+        {
+          id: "res-supabase-setup",
+          title: "Supabase Relational Database Schemas & Row Controls",
+          type: "video",
+          category: "Web Dev",
+          views: "9.2K",
+          downloads: "5.4K",
+          status: "published"
+        },
+        {
+          id: "res-figma-micro",
+          title: "Figma Micro-interactions & Prototyping Masterclass",
+          type: "video",
+          category: "Design",
+          views: "6.7K",
+          downloads: "4.1K",
+          status: "published"
+        }
+      ];
+
+      async function saveResource(resourceType, status, titleVal) {
+        let currentResources = JSON.parse(localStorage.getItem('bb_custom_resources'));
+        if (!currentResources || !Array.isArray(currentResources)) {
+          currentResources = defaultResources;
+        }
+
+        const isVideo = resourceType === 'video';
+        const prefix = isVideo ? 'video' : 'pdf';
+
+        const category = document.getElementById(`${prefix}-details-category`)?.value || 'Web Dev';
+        const difficulty = document.getElementById(`${prefix}-details-difficulty`)?.value || 'Beginner';
+        const description = document.getElementById(`${prefix}-details-description`)?.value || '';
+        const isFeatured = document.getElementById(`switch-${prefix}-featured`)?.checked || false;
+        const tags = isVideo ? videoTagsList : pdfTagsList;
+        
+        let filename = '';
+        let filesize = '0 MB';
+        if (isVideo) {
+          if (mockFileSelected) {
+            filename = mockFileSelected.name;
+            filesize = (mockFileSelected.size / (1024 * 1024)).toFixed(1) + ' MB';
+          } else {
+            filename = document.getElementById('video-link-input')?.value || 'youtube_stream';
+          }
+        } else {
+          if (pdfMockFile) {
+            filename = pdfMockFile.name;
+            filesize = (pdfMockFile.size / (1024 * 1024)).toFixed(2) + ' MB';
+          }
+        }
+
+        const newResourceObj = {
+          id: 'res-' + Math.random().toString(36).substr(2, 9),
+          title: titleVal,
+          type: resourceType,
+          category: category,
+          difficulty: difficulty,
+          description: description,
+          tags: tags,
+          views: "0",
+          downloads: "0",
+          status: status,
+          is_featured: isFeatured,
+          filename: filename,
+          filesize: filesize,
+          created_at: new Date().toISOString()
+        };
+
+        currentResources.push(newResourceObj);
+        localStorage.setItem('bb_custom_resources', JSON.stringify(currentResources));
+
+        if (window.supabaseClient) {
+          try {
+            const { error } = await window.supabaseClient
+              .from('free_resources')
+              .insert([newResourceObj]);
+            if (error) console.error("[Supabase Sync] Insert failed:", error);
+          } catch (err) {
+            console.warn("[Supabase Sync] Schema missing or client offline. Using localStorage fallback.");
+          }
+        }
+        return newResourceObj;
+      }
+
+      function setupPublishHandler(triggerId, titleInputId, errorId, resourceType) {
         const btn = document.getElementById(triggerId);
         if (btn) {
-          btn.addEventListener('click', () => {
+          btn.addEventListener('click', async () => {
             const titleInput = document.getElementById(titleInputId);
             const titleError = document.getElementById(errorId);
 
@@ -1167,26 +1291,23 @@
             if (titleInput) titleInput.classList.remove('is-invalid');
             if (titleError) titleError.classList.add('d-none');
 
-            // Trigger submit loader animations
             btn.disabled = true;
             btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Publishing...`;
 
+            await saveResource(resourceType, 'published', titleVal);
+
             setTimeout(() => {
-              sessionStorage.setItem('bb_toast_message', `New ${type} "${titleVal.slice(0, 30)}..." published successfully! 🎉`);
+              sessionStorage.setItem('bb_toast_message', `New ${resourceType === 'video' ? 'Video Lesson' : 'PDF Reference'} "${titleVal.slice(0, 30)}..." published successfully! 🎉`);
               window.location.href = 'admin-library.html';
-            }, 1200);
+            }, 800);
           });
         }
       }
 
-      setupPublishHandler('btn-submit-publish-video', 'video-details-title', 'video-title-input-error', 'Video Lesson');
-      setupPublishHandler('btn-submit-publish-pdf', 'pdf-details-title', 'pdf-title-input-error', 'PDF Reference');
-
-      // Draft draft submit redirections
-      function setupDraftHandler(triggerId, titleInputId, errorId, type) {
+      function setupDraftHandler(triggerId, titleInputId, errorId, resourceType) {
         const btn = document.getElementById(triggerId);
         if (btn) {
-          btn.addEventListener('click', () => {
+          btn.addEventListener('click', async () => {
             const titleInput = document.getElementById(titleInputId);
             const titleError = document.getElementById(errorId);
 
@@ -1197,19 +1318,27 @@
               return;
             }
 
+            if (titleInput) titleInput.classList.remove('is-invalid');
+            if (titleError) titleError.classList.add('d-none');
+
             btn.disabled = true;
             btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...`;
 
+            await saveResource(resourceType, 'draft', titleVal);
+
             setTimeout(() => {
-              sessionStorage.setItem('bb_toast_message', `Draft ${type} saved as draft! 💾`);
+              sessionStorage.setItem('bb_toast_message', `Draft ${resourceType === 'video' ? 'Video' : 'PDF'} saved as draft! 💾`);
               window.location.href = 'admin-library.html';
-            }, 1200);
+            }, 800);
           });
         }
       }
 
-      setupDraftHandler('btn-submit-draft-video', 'video-details-title', 'video-title-input-error', 'Video Draft');
-      setupDraftHandler('btn-submit-draft-pdf', 'pdf-details-title', 'pdf-title-input-error', 'PDF Draft');
+      setupPublishHandler('btn-submit-publish-video', 'video-details-title', 'video-title-input-error', 'video');
+      setupPublishHandler('btn-submit-publish-pdf', 'pdf-details-title', 'pdf-title-input-error', 'pdf');
+
+      setupDraftHandler('btn-submit-draft-video', 'video-details-title', 'video-title-input-error', 'video');
+      setupDraftHandler('btn-submit-draft-pdf', 'pdf-details-title', 'pdf-title-input-error', 'pdf');
     });
   </script>
 </body>

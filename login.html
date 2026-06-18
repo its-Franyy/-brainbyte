@@ -3,282 +3,180 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In &mdash; BrainByte</title>
-  <meta name="description" content="Log in to your BrainByte developer account and continue your learning journey.">
+  <title>Login — BrainByte</title>
+  <meta name="description" content="Access your developer portal at BrainByte. Log in to continue your full-stack, design, and AI coding courses.">
+  
+  <!-- Preload and load Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- Bootstrap Icons CDN -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Premium Theme CSS -->
   <link rel="stylesheet" href="css/style.css">
-
-  <style>
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Step animation Ã¢â€â‚¬Ã¢â€â‚¬ */
-    .auth-step { display: none; animation: fadeSlideIn 0.3s cubic-bezier(0.16,1,0.3,1) both; }
-    .auth-step.active { display: block; }
-    @keyframes fadeSlideIn {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Step progress (2-step) Ã¢â€â‚¬Ã¢â€â‚¬ */
-    .step-progress {
-      display: flex; align-items: center; gap: 0; margin-bottom: 1.75rem;
-    }
-    .step-node {
-      width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center;
-      justify-content: center; font-size: 0.72rem; font-weight: 800;
-      font-family: var(--font-display, 'Inter', sans-serif);
-      background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.12); color: #64748B;
-      flex-shrink: 0; transition: all 0.3s ease;
-    }
-    .step-node.active { background: #7C3AED; border-color: #7C3AED; color: #fff; box-shadow: 0 0 0 4px rgba(124,58,237,0.2); }
-    .step-node.done   { background: #10B981; border-color: #10B981; color: #fff; }
-    .step-connector   { flex: 1; height: 2px; background: rgba(255,255,255,0.08); margin: 0 4px; transition: background 0.4s; }
-    .step-connector.done { background: #10B981; }
-
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ OTP boxes Ã¢â€â‚¬Ã¢â€â‚¬ */
-    .otp-row { display: flex; gap: 0.5rem; justify-content: center; margin: 1.25rem 0; }
-    .otp-box {
-      width: 48px; height: 56px; border-radius: 12px; text-align: center;
-      background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.1);
-      color: #fff; font-size: 1.4rem; font-weight: 800; font-family: var(--font-display, 'Inter');
-      outline: none; transition: all 0.2s ease; -moz-appearance: textfield; caret-color: #A855F7;
-    }
-    .otp-box::-webkit-inner-spin-button,
-    .otp-box::-webkit-outer-spin-button { -webkit-appearance: none; }
-    .otp-box:focus   { border-color: #7C3AED; background: rgba(124,58,237,0.08); box-shadow: 0 0 0 3px rgba(124,58,237,0.2); }
-    .otp-box.filled  { border-color: rgba(168,85,247,0.5); background: rgba(168,85,247,0.07); }
-    .otp-box.error   { border-color: #EF4444; background: rgba(239,68,68,0.07); animation: shake 0.35s ease; }
-    .otp-box.success { border-color: #10B981; background: rgba(16,185,129,0.1); }
-    @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-4px)} 60%{transform:translateX(4px)} }
-
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Alerts Ã¢â€â‚¬Ã¢â€â‚¬ */
-    .auth-alert {
-      display: none; padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.82rem;
-      font-weight: 600; margin-bottom: 1rem; align-items: center; gap: 0.5rem;
-      animation: fadeSlideIn 0.2s ease;
-    }
-    .auth-alert.show   { display: flex; }
-    .auth-alert.error  { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #FCA5A5; }
-    .auth-alert.success{ background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: #6EE7B7; }
-    .auth-alert.warning{ background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.22); color: #FCD34D; }
-
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Loading spinner Ã¢â€â‚¬Ã¢â€â‚¬ */
-    .btn-bb-login.loading { pointer-events: none; opacity: 0.8; }
-    .spinner-ring {
-      width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,0.25);
-      border-top-color: #fff; border-radius: 50%;
-      animation: spin 0.7s linear infinite; display: inline-block; vertical-align: middle;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ OTP meta Ã¢â€â‚¬Ã¢â€â‚¬ */
-    .otp-badge {
-      width: 64px; height: 64px; border-radius: 20px; margin: 0 auto 1.25rem;
-      display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(168,85,247,0.15));
-      border: 1.5px solid rgba(168,85,247,0.3); font-size: 1.75rem;
-      box-shadow: 0 0 30px rgba(124,58,237,0.15);
-    }
-    .otp-recipient { font-size: 0.88rem; color: #CBD5E1; font-weight: 500; text-align: center; }
-    .otp-recipient strong { color: #A855F7; }
-
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Status row Ã¢â€â‚¬Ã¢â€â‚¬ */
-    .otp-status-row {
-      display: flex; align-items: center; justify-content: space-between;
-      margin: 0.5rem 0 1rem; padding: 0.6rem 0.9rem;
-      background: rgba(255,255,255,0.03); border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.06);
-    }
-    .otp-expiry { display: flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; color: #94A3B8; }
-    .otp-expiry .timer { color: #F59E0B; font-weight: 800; font-family: 'Fira Code', monospace; font-size: 0.82rem; }
-    .otp-expiry .timer.urgent { color: #EF4444; }
-    .otp-attempts { font-size: 0.75rem; color: #64748B; font-weight: 600; }
-    .otp-attempts .count { color: #A855F7; font-weight: 800; }
-
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Resend Ã¢â€â‚¬Ã¢â€â‚¬ */
-    .resend-row { display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.82rem; color: #64748B; }
-    .btn-resend { background: none; border: none; color: #A855F7; font-weight: 700; font-size: 0.82rem; cursor: pointer; padding: 0; font-family: inherit; transition: opacity 0.2s; }
-    .btn-resend:disabled { opacity: 0.4; cursor: not-allowed; }
-    .resend-timer { color: #64748B; font-size: 0.78rem; display: none; }
-
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Back button Ã¢â€â‚¬Ã¢â€â‚¬ */
-    .btn-back {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      background: none; border: none; color: #A855F7; font-size: 0.82rem;
-      font-weight: 700; font-family: inherit; cursor: pointer; padding: 0;
-      margin-bottom: 1.25rem; transition: opacity 0.2s;
-    }
-    .btn-back:hover { opacity: 0.75; }
-
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Console hint Ã¢â€â‚¬Ã¢â€â‚¬ */
-    .console-hint {
-      display: flex; align-items: center; gap: 0.4rem;
-      font-size: 0.7rem; color: #475569; font-family: 'Fira Code', monospace;
-      background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.07);
-      border-radius: 8px; padding: 0.45rem 0.75rem; margin: 0.5rem 0 0.75rem;
-      text-align: center; justify-content: center;
-    }
-
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Lockout alert Ã¢â€â‚¬Ã¢â€â‚¬ */
-    .lockout-bar {
-      display: none; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);
-      border-radius: 10px; padding: 0.7rem 0.9rem; font-size: 0.8rem; color: #FCA5A5;
-      margin-bottom: 1rem;
-    }
-    .lockout-bar.show { display: block; }
-  </style>
 </head>
 <body class="login-body">
-<div class="container-fluid p-0">
-  <div class="row g-0 login-wrapper">
 
-    <!-- ======================================================
-      LEFT BRAND PANEL
-    ====================================================== -->
-    <div class="col-lg-6 login-brand-side d-none d-lg-flex">
-      <div class="glow-purple"></div>
-      <div class="glow-cyan"></div>
-      <a class="navbar-brand d-flex align-items-center mb-5 position-relative" style="z-index:5;" href="index.html">
-        <span class="text-white">Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
-      </a>
-      <div class="position-relative" style="z-index:5; max-width:440px;">
-        <h2 class="text-white fw-bold mb-3" style="font-size:2.4rem;line-height:1.25;font-family:var(--font-display);">
-          Your next skill is <span class="text-gradient-violet">one click</span> away
-        </h2>
-        <p class="text-muted mb-5" style="font-size:0.95rem;line-height:1.65;">
-          Continue learning with senior tech architects. Pick up where you left off, track progress, and earn verified certifications.
-        </p>
-      </div>
-      <div class="perspective-container position-relative" style="z-index:5;">
-        <div class="floating-glass-card">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="badge" style="background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);color:#A78BFA;font-size:0.7rem;font-weight:700;">FULL STACK</span>
-            <span class="text-white-50" style="font-size:0.75rem;font-weight:500;">91% Done</span>
-          </div>
-          <h4 class="text-white fw-bold m-0" style="font-size:0.9rem;">Next.js 14 &amp; Supabase Mastery</h4>
-          <div class="course-progress-track"><div class="course-progress-bar-glow" style="width:91%;"></div></div>
+  <div class="container-fluid p-0">
+    <div class="row g-0 login-wrapper">
+      
+      <!-- ================================================================
+        LEFT PANEL (Brand side - Hidden on Mobile)
+      ================================================================ -->
+      <div class="col-lg-6 login-brand-side d-none d-lg-flex">
+        <!-- Glow backdrops -->
+        <div class="glow-purple"></div>
+        <div class="glow-cyan"></div>
+        
+        <!-- Logo -->
+        <a class="navbar-brand d-flex align-items-center mb-5 position-relative" style="z-index: 5;" href="index.html" id="login-brand-logo">
+          <span class="text-white">Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
+        </a>
+        
+        <!-- Impact quote -->
+        <div class="position-relative" style="z-index: 5; max-width: 440px;">
+          <h2 class="text-white fw-bold mb-3" style="font-size: 2.5rem; line-height: 1.25; font-family: var(--font-display);">
+            Your next skill is <span class="text-gradient-violet">one click</span> away
+          </h2>
+          <p class="text-muted mb-5" style="font-size: 0.95rem; line-height: 1.6;">
+            Learn directly from senior tech architects, compile hands-on coding repositories, and showcase verified learning achievements to high-growth organizations.
+          </p>
         </div>
-        <div class="floating-glass-card">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="badge" style="background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);color:#67E8F9;font-size:0.7rem;font-weight:700;">DEVOPS</span>
-            <span class="text-white-50" style="font-size:0.75rem;font-weight:500;">68% Done</span>
-          </div>
-          <h4 class="text-white fw-bold m-0" style="font-size:0.9rem;">Docker, K8s &amp; CI/CD Pipelines</h4>
-          <div class="course-progress-track"><div class="course-progress-bar-glow" style="width:68%;background:linear-gradient(90deg,#06B6D4,#67E8F9);"></div></div>
-        </div>
-        <div class="floating-glass-card">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="badge" style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.3);color:#F9A8D4;font-size:0.7rem;font-weight:700;">AI / ML</span>
-            <span class="text-white-50" style="font-size:0.75rem;font-weight:500;">42% Done</span>
-          </div>
-          <h4 class="text-white fw-bold m-0" style="font-size:0.9rem;">Deep Learning &amp; PyTorch Systems</h4>
-          <div class="course-progress-track"><div class="course-progress-bar-glow" style="width:42%;background:linear-gradient(90deg,#EC4899,#a855f7);"></div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ======================================================
-      RIGHT FORM PANEL
-    ====================================================== -->
-    <div class="col-lg-6 col-12 login-form-side">
-      <div class="login-form-container">
-
-        <!-- Mobile brand -->
-        <div class="d-lg-none text-center mb-4">
-          <a class="navbar-brand d-inline-flex align-items-center" href="index.html">
-            <span class="text-white">Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
-          </a>
-        </div>
-
-
-        <!-- ==========================================
-          STEP 1 Ã¢â‚¬â€ Email + Password
-        =========================================== -->
-        <div class="auth-step active" id="li-step-1">
-          <div class="mb-4">
-            <h1 class="fw-bold text-white mb-1" style="font-size:1.85rem;font-family:var(--font-display);">Welcome back &#x1F44B;</h1>
-            <p style="color:#94A3B8;font-size:0.9rem;">Sign in to continue your journey</p>
-          </div>
-
-          <!-- Lockout warning -->
-          <div class="lockout-bar" id="li-lockout-bar">
-            <i class="bi bi-shield-lock-fill me-2"></i>
-            <span id="li-lockout-text">Account temporarily locked.</span>
-          </div>
-
-          <!-- Error alert -->
-          <div class="auth-alert error" id="li-error" role="alert">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-            <span id="li-error-text">Invalid credentials.</span>
-          </div>
-
-          <form id="li-form" novalidate>
-            <div class="glass-input-wrapper">
-              <label for="li-email" class="glass-input-label">Email Address</label>
-              <input type="email" class="glass-input" id="li-email" placeholder="name@domain.com" autocomplete="email" required>
+        
+        <!-- Perspective decorative floating cards -->
+        <div class="perspective-container position-relative" style="z-index: 5;">
+          
+          <!-- Decorative Card 1 -->
+          <div class="floating-glass-card">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge" style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3); color: var(--violet-mid); font-size: 0.7rem; font-weight: 700;">REACT FRONTEND</span>
+              <span class="text-white-50" style="font-size: 0.75rem; font-weight: 500;">84% Done</span>
             </div>
-
+            <h4 class="text-white fw-bold m-0" style="font-size: 0.95rem;">Next.js & Supabase Certification</h4>
+            <div class="course-progress-track">
+              <div class="course-progress-bar-glow" style="width: 84%;"></div>
+            </div>
+          </div>
+          
+          <!-- Decorative Card 2 -->
+          <div class="floating-glass-card">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); color: var(--teal-mid); font-size: 0.7rem; font-weight: 700;">UI/UX DESIGN</span>
+              <span class="text-white-50" style="font-size: 0.75rem; font-weight: 500;">95% Done</span>
+            </div>
+            <h4 class="text-white fw-bold m-0" style="font-size: 0.95rem;">Figma UI/UX Advanced Prototyping</h4>
+            <div class="course-progress-track">
+              <div class="course-progress-bar-glow" style="width: 95%; background: linear-gradient(90deg, var(--teal-primary) 0%, var(--teal-mid) 100%); box-shadow: 0 0 8px rgba(6, 182, 212, 0.5);"></div>
+            </div>
+          </div>
+          
+          <!-- Decorative Card 3 -->
+          <div class="floating-glass-card">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge" style="background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.3); color: var(--brand-pink); font-size: 0.7rem; font-weight: 700;">AI DEEP LEARNING</span>
+              <span class="text-white-50" style="font-size: 0.75rem; font-weight: 500;">42% Done</span>
+            </div>
+            <h4 class="text-white fw-bold m-0" style="font-size: 0.95rem;">Deep Learning & PyTorch Systems</h4>
+            <div class="course-progress-track">
+              <div class="course-progress-bar-glow" style="width: 42%; background: linear-gradient(90deg, var(--brand-pink) 0%, #a855f7 100%); box-shadow: 0 0 8px rgba(236, 72, 153, 0.5);"></div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+      <!-- ================================================================
+        RIGHT PANEL (Forms authentication side)
+      ================================================================ -->
+      <div class="col-lg-6 col-12 login-form-side">
+        <div class="login-form-container">
+          
+          <!-- Brand indicator on Mobile -->
+          <div class="d-lg-none text-center mb-4">
+            <a class="navbar-brand d-inline-flex align-items-center" href="index.html">
+              <span class="text-white">Brain<span class="brand-bolt"><i class="bi bi-lightning-charge-fill"></i></span>Byte</span>
+            </a>
+          </div>
+          
+          <!-- Greeting Header -->
+          <div class="mb-4 text-center text-lg-start">
+            <h1 class="fw-bold text-white mb-2" style="font-size: 2rem; font-family: var(--font-display);" id="login-title">Welcome back 👋</h1>
+            <p style="color: #94A3B8; font-size: 0.95rem;">Continue your learning journey</p>
+          </div>
+          
+          <!-- Error alert panel (hidden by default) -->
+          <div class="bb-error-alert d-none" role="alert" id="login-error-alert">
+            <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+            <div id="error-message-text">Incorrect credentials. Please verify your email and password.</div>
+          </div>
+          
+          <!-- Login Form Form -->
+          <form id="login-form" novalidate>
+            
+            <!-- Email Input -->
+            <div class="glass-input-wrapper">
+              <label for="email" class="glass-input-label">Email Address</label>
+              <input type="email" class="glass-input" id="email" placeholder="name@domain.com" required>
+            </div>
+            
+            <!-- Password Input -->
             <div class="glass-input-wrapper">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <label for="li-password" class="glass-input-label m-0">Password</label>
-                <a href="#" style="color:#A855F7;font-weight:600;font-size:0.8rem;text-decoration:none;" id="li-forgot-link">Forgot password?</a>
+                <label for="password" class="glass-input-label m-0">Password</label>
+                <a href="#" class="small text-decoration-none" style="color: #A855F7; font-weight: 600; font-size: 0.8rem;" id="link-forgot-pass">Forgot password?</a>
               </div>
-              <input type="password" class="glass-input" id="li-password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="current-password" required>
-              <button type="button" class="password-toggle-btn" id="li-toggle-pw" aria-label="Toggle password">
+              <input type="password" class="glass-input" id="password" placeholder="••••••••" required>
+              <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility" id="toggle-password-btn">
                 <i class="bi bi-eye"></i>
               </button>
             </div>
-
-            <button type="submit" class="btn-bb-login mt-2" id="li-btn-submit">
-              <span>Continue <i class="bi bi-arrow-right-short fs-5"></i></span>
-            </button>
-
-            <!-- Demo login for testing -->
-            <button type="button" id="li-btn-demo" style="
-              width:100%;margin-top:0.6rem;
-              background:rgba(255,255,255,0.03);
-              border:1px dashed rgba(255,255,255,0.15);
-              border-radius:14px;padding:0.65rem 1rem;
-              color:#94A3B8;font-size:0.8rem;font-weight:600;
-              font-family:inherit;cursor:pointer;
-              display:flex;align-items:center;justify-content:center;gap:0.45rem;
-              transition:all 0.2s;">
-              <i class="bi bi-play-circle-fill" style="color:#A855F7;"></i>
-              Try Demo Account &mdash; no signup needed
+            
+            <!-- Submit Pill Button -->
+            <button type="submit" class="btn-bb-login mt-2" id="submit-login-btn">
+              <span>Sign In</span>
             </button>
           </form>
-
+          
+          <!-- Divider -->
           <div class="login-divider">or continue with</div>
-          <button type="button" class="btn-bb-google mb-3" id="li-btn-google">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path d="M17.64 9.205c0-.638-.057-1.252-.164-1.841H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
-              <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
-              <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.402.065-.793.182-1.162V5.506H.957A9.006 9.006 0 000 9c0 1.452.348 2.827.957 4.042L3.964 10.71z" fill="#FBBC05"/>
-              <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.892 11.426 0 9 0 5.482 0 2.017.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+          
+          <!-- Continue with Google Button -->
+          <button type="button" class="btn-bb-google mb-4" id="btn-oauth-google">
+            <!-- Inline SVG Google logo -->
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z" fill="#4285F4"/>
+              <path d="M9 18C11.43 18 13.4673 17.1941 14.9564 15.8195L12.0477 13.5614C11.2418 14.1014 10.2109 14.4205 9 14.4205C6.65591 14.4205 4.67182 12.8373 3.96409 10.71H0.957275V13.0418C2.43818 15.9832 5.48182 18 9 18Z" fill="#34A853"/>
+              <path d="M3.96409 10.71C3.78409 10.17 3.68182 9.59727 3.68182 9C3.68182 8.40273 3.78409 7.83 3.96409 7.29V4.95818H0.957275C0.347727 6.17318 0 7.55182 0 9C0 10.4482 0.347727 11.8268 0.957275 13.0418L3.96409 10.71Z" fill="#FBBC05"/>
+              <path d="M9 3.57955C10.3214 3.57955 11.5077 4.03364 12.4405 4.92545L15.0218 2.34409C13.4632 0.891818 11.4259 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.16273 6.65591 3.57955 9 3.57955Z" fill="#EA4335"/>
             </svg>
             <span>Continue with Google</span>
           </button>
+          
+          <!-- Redirect / Sign Up footer link -->
           <div class="text-center">
-            <span style="color:#94A3B8;font-size:0.85rem;">Don't have an account?
-              <a href="signup.html" style="color:#A855F7;font-weight:700;text-decoration:none;">Sign up free</a>
+            <span style="color: #94A3B8; font-size: 0.88rem; font-weight: 500;">
+              Don't have an account? <a href="signup.html" style="color: #A855F7; font-weight: 700; text-decoration: none;" id="link-signup">Sign up</a>
             </span>
           </div>
+          
         </div>
-
       </div>
+      
     </div>
   </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="js/firebase-config.js"></script>
+  <!-- Bootstrap 5 JS Bundle CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+<!-- Supabase CDN -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase Config -->
 <script src="js/supabase-config.js"></script>
-<script src="js/sms-config.js"></script>
-<script src="js/auth-engine.js"></script>
+<!-- Main JS -->
 <script src="js/main.js"></script>
 </body>
 </html>

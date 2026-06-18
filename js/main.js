@@ -380,7 +380,102 @@ const libraryData = [
   }
 ];
 
+const parseCustomResource = (item) => {
+  let viewsCount = 0;
+  if (item.views) {
+    if (typeof item.views === 'string') {
+      if (item.views.endsWith('K')) {
+        viewsCount = parseFloat(item.views) * 1000;
+      } else {
+        viewsCount = parseInt(item.views) || 0;
+      }
+    } else {
+      viewsCount = item.views;
+    }
+  }
+
+  let downloadsCount = 0;
+  if (item.downloads) {
+    if (typeof item.downloads === 'string') {
+      if (item.downloads.endsWith('K')) {
+        downloadsCount = parseFloat(item.downloads) * 1000;
+      } else {
+        downloadsCount = parseInt(item.downloads) || 0;
+      }
+    } else {
+      downloadsCount = item.downloads;
+    }
+  }
+
+  return {
+    id: item.id,
+    type: item.type,
+    title: item.title,
+    category: item.category ? item.category.toLowerCase().replace(/ /g, '-') : 'web-dev',
+    categoryLabel: item.category || 'Web Dev',
+    rating: 4.8,
+    views: viewsCount,
+    downloads: downloadsCount,
+    duration: item.type === 'video' ? "15:00" : undefined,
+    pages: item.type === 'pdf' ? "6 pages" : undefined,
+    size: item.type === 'pdf' ? (item.filesize || "1.2 MB") : undefined,
+    level: item.difficulty ? item.difficulty.toLowerCase() : 'beginner',
+    levelLabel: item.difficulty || 'Beginner',
+    initials: item.title.split(' ').map(w => w[0]).slice(0, 3).join('').toUpperCase(),
+    isCustom: true,
+    description: item.description || ''
+  };
+};
+
+const syncLibraryDataWithCustom = async () => {
+  try {
+    const custom = JSON.parse(localStorage.getItem('bb_custom_resources') || '[]');
+    if (Array.isArray(custom)) {
+      custom.forEach(item => {
+        if (item.status === 'published') {
+          if (!libraryData.some(r => r.id === item.id)) {
+            libraryData.push(parseCustomResource(item));
+          }
+        }
+      });
+    }
+  } catch (e) {
+    console.error("Error loading offline custom resources:", e);
+  }
+
+  if (window.supabaseClient) {
+    try {
+      const { data, error } = await window.supabaseClient
+        .from('free_resources')
+        .select('*')
+        .eq('status', 'published');
+      
+      if (!error && data && Array.isArray(data)) {
+        data.forEach(item => {
+          if (!libraryData.some(r => r.id === item.id)) {
+            libraryData.push(parseCustomResource(item));
+          }
+        });
+        const currentCustom = JSON.parse(localStorage.getItem('bb_custom_resources') || '[]');
+        data.forEach(item => {
+          if (!currentCustom.some(c => c.id === item.id)) {
+            currentCustom.push(item);
+          }
+        });
+        localStorage.setItem('bb_custom_resources', JSON.stringify(currentCustom));
+
+        if (typeof window.applyLibraryFilters === 'function') {
+          window.applyLibraryFilters();
+        }
+      }
+    } catch (err) {
+      console.warn("Supabase fetch failed:", err);
+    }
+  }
+};
+
 const initAllControllers = () => {
+  syncLibraryDataWithCustom();
   initStickyNavbar();
   initStatsCounter();
   initInteractiveRating();
@@ -683,822 +778,636 @@ function initSmoothScroll() {
  * ================================================================
  */
 function initLoginController() {
-  const liForm     = document.getElementById('li-form');
-  const liStep1    = document.getElementById('li-step-1');
-  const liStep2    = document.getElementById('li-step-2');
-  if (!liForm) return;
+  const loginForm = document.getElementById('login-form');
+  const togglePassBtn = document.getElementById('toggle-password-btn');
+  const passwordInput = document.getElementById('password');
+  const errorAlert = document.getElementById('login-error-alert');
+  const errorMessageText = document.getElementById('error-message-text');
+  const submitBtn = document.getElementById('submit-login-btn');
+  const googleBtn = document.getElementById('btn-oauth-google');
+  
+  if (!loginForm) return; // Only execute on the login page
 
-  // ── Toggle password visibility ──────────────────────────────
-  const liTogglePw = document.getElementById('li-toggle-pw');
-  const liPwInput  = document.getElementById('li-password');
-  if (liTogglePw && liPwInput) {
-    liTogglePw.addEventListener('click', () => {
-      const isHidden = liPwInput.type === 'password';
-      liPwInput.type = isHidden ? 'text' : 'password';
-      liTogglePw.querySelector('i').className = isHidden ? 'bi bi-eye-slash' : 'bi bi-eye';
-    });
-  }
-
-  // ── UI helpers ───────────────────────────────────────────────
-  const liShowError = (msg) => {
-    const el = document.getElementById('li-error');
-    const txt = document.getElementById('li-error-text');
-    if (el && txt) { txt.textContent = msg; el.classList.add('show'); }
-  };
-  const liHideError = () => {
-    const el = document.getElementById('li-error');
-    if (el) el.classList.remove('show');
-  };
-
-  const setLoading = (btn, loading, label = '') => {
-    if (!btn) return;
-    if (loading) {
-      btn.classList.add('loading');
-      btn.innerHTML = `<span class="spinner-ring"></span> <span style="margin-left:0.5rem;">${label || 'Please wait…'}</span>`;
-    } else {
-      btn.classList.remove('loading');
-    }
-  };
-
-  const goToOTPStep = () => {
-    liStep1.classList.remove('active');
-    liStep2.classList.add('active');
-    // Update step nodes
-    const n1 = document.getElementById('li-node-1');
-    const c1 = document.getElementById('li-conn-1');
-    const n2 = document.getElementById('li-node-2');
-    if (n1) { n1.classList.remove('active'); n1.classList.add('done'); n1.textContent = '✓'; }
-    if (c1) c1.classList.add('done');
-    if (n2) n2.classList.add('active');
-  };
-
-  const goBackToStep1 = () => {
-    liStep2.classList.remove('active');
-    liStep1.classList.add('active');
-    const n1 = document.getElementById('li-node-1');
-    const c1 = document.getElementById('li-conn-1');
-    const n2 = document.getElementById('li-node-2');
-    if (n1) { n1.classList.add('active'); n1.classList.remove('done'); n1.textContent = '1'; }
-    if (c1) c1.classList.remove('done');
-    if (n2) n2.classList.remove('active');
-    AuthEngine.stopTimer('li-expiry');
-    AuthEngine.stopTimer('li-resend');
-  };
-
-  // ── Brute-force lockout banner ───────────────────────────────
-  const liEmail = document.getElementById('li-email');
-  if (liEmail) {
-    liEmail.addEventListener('blur', () => {
-      const email = liEmail.value.trim();
-      if (!email) return;
-      const bf = AuthEngine.checkBruteForce(email);
-      const lockBar  = document.getElementById('li-lockout-bar');
-      const lockText = document.getElementById('li-lockout-text');
-      if (bf.locked && lockBar && lockText) {
-        lockText.textContent = bf.message;
-        lockBar.classList.add('show');
-      } else if (lockBar) {
-        lockBar.classList.remove('show');
+  // 1. Password Visibility Eye Toggle
+  if (togglePassBtn && passwordInput) {
+    togglePassBtn.addEventListener('click', () => {
+      const isPassword = passwordInput.getAttribute('type') === 'password';
+      passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+      
+      const icon = togglePassBtn.querySelector('i');
+      if (icon) {
+        icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
       }
     });
   }
 
-  // ── STEP 1: Form submit ──────────────────────────────────────
-  liForm.addEventListener('submit', async (e) => {
+  // 2. Real Supabase Auth Email Login Flow
+  loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    liHideError();
-
-    const email    = (liEmail?.value || '').trim();
-    const password = (liPwInput?.value || '');
-
-    if (!AuthEngine.validateEmail(email)) {
-      liShowError('Please enter a valid email address.'); return;
+    
+    const email = document.getElementById('email').value.trim();
+    const password = passwordInput.value.trim();
+    
+    // Hide previous error state
+    errorAlert.classList.add('d-none');
+    
+    // Quick validation
+    if (!email || !password) {
+      showError("Please enter both your email address and password.");
+      return;
     }
-    if (password.length < 6) {
-      liShowError('Please enter your password.'); return;
-    }
-
-    const btn = document.getElementById('li-btn-submit');
-    setLoading(btn, true, 'Verifying credentials…');
-
+    
+    // Start Submit Loading Indicator State
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="alert-spinner"></span> <span>Verifying...</span>`;
+    
     try {
-      await AuthEngine.loginWithPassword(email, password);
+      const client = window.supabaseClient || supabaseClient;
+      if (!client) {
+        throw new Error("Supabase client is not initialized.");
+      }
 
-      // Send Email OTP
-      setLoading(btn, true, 'Sending OTP to email…');
-      await AuthEngine.sendOTP(email, 'email');
-
-      // Update OTP panel UI
-      const display = document.getElementById('li-otp-email-display');
-      if (display) display.textContent = AuthEngine.maskEmail(email);
-
-      goToOTPStep();
-
-      // Wire OTP boxes
-      liBindOTPBoxes();
-
-      // Start expiry countdown
-      const timerEl = document.getElementById('li-otp-timer');
-      AuthEngine.startExpiryCountdown('li-expiry', {
-        displayEl: timerEl,
-        onExpire: () => {
-          if (timerEl) timerEl.classList.add('urgent');
-          liShowOTPError('OTP expired. Click "Resend OTP" to get a new code.');
-          document.getElementById('li-btn-verify').disabled = true;
-        }
+      // Live Supabase SignIn
+      const { data, error } = await client.auth.signInWithPassword({
+        email: email,
+        password: password
       });
 
-      // Start resend timer
-      liStartResend(email);
+      if (error) {
+        // Fallback mock admin account direct checking to preserve sandbox administration access if live user is not configured
+        if (email.toLowerCase() === 'admin@brainbyte.in' && password === 'admin123') {
+          submitBtn.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Success! Redirecting...</span>`;
+          submitBtn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+          submitBtn.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.4)';
+          
+          localStorage.setItem('brainbyte_user', JSON.stringify({
+            id: 'mock-admin-uuid',
+            full_name: "Super Admin",
+            email: "admin@brainbyte.in",
+            role: "admin",
+            isLoggedIn: true
+          }));
+          
+          setTimeout(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+            submitBtn.style.background = '';
+            submitBtn.style.boxShadow = '';
+            window.location.href = 'admin-dashboard.html';
+          }, 1200);
+          return;
+        }
+        
+        throw new Error("Invalid email or password");
+      }
 
-      // Focus first box
-      setTimeout(() => document.getElementById('li-d1')?.focus(), 120);
+      if (!data || !data.user) {
+        throw new Error("Invalid email or password");
+      }
 
-      // Reset attempt counter
-      const ac = document.getElementById('li-attempt-count');
-      if (ac) ac.textContent = '0';
+      // Fetch user profile
+      const { data: profile, error: profileErr } = await client
+        .from('users')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileErr || !profile) {
+        console.warn("[Login] User Auth exists but Profile database entry not found. Auto-generating dynamic default profile row.");
+        
+        // Auto-generation fallback so that signUp profile sync issues don't lock accounts!
+        const defaultName = data.user.user_metadata?.full_name || email.split('@')[0];
+        const defaultRole = data.user.user_metadata?.role || 'student';
+        
+        await client.from('users').insert({
+          id: data.user.id,
+          email: email,
+          full_name: defaultName,
+          role: defaultRole
+        });
+
+        // Retrying fetch
+        const { data: retriedProfile } = await client
+          .from('users')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+          
+        var activeProfile = retriedProfile || {
+          id: data.user.id,
+          email: email,
+          full_name: defaultName,
+          role: defaultRole,
+          avatar_url: null,
+          bio: ''
+        };
+      } else {
+        var activeProfile = profile;
+      }
+
+      // Save to localStorage
+      localStorage.setItem('brainbyte_user', JSON.stringify({
+        id: activeProfile.id,
+        email: activeProfile.email,
+        full_name: activeProfile.full_name,
+        role: activeProfile.role,
+        avatar_url: activeProfile.avatar_url,
+        bio: activeProfile.bio || '',
+        isLoggedIn: true
+      }));
+
+      submitBtn.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Success! Redirecting...</span>`;
+      submitBtn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+      submitBtn.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.4)';
+      
+      console.log("%c[Supabase Auth] Success: Session established for " + email, 'color: #10B981; font-weight: bold;');
+      
+      const role = activeProfile.role || 'student';
+      
+      setTimeout(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+        submitBtn.style.background = '';
+        submitBtn.style.boxShadow = '';
+        
+        if (role === 'admin' || email.toLowerCase() === 'admin@brainbyte.in') {
+          window.location.href = 'admin-dashboard.html';
+        } else if (role === 'instructor' || role === 'teach') {
+          window.location.href = 'teach.html';
+        } else {
+          window.location.href = 'dashboard.html';
+        }
+      }, 1200);
 
     } catch (err) {
-      liShowError(err.message || 'Login failed. Please try again.');
-      // Show lockout if applicable
-      const bf = AuthEngine.checkBruteForce(email);
-      if (bf.locked) {
-        const lockBar  = document.getElementById('li-lockout-bar');
-        const lockText = document.getElementById('li-lockout-text');
-        if (lockBar && lockText) { lockText.textContent = bf.message; lockBar.classList.add('show'); }
-      }
-    } finally {
-      btn.classList.remove('loading');
-      btn.innerHTML = '<span>Continue <i class="bi bi-arrow-right-short fs-5"></i></span>';
+      console.error("[Supabase Auth] Login failure:", err);
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
+      showError(err.message || "Invalid email or password");
     }
   });
 
-  // ── STEP 2: OTP helpers ──────────────────────────────────────
-  const liShowOTPError = (msg) => {
-    const el  = document.getElementById('li-otp-error');
-    const txt = document.getElementById('li-otp-error-text');
-    if (el && txt) { txt.textContent = msg; el.classList.add('show'); }
-    // Shake all boxes
-    for (let i = 1; i <= 6; i++) {
-      const b = document.getElementById(`li-d${i}`);
-      if (b) { b.classList.remove('error'); void b.offsetWidth; b.classList.add('error'); }
-    }
-  };
-  const liHideOTPError = () => {
-    const elOtp = document.getElementById('li-otp-error');
-    if (elOtp) elOtp.classList.remove('show');
-    for (let i = 1; i <= 6; i++) {
-      const b = document.getElementById(`li-d${i}`);
-      if (b) b.classList.remove('error');
-    }
-  };
-
-  // OTP digit box binding
-  function liBindOTPBoxes() {
-    const boxes = [];
-    for (let i = 1; i <= 6; i++) {
-      const b = document.getElementById(`li-d${i}`);
-      if (b) { b.value = ''; b.classList.remove('filled','error','success'); boxes.push(b); }
-    }
-
-    boxes.forEach((box, idx) => {
-      box.addEventListener('input', (ev) => {
-        const val = ev.target.value.replace(/\D/g, '').slice(-1);
-        box.value = val;
-        box.classList.toggle('filled', !!val);
-        if (val && boxes[idx + 1]) boxes[idx + 1].focus();
-      });
-      box.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Backspace' && !box.value && boxes[idx - 1]) boxes[idx - 1].focus();
-        if (ev.key === 'ArrowLeft'  && boxes[idx - 1]) boxes[idx - 1].focus();
-        if (ev.key === 'ArrowRight' && boxes[idx + 1]) boxes[idx + 1].focus();
-      });
-      box.addEventListener('paste', (ev) => {
-        ev.preventDefault();
-        const pasted = (ev.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
-        pasted.split('').forEach((ch, i) => {
-          if (boxes[i]) { boxes[i].value = ch; boxes[i].classList.add('filled'); }
-        });
-        const next = boxes[Math.min(pasted.length, 5)];
-        if (next) next.focus();
-      });
-    });
-  }
-
-  function liGetOTPCode() {
-    let code = '';
-    for (let i = 1; i <= 6; i++) {
-      const b = document.getElementById(`li-d${i}`);
-      code += (b?.value || '');
-    }
-    return code;
-  }
-
-  // Resend timer
-  function liStartResend(email) {
-    const btn      = document.getElementById('li-btn-resend');
-    const timerRow = document.getElementById('li-resend-timer');
-    const secEl    = document.getElementById('li-resend-sec');
-
-    AuthEngine.startResendTimer('li-resend', {
-      btn,
-      timerEl: { style: {}, textContent: '' }, // handled manually below
-      onExpire: null
-    });
-
-    // Manual countdown display
-    if (timerRow) timerRow.style.display = 'inline';
-    let sec = 30;
-    if (secEl) secEl.textContent = sec;
-
-    const interval = setInterval(() => {
-      sec--;
-      if (secEl) secEl.textContent = sec;
-      if (sec <= 0) {
-        clearInterval(interval);
-        if (timerRow) timerRow.style.display = 'none';
-      }
-    }, 1000);
-
-    if (btn) {
-      btn.onclick = async () => {
-        clearInterval(interval);
-        try {
-          await AuthEngine.sendOTP(email, 'email');
-          liHideOTPError();
-          // Reset expiry countdown
-          AuthEngine.stopTimer('li-expiry');
-          const timerEl = document.getElementById('li-otp-timer');
-          if (timerEl) { timerEl.classList.remove('urgent'); }
-          AuthEngine.startExpiryCountdown('li-expiry', {
-            displayEl: timerEl,
-            onExpire: () => {
-              if (timerEl) timerEl.classList.add('urgent');
-              liShowOTPError('OTP expired. Click "Resend OTP" for a new code.');
-              document.getElementById('li-btn-verify').disabled = true;
-            }
-          });
-          document.getElementById('li-btn-verify').disabled = false;
-          const ac = document.getElementById('li-attempt-count');
-          if (ac) ac.textContent = '0';
-          liStartResend(email);
-          liBindOTPBoxes();
-          document.getElementById('li-d1')?.focus();
-        } catch (err) {
-          liShowOTPError('Failed to resend. Please try again.');
-        }
-      };
-    }
-  }
-
-  // ── STEP 2: Verify OTP button ────────────────────────────────
-  const liVerifyBtn = document.getElementById('li-btn-verify');
-  if (liVerifyBtn) {
-    liVerifyBtn.addEventListener('click', async () => {
-      liHideOTPError();
-      const code  = liGetOTPCode();
-      const email = (liEmail?.value || '').trim();
-
-      if (code.length !== 6) {
-        liShowOTPError('Please enter all 6 digits.'); return;
-      }
-
-      setLoading(liVerifyBtn, true, 'Verifying…');
-
-      const result = await AuthEngine.verifyOTP(email, 'email', code);
-
-      if (!result.success) {
-        const ac = document.getElementById('li-attempt-count');
-        if (ac) {
-          const cur = parseInt(ac.textContent) || 0;
-          ac.textContent = cur + 1;
-        }
-        liShowOTPError(result.error);
-        liVerifyBtn.classList.remove('loading');
-        liVerifyBtn.innerHTML = '<span>Verify &amp; Sign In</span>';
-
-        if (result.maxAttempts || result.remainingAttempts === 0) {
-          liVerifyBtn.disabled = true;
-        }
-        return;
-      }
-
-      // Success — complete login
-      const pending = JSON.parse(sessionStorage.getItem('bb_pending_login') || '{}');
-      await AuthEngine.completeLogin(pending);
-
-      // All boxes green
-      for (let i = 1; i <= 6; i++) {
-        const b = document.getElementById(`li-d${i}`);
-        if (b) { b.classList.remove('error'); b.classList.add('success'); }
-      }
-      AuthEngine.stopTimer('li-expiry');
-      AuthEngine.stopTimer('li-resend');
-
-      liVerifyBtn.innerHTML = '<span>✅ Verified! Redirecting…</span>';
-      liVerifyBtn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
-
-      setTimeout(() => {
-        const role = pending.role || 'student';
-        window.location.href = (role === 'instructor' || role === 'teach') ? 'teach-verify.html' : 'dashboard.html';
-      }, 900);
-    });
-  }
-
-  // ── Back to step 1 ───────────────────────────────────────────
-  const liBackBtn = document.getElementById('li-btn-back');
-  if (liBackBtn) {
-    liBackBtn.addEventListener('click', () => {
-      liHideOTPError();
-      goBackToStep1();
-      sessionStorage.removeItem('bb_pending_login');
-    });
-  }
-
-  // Demo Account button
-  var liDemoBtnEl = document.getElementById('li-btn-demo');
-  if (liDemoBtnEl) {
-    liDemoBtnEl.addEventListener('click', function() {
-      var DEMO_EMAIL = 'demo@brainbyte.dev';
-      var DEMO_PASS  = 'Demo@1234';
-      var mocks = JSON.parse(localStorage.getItem('bb_mock_users') || '[]');
-      if (!mocks.some(function(u) { return u.email === DEMO_EMAIL; })) {
-        mocks.push({ id: 'demo_001', full_name: 'Demo Student', email: DEMO_EMAIL,
-          password: DEMO_PASS, phone_number: '+910000000000', role: 'student',
-          phone_verified: true, isLoggedIn: false, created_at: new Date().toISOString() });
-        localStorage.setItem('bb_mock_users', JSON.stringify(mocks));
-      }
-      var eEl = document.getElementById('li-email');
-      var pEl = document.getElementById('li-password');
-      if (eEl) eEl.value = DEMO_EMAIL;
-      if (pEl) pEl.value = DEMO_PASS;
-      var liHideErr = function() { var el = document.getElementById('li-error'); if(el) el.classList.remove('show'); };
-      liHideErr();
-      var lb = document.getElementById('li-lockout-bar');
-      if (lb) lb.classList.remove('show');
-      liForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-    });
-  }
-
-
-  // ── Google OAuth ─────────────────────────────────────────────
-  const liGoogleBtn = document.getElementById('li-btn-google');
-  if (liGoogleBtn) {
-    liGoogleBtn.addEventListener('click', async () => {
+  // 3. Real Google OAuth Trigger
+  if (googleBtn) {
+    googleBtn.addEventListener('click', async () => {
+      const originalGoogleContent = googleBtn.innerHTML;
+      googleBtn.disabled = true;
+      googleBtn.innerHTML = `<span class="alert-spinner"></span> <span>Connecting to Google...</span>`;
+      
       try {
-        const client = window.supabaseClient;
-        if (client) {
-          await client.auth.signInWithOAuth({
-            provider: 'google',
-            options: { redirectTo: window.location.origin + '/dashboard.html' }
-          });
+        const client = window.supabaseClient || supabaseClient;
+        if (!client) {
+          throw new Error("Supabase client is not initialized.");
         }
-      } catch (e) { liShowError('Google sign-in unavailable. Please use email login.'); }
+        
+        const { error } = await client.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin + '/dashboard.html'
+          }
+        });
+
+        if (error) throw error;
+        
+      } catch (err) {
+        console.error("[Supabase OAuth] Google login error:", err);
+        googleBtn.disabled = false;
+        googleBtn.innerHTML = originalGoogleContent;
+        showError(err.message || "Could not connect to Google OAuth.");
+      }
     });
+  }
+
+  function showError(msg) {
+    if (errorAlert && errorMessageText) {
+      errorMessageText.textContent = msg;
+      errorAlert.classList.remove('d-none');
+    }
   }
 }
 
 /**
- * ================================================================
- *  SIGNUP CONTROLLER â€” Role â†’ Details â†’ Phone OTP â†’ Success
- *  Uses: AuthEngine (js/auth-engine.js)
- *  HTML IDs: su-* (signup.html)
- * ================================================================
+ * Signup Screen Controller (PAGE 05)
+ * Handles role selection, password strength meters, multi-step wizarding, and redirects
  */
 function initSignupController() {
-  const suStep1   = document.getElementById('su-step-1');
-  const suStep2   = document.getElementById('su-step-2');
-  const suStep3   = document.getElementById('su-step-3');
-  const suSuccess = document.getElementById('su-step-success');
-  if (!suStep1 || !suStep2) return;
+  const step1 = document.getElementById('step-1-container');
+  const step2 = document.getElementById('step-2-container');
+  
+  if (!step1 || !step2) return; // Only execute on the signup page
 
-  let selectedRole  = '';
-  let pendingPhone  = '';
-  let attemptCount  = 0;
+  const roleStudent = document.getElementById('role-card-student');
+  const roleInstructor = document.getElementById('role-card-instructor');
+  const btnContinue = document.getElementById('btn-signup-continue');
+  const btnBack = document.getElementById('btn-signup-back');
+  const instructorNote = document.getElementById('instructor-verify-note');
+  const instructorEmailBox = document.getElementById('instructor-email-info-box');
+  
+  const signupForm = document.getElementById('signup-form');
+  const fullNameInput = document.getElementById('fullname');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const confirmPasswordInput = document.getElementById('confirm-password');
+  
+  const togglePassBtn = document.getElementById('toggle-password-btn');
+  const toggleConfirmBtn = document.getElementById('toggle-confirm-btn');
+  const strengthBar = document.getElementById('strength-bar-bar');
+  const strengthLabel = document.getElementById('strength-bar-label');
+  const matchErrorText = document.getElementById('match-error-text');
+  
+  const termsCheck = document.getElementById('terms-check');
+  const submitBtn = document.getElementById('submit-signup-btn');
+  const errorAlert = document.getElementById('signup-error-alert');
+  const errorTextDisplay = document.getElementById('signup-error-text');
+  const googleBtn = document.getElementById('btn-oauth-signup-google');
+  
+  const indicatorStepText = document.getElementById('indicator-step-text');
+  const indicatorStepDots = document.getElementById('indicator-step-dots');
+  
+  let selectedRole = ''; // Can be 'student' or 'teach'
 
-  // ── UI helpers ───────────────────────────────────────────────
-  const setNodeState = (nodeId, state /* 'active'|'done'|'idle' */) => {
-    const n = document.getElementById(nodeId);
-    if (!n) return;
-    n.classList.remove('active', 'done');
-    if (state === 'active') n.classList.add('active');
-    if (state === 'done')   { n.classList.add('done'); n.textContent = '✓'; }
-  };
-  const setConnDone = (id, done) => {
-    const c = document.getElementById(id);
-    if (c) c.classList.toggle('done', done);
-  };
-
-  const showGlobalError = (msg) => {
-    const el  = document.getElementById('su-global-error');
-    const txt = document.getElementById('su-global-error-text');
-    if (el && txt) { txt.textContent = msg; el.classList.add('show'); }
-  };
-  const hideGlobalError = () => {
-    const el = document.getElementById('su-global-error');
-    if (el) el.classList.remove('show');
-  };
-
-  const showFieldError = (fieldId, msg) => {
-    const el = document.getElementById(fieldId);
-    if (!el) return;
-    el.classList.remove('d-none');
-    const sp = el.querySelector('span') || el;
-    sp.textContent = msg;
-  };
-  const hideFieldError = (fieldId) => {
-    const el = document.getElementById(fieldId);
-    if (el) el.classList.add('d-none');
-  };
-
-  const setLoading = (btn, loading, label = '') => {
-    if (!btn) return;
-    if (loading) {
-      btn.classList.add('loading');
-      btn.innerHTML = `<span class="spinner-ring"></span> <span style="margin-left:0.5rem;">${label}</span>`;
-    } else {
-      btn.classList.remove('loading');
-    }
-  };
-
-  const transition = (fromEl, toEl) => {
-    if (fromEl) fromEl.classList.remove('active');
-    if (toEl)   toEl.classList.add('active');
-  };
-
-  // ── STEP 1: Role selection ───────────────────────────────────
+  // ================================================================
+  // STEP 1 - ROLE SELECTION CONTROLLER (Support card selection and fades)
+  // ================================================================
   const roleCards = document.querySelectorAll('.role-card');
+  const continueBtn = document.getElementById('btn-signup-continue');
+  const backBtn = document.getElementById('btn-signup-back');
+
+  // Enforce initially disabled Continue button styling
+  if (continueBtn) {
+    continueBtn.disabled = true;
+    continueBtn.style.opacity = '0.4';
+    continueBtn.style.transition = 'all 0.3s ease';
+  }
+
   roleCards.forEach(card => {
     card.addEventListener('click', () => {
       roleCards.forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
-      selectedRole = card.dataset.role || 'student';
+      selectedRole = card.dataset.role || ''; // 'student' or 'teach'
+      
+      if (continueBtn) {
+        continueBtn.disabled = false;
+        continueBtn.style.opacity = '1';
+        continueBtn.style.boxShadow = '0 0 20px rgba(168, 85, 247, 0.4)'; // glowing state
+      }
 
-      const note = document.getElementById('su-instructor-note');
-      if (note) note.classList.toggle('show', selectedRole === 'teach');
+      // Sync specific instructor warning note view
+      if (instructorNote) {
+        if (selectedRole === 'teach') {
+          instructorNote.classList.remove('d-none');
+        } else {
+          instructorNote.classList.add('d-none');
+        }
+      }
 
-      const continueBtn = document.getElementById('su-btn-continue-1');
-      if (continueBtn) continueBtn.disabled = false;
+      console.log(`%c[BrainByte Signup] Selected Role: ${selectedRole}`, 'color: #A855F7; font-weight: bold;');
     });
   });
 
-  document.getElementById('su-btn-continue-1')?.addEventListener('click', () => {
-    if (!selectedRole) return;
+  // Next Wizard Page Transition (Smooth fadeOut -> fadeIn)
+  if (continueBtn) {
+    continueBtn.addEventListener('click', () => {
+      if (!selectedRole) return;
 
-    setNodeState('su-node-1', 'done');
-    setConnDone('su-conn-1', true);
-    setNodeState('su-node-2', 'active');
-
-    // Update step 2 heading for instructor
-    const title = document.getElementById('su-step2-title');
-    const sub   = document.getElementById('su-step2-sub');
-    if (title) title.textContent = selectedRole === 'teach' ? 'Set up your instructor profile' : 'Set up your profile';
-    if (sub)   sub.textContent   = 'Fill in your account details below';
-
-    transition(suStep1, suStep2);
-  });
-
-  // ── STEP 2: Password toggle + strength ───────────────────────
-  const suTogglePw = document.getElementById('su-toggle-pw');
-  const suPwInput  = document.getElementById('su-password');
-  if (suTogglePw && suPwInput) {
-    suTogglePw.addEventListener('click', () => {
-      const hide = suPwInput.type === 'password';
-      suPwInput.type = hide ? 'text' : 'password';
-      suTogglePw.querySelector('i').className = hide ? 'bi bi-eye-slash' : 'bi bi-eye';
-    });
-    suPwInput.addEventListener('input', () => {
-      const { score, label } = AuthEngine.validatePassword(suPwInput.value);
-      const bar    = document.getElementById('su-pw-bar');
-      const lbl    = document.getElementById('su-pw-label');
-      const colors = ['#EF4444','#EF4444','#F59E0B','#06B6D4','#10B981'];
-      const widths = ['10%','35%','60%','80%','100%'];
-      const classes = ['','weak','fair','good','strong'];
-      if (bar) { bar.style.width = widths[score] || '0%'; bar.style.background = colors[score] || ''; }
-      if (lbl) { lbl.className = `pw-strength-label ${classes[score] || ''}`; lbl.textContent = score === 0 ? 'Password strength' : label; }
+      // Smooth transition: fadeOut step 1 -> fadeIn step 2
+      step1.style.transition = 'opacity 0.25s ease';
+      step1.style.opacity = '0';
+      
+      setTimeout(() => {
+        step1.style.display = 'none';
+        step1.classList.remove('active');
+        
+        step2.style.display = 'block';
+        step2.style.opacity = '0';
+        step2.style.transition = 'opacity 0.25s ease';
+        
+        // Trigger reflow
+        step2.offsetHeight;
+        
+        step2.style.opacity = '1';
+        step2.classList.add('active');
+        
+        // Update top wizard indicator state to Step 2
+        if (indicatorStepText) indicatorStepText.textContent = "Step 2";
+        if (indicatorStepDots) {
+          indicatorStepDots.innerHTML = `<span style="color: var(--violet-primary);">ΓùÅΓùÅΓùÅ</span><span style="color: rgba(255,255,255,0.12);">Γùï</span>`;
+        }
+        
+        // Update subheader messages
+        const subhead = document.getElementById('signup-subtext-header');
+        if (subhead) {
+          subhead.textContent = `Set up your profile as a ${selectedRole === 'student' ? 'Student' : 'Instructor'}`;
+        }
+        
+        // Toggle the conditional instructor info/warning box
+        if (instructorEmailBox) {
+          if (selectedRole === 'teach') {
+            instructorEmailBox.classList.remove('d-none');
+            const infoText = instructorEmailBox.querySelector('span');
+            if (infoText) {
+              infoText.innerHTML = "ΓÜí Verification required before publishing courses";
+            }
+          } else {
+            instructorEmailBox.classList.add('d-none');
+          }
+        }
+      }, 250);
     });
   }
 
-  const suToggleConfirm = document.getElementById('su-toggle-confirm');
-  const suConfirmInput  = document.getElementById('su-confirm');
-  if (suToggleConfirm && suConfirmInput) {
-    suToggleConfirm.addEventListener('click', () => {
-      const hide = suConfirmInput.type === 'password';
-      suConfirmInput.type = hide ? 'text' : 'password';
-      suToggleConfirm.querySelector('i').className = hide ? 'bi bi-eye-slash' : 'bi bi-eye';
+  // Back Wizard Page Transition (Smooth fadeOut -> fadeIn)
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      step2.style.transition = 'opacity 0.25s ease';
+      step2.style.opacity = '0';
+      
+      setTimeout(() => {
+        step2.style.display = 'none';
+        step2.classList.remove('active');
+        
+        step1.style.display = 'block';
+        step1.style.opacity = '0';
+        step1.style.transition = 'opacity 0.25s ease';
+        
+        // Trigger reflow
+        step1.offsetHeight;
+        
+        step1.style.opacity = '1';
+        step1.classList.add('active');
+        
+        // Revert top indicators to Step 1
+        if (indicatorStepText) indicatorStepText.textContent = "Step 1";
+        if (indicatorStepDots) {
+          indicatorStepDots.innerHTML = `<span style="color: var(--violet-primary);">ΓùÅΓùÅ</span><span style="color: rgba(255,255,255,0.12);">ΓùïΓùï</span>`;
+        }
+        
+        const subhead = document.getElementById('signup-subtext-header');
+        if (subhead) {
+          subhead.textContent = "Create your free account";
+        }
+      }, 250);
     });
   }
 
-  // Enable submit when terms checked
-  const suTerms = document.getElementById('su-terms');
-  const suSubmit = document.getElementById('su-btn-submit');
-  if (suTerms && suSubmit) {
-    suTerms.addEventListener('change', () => { suSubmit.disabled = !suTerms.checked; });
+  // ================================================================
+  // STEP 2 - ACCOUNT DETAILS CONTROLLER
+  // ================================================================
+  
+  // A. Eye Toggles for Visibility
+  if (togglePassBtn && passwordInput) {
+    togglePassBtn.addEventListener('click', () => {
+      const isPass = passwordInput.getAttribute('type') === 'password';
+      passwordInput.setAttribute('type', isPass ? 'text' : 'password');
+      
+      const icon = togglePassBtn.querySelector('i');
+      if (icon) icon.className = isPass ? 'bi bi-eye-slash' : 'bi bi-eye';
+    });
   }
 
-  // Back to step 1
-  document.getElementById('su-btn-back-1')?.addEventListener('click', () => {
-    transition(suStep2, suStep1);
-    setNodeState('su-node-1', 'active');
-    setConnDone('su-conn-1', false);
-    setNodeState('su-node-2', 'idle');
-    hideGlobalError();
-  });
+  if (toggleConfirmBtn && confirmPasswordInput) {
+    toggleConfirmBtn.addEventListener('click', () => {
+      const isPass = confirmPasswordInput.getAttribute('type') === 'password';
+      confirmPasswordInput.setAttribute('type', isPass ? 'text' : 'password');
+      
+      const icon = toggleConfirmBtn.querySelector('i');
+      if (icon) icon.className = isPass ? 'bi bi-eye-slash' : 'bi bi-eye';
+    });
+  }
 
-  // ── STEP 2: Form submit ──────────────────────────────────────
-  document.getElementById('su-form')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    hideGlobalError();
-    hideFieldError('su-err-name');
-    hideFieldError('su-err-email');
-    hideFieldError('su-err-phone');
-    hideFieldError('su-err-confirm');
-
-    const fullName = (document.getElementById('su-fullname')?.value || '').trim();
-    const email    = (document.getElementById('su-email')?.value || '').trim();
-    const cc       = (document.getElementById('su-country-code')?.value || '+91');
-    const phoneRaw = (document.getElementById('su-phone')?.value || '').replace(/[\s\-\(\)]/g, '');
-    const phone    = cc + phoneRaw;
-    const password = (suPwInput?.value || '');
-    const confirm  = (suConfirmInput?.value || '');
-
-    // Validate
-    let valid = true;
-    if (!AuthEngine.validateFullName(fullName)) {
-      showFieldError('su-err-name', 'Please enter your full name (min 2 characters).'); valid = false;
-    }
-    if (!AuthEngine.validateEmail(email)) {
-      showFieldError('su-err-email', 'Please enter a valid email address.'); valid = false;
-    }
-    if (!phoneRaw || !AuthEngine.validatePhone(phone)) {
-      showFieldError('su-err-phone', 'Enter a valid phone number (7–15 digits).'); valid = false;
-    }
-    if (password.length < 8) {
-      showGlobalError('Password must be at least 8 characters.'); valid = false;
-    }
-    if (password !== confirm) {
-      showFieldError('su-err-confirm', ''); // Label already shows in HTML
-      document.getElementById('su-err-confirm')?.classList.remove('d-none');
-      valid = false;
-    }
-    if (!valid) return;
-
-    const btn = document.getElementById('su-btn-submit');
-    setLoading(btn, true, 'Checking availability…');
-
-    try {
-      // Check duplicates
-      const dup = await AuthEngine.checkDuplicates(email, phone);
-      if (dup.isDuplicate) {
-        if (dup.field === 'email') showFieldError('su-err-email', dup.message);
-        else showFieldError('su-err-phone', dup.message);
-        btn.classList.remove('loading');
-        btn.innerHTML = '<span>Send Phone OTP <i class="bi bi-arrow-right-short fs-5"></i></span>';
+  // B. Dynamic Password Strength Meter
+  if (passwordInput && strengthBar && strengthLabel) {
+    passwordInput.addEventListener('input', () => {
+      const val = passwordInput.value;
+      let strength = 0;
+      
+      if (val.length === 0) {
+        resetStrength();
         return;
       }
-
-      // Store data for step 3
-      pendingPhone = phone;
-      sessionStorage.setItem('bb_signup_pending', JSON.stringify({
-        fullName, email, phone, password, role: selectedRole
-      }));
-
-      // Send phone OTP
-      setLoading(btn, true, 'Sending OTP to phone…');
-      await AuthEngine.sendOTP(phone, 'phone');
-
-      // Update OTP display
-      const display = document.getElementById('su-otp-phone-display');
-      if (display) display.textContent = AuthEngine.maskPhone(phone);
-
-      // Advance to step 3
-      setNodeState('su-node-2', 'done');
-      setConnDone('su-conn-2', true);
-      setNodeState('su-node-3', 'active');
-      transition(suStep2, suStep3);
-
-      // Wire OTP boxes
-      suBindOTPBoxes();
-      attemptCount = 0;
-      const ac = document.getElementById('su-attempt-count');
-      if (ac) ac.textContent = '0';
-      document.getElementById('su-btn-verify').disabled = false;
-
-      // Start expiry countdown
-      const timerEl = document.getElementById('su-otp-timer');
-      AuthEngine.startExpiryCountdown('su-expiry', {
-        displayEl: timerEl,
-        onExpire: () => {
-          if (timerEl) timerEl.classList.add('urgent');
-          suShowOTPError('OTP expired. Click "Resend OTP" to get a new code.');
-          document.getElementById('su-btn-verify').disabled = true;
-        }
-      });
-
-      // Start resend timer
-      suStartResend(phone);
-      setTimeout(() => document.getElementById('su-d1')?.focus(), 120);
-
-    } catch (err) {
-      showGlobalError(err.message || 'Something went wrong. Please try again.');
-    } finally {
-      btn.classList.remove('loading');
-      btn.innerHTML = '<span>Send Phone OTP <i class="bi bi-arrow-right-short fs-5"></i></span>';
-    }
-  });
-
-  // ── STEP 3: OTP helpers ──────────────────────────────────────
-  const suShowOTPError = (msg) => {
-    const el  = document.getElementById('su-otp-error');
-    const txt = document.getElementById('su-otp-error-text');
-    if (el && txt) { txt.textContent = msg; el.classList.add('show'); }
-    for (let i = 1; i <= 6; i++) {
-      const b = document.getElementById(`su-d${i}`);
-      if (b) { b.classList.remove('error'); void b.offsetWidth; b.classList.add('error'); }
-    }
-  };
-  const suHideOTPError = () => {
-    const el = document.getElementById('su-otp-error');
-    if (el) el.classList.remove('show');
-    for (let i = 1; i <= 6; i++) {
-      const b = document.getElementById(`su-d${i}`);
-      if (b) b.classList.remove('error');
-    }
-  };
-
-  function suBindOTPBoxes() {
-    const boxes = [];
-    for (let i = 1; i <= 6; i++) {
-      const b = document.getElementById(`su-d${i}`);
-      if (b) { b.value = ''; b.classList.remove('filled','error','success'); boxes.push(b); }
-    }
-    boxes.forEach((box, idx) => {
-      box.addEventListener('input', (ev) => {
-        const val = ev.target.value.replace(/\D/g, '').slice(-1);
-        box.value = val;
-        box.classList.toggle('filled', !!val);
-        if (val && boxes[idx + 1]) boxes[idx + 1].focus();
-      });
-      box.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Backspace' && !box.value && boxes[idx - 1]) boxes[idx - 1].focus();
-        if (ev.key === 'ArrowLeft'  && boxes[idx - 1]) boxes[idx - 1].focus();
-        if (ev.key === 'ArrowRight' && boxes[idx + 1]) boxes[idx + 1].focus();
-      });
-      box.addEventListener('paste', (ev) => {
-        ev.preventDefault();
-        const pasted = (ev.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
-        pasted.split('').forEach((ch, i) => {
-          if (boxes[i]) { boxes[i].value = ch; boxes[i].classList.add('filled'); }
-        });
-        const next = boxes[Math.min(pasted.length, 5)];
-        if (next) next.focus();
-      });
+      
+      if (val.length >= 6) strength++;
+      if (/[0-9]/.test(val) || /[^A-Za-z0-9]/.test(val)) strength++;
+      if (val.length >= 8 && /[A-Z]/.test(val)) strength++;
+      
+      // Render strength values
+      strengthBar.className = 'strength-bar-fill';
+      strengthLabel.className = 'strength-label';
+      
+      if (strength === 1 || val.length < 6) {
+        strengthBar.classList.add('weak');
+        strengthLabel.classList.add('weak');
+        strengthLabel.textContent = "Weak Password";
+      } else if (strength === 2) {
+        strengthBar.classList.add('medium');
+        strengthLabel.classList.add('medium');
+        strengthLabel.textContent = "Medium Password";
+      } else if (strength >= 3) {
+        strengthBar.classList.add('strong');
+        strengthLabel.classList.add('strong');
+        strengthLabel.textContent = "Strong Password (Perfect)";
+      }
     });
   }
 
-  function suGetOTPCode() {
-    let code = '';
-    for (let i = 1; i <= 6; i++) code += (document.getElementById(`su-d${i}`)?.value || '');
-    return code;
+  function resetStrength() {
+    strengthBar.className = 'strength-bar-fill';
+    strengthBar.style.width = '0%';
+    strengthLabel.className = 'strength-label';
+    strengthLabel.textContent = "Password Strength";
   }
 
-  function suStartResend(phone) {
-    const btn      = document.getElementById('su-btn-resend');
-    const timerRow = document.getElementById('su-resend-timer');
-    const secEl    = document.getElementById('su-resend-sec');
-
-    if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; }
-    if (timerRow) timerRow.style.display = 'inline';
-    let sec = 30;
-    if (secEl) secEl.textContent = sec;
-
-    const interval = setInterval(() => {
-      sec--;
-      if (secEl) secEl.textContent = sec;
-      if (sec <= 0) {
-        clearInterval(interval);
-        if (timerRow) timerRow.style.display = 'none';
-        if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+  // C. Confirm Password Match Checker
+  if (confirmPasswordInput && passwordInput && matchErrorText) {
+    const checkMatch = () => {
+      const pass = passwordInput.value;
+      const confirm = confirmPasswordInput.value;
+      
+      if (confirm.length > 0 && pass !== confirm) {
+        matchErrorText.classList.remove('d-none');
+        confirmPasswordInput.style.borderColor = 'var(--error)';
+      } else {
+        matchErrorText.classList.add('d-none');
+        confirmPasswordInput.style.borderColor = '';
       }
-    }, 1000);
+    };
+    
+    confirmPasswordInput.addEventListener('input', checkMatch);
+    passwordInput.addEventListener('input', checkMatch);
+  }
 
-    if (btn) {
-      btn.onclick = async () => {
-        clearInterval(interval);
-        try {
-          await AuthEngine.sendOTP(phone, 'phone');
-          suHideOTPError();
-          AuthEngine.stopTimer('su-expiry');
-          const timerEl = document.getElementById('su-otp-timer');
-          if (timerEl) timerEl.classList.remove('urgent');
-          AuthEngine.startExpiryCountdown('su-expiry', {
-            displayEl: timerEl,
-            onExpire: () => {
-              if (timerEl) timerEl.classList.add('urgent');
-              suShowOTPError('OTP expired. Click "Resend OTP" to get a new code.');
-              document.getElementById('su-btn-verify').disabled = true;
+  // D. Terms Checkbox Toggle
+  if (termsCheck && submitBtn) {
+    termsCheck.addEventListener('change', () => {
+      submitBtn.disabled = !termsCheck.checked;
+    });
+  }
+
+  // E. Form submission to real Supabase database
+  if (signupForm) {
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = fullNameInput.value.trim();
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      const confirm = confirmPasswordInput.value;
+      
+      errorAlert.classList.add('d-none');
+      
+      // 1. Validation Checks
+      if (!name) {
+        showError("Full Name cannot be empty.");
+        return;
+      }
+      
+      // Valid email check (regex validation)
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email || !emailRegex.test(email)) {
+        showError("Please enter a valid email address.");
+        return;
+      }
+      
+      // Password length check
+      if (password.length < 6) {
+        showError("Password must be at least 6 characters.");
+        return;
+      }
+      
+      // Password match check
+      if (password !== confirm) {
+        showError("Passwords do not match. Verify fields and submit again.");
+        return;
+      }
+      
+      // Terms checked
+      if (!termsCheck || !termsCheck.checked) {
+        showError("You must agree to the Terms of Service & Privacy Policy.");
+        return;
+      }
+      
+      // Start Loading indicator state
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span class="alert-spinner"></span> <span>Creating Account...</span>`;
+      
+      try {
+        const client = window.supabaseClient || supabaseClient;
+        if (!client) {
+          throw new Error("Supabase client is not initialized. Please verify your connection settings.");
+        }
+        
+        // 2. Real Supabase SignUp
+        const { data, error } = await client.auth.signUp({
+          email: email,
+          password: password,
+          options: {
+            data: {
+              full_name: name,
+              role: selectedRole || 'student'
             }
-          });
-          document.getElementById('su-btn-verify').disabled = false;
-          attemptCount = 0;
-          const ac = document.getElementById('su-attempt-count');
-          if (ac) ac.textContent = '0';
-          suStartResend(phone);
-          suBindOTPBoxes();
-          document.getElementById('su-d1')?.focus();
-        } catch { suShowOTPError('Failed to resend. Please try again.'); }
-      };
-    }
+          }
+        });
+
+        if (error) throw error;
+        if (!data || !data.user) {
+          throw new Error("Authentication failed. No user details returned.");
+        }
+
+        // 3. Insert user profile into public.users table
+        const { error: dbError } = await client.from('users').insert({
+          id: data.user.id,
+          email: email,
+          full_name: name,
+          role: selectedRole || 'student'
+        });
+
+        if (dbError) {
+          console.warn("[Signup] Profile table insert warning (might already exist):", dbError);
+        }
+
+        // 4. Cache credentials locally as backup
+        localStorage.setItem('brainbyte_user', JSON.stringify({
+          id: data.user.id,
+          email: email,
+          full_name: name,
+          role: selectedRole || 'student',
+          isLoggedIn: true
+        }));
+        
+        // 5. Show success message in green glass card
+        submitBtn.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Account created successfully! ≡ƒÄë</span>`;
+        submitBtn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+        submitBtn.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.4)';
+        
+        console.log("%c[Supabase Auth] Success: Account registered for " + email, 'color: #10B981; font-weight: bold;');
+        
+        // 6. Redirect after 2 seconds
+        setTimeout(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalText;
+          submitBtn.style.background = '';
+          submitBtn.style.boxShadow = '';
+          
+          if (selectedRole === 'instructor' || selectedRole === 'teach') {
+            window.location.href = 'teach-verify.html'; 
+          } else {
+            window.location.href = 'dashboard.html';
+          }
+        }, 2000);
+
+      } catch (err) {
+        console.error("[Supabase Auth] SignUp failure:", err);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+        showError(err.message || "An unexpected registration error occurred.");
+      }
+    });
   }
 
-  // Back to step 2
-  document.getElementById('su-btn-back-2')?.addEventListener('click', () => {
-    AuthEngine.stopTimer('su-expiry');
-    AuthEngine.stopTimer('su-resend');
-    suHideOTPError();
-    setNodeState('su-node-3', 'idle');
-    setConnDone('su-conn-2', false);
-    setNodeState('su-node-2', 'active');
-    transition(suStep3, suStep2);
-  });
-
-  // ── STEP 3: Verify OTP ───────────────────────────────────────
-  document.getElementById('su-btn-verify')?.addEventListener('click', async () => {
-    suHideOTPError();
-    const code = suGetOTPCode();
-
-    if (code.length !== 6) {
-      suShowOTPError('Please enter all 6 digits.'); return;
-    }
-
-    const verifyBtn = document.getElementById('su-btn-verify');
-    setLoading(verifyBtn, true, 'Verifying OTP…');
-
-    const result = await AuthEngine.verifyOTP(pendingPhone, 'phone', code);
-
-    if (!result.success) {
-      attemptCount++;
-      const ac = document.getElementById('su-attempt-count');
-      if (ac) ac.textContent = String(attemptCount);
-      suShowOTPError(result.error);
-      verifyBtn.classList.remove('loading');
-      verifyBtn.innerHTML = '<span>Verify &amp; Create Account</span>';
-      if (result.maxAttempts || result.remainingAttempts === 0) {
-        verifyBtn.disabled = true;
-      }
-      return;
-    }
-
-    // OTP verified — create account
-    setLoading(verifyBtn, true, 'Creating your account…');
-
-    try {
-      const pending = JSON.parse(sessionStorage.getItem('bb_signup_pending') || '{}');
-      await AuthEngine.signup(
-        pending.fullName, pending.email, pending.phone, pending.password, pending.role
-      );
-
-      // All boxes green
-      for (let i = 1; i <= 6; i++) {
-        const b = document.getElementById(`su-d${i}`);
-        if (b) { b.classList.remove('error'); b.classList.add('success'); }
-      }
-
-      AuthEngine.stopTimer('su-expiry');
-      AuthEngine.stopTimer('su-resend');
-      sessionStorage.removeItem('bb_signup_pending');
-
-      // Show success step
-      setTimeout(() => { transition(suStep3, suSuccess); }, 400);
-
-    } catch (err) {
-      suShowOTPError(err.message || 'Account creation failed. Please try again.');
-      verifyBtn.classList.remove('loading');
-      verifyBtn.innerHTML = '<span>Verify &amp; Create Account</span>';
-    }
-  });
-
-  // ── Success: go to dashboard ─────────────────────────────────
-  document.getElementById('su-btn-go-dashboard')?.addEventListener('click', () => {
-    const user = JSON.parse(localStorage.getItem('brainbyte_user') || '{}');
-    const role = user.role || 'student';
-    window.location.href = (role === 'teach' || role === 'instructor') ? 'teach-verify.html' : 'dashboard.html';
-  });
-
-  // ── Google OAuth (signup) ────────────────────────────────────
-  document.getElementById('su-btn-google')?.addEventListener('click', async () => {
-    try {
-      const client = window.supabaseClient;
-      if (client) {
-        await client.auth.signInWithOAuth({
+  // F. Google OAuth Signup triggers
+  if (googleBtn) {
+    googleBtn.addEventListener('click', async () => {
+      const originalGoogleContent = googleBtn.innerHTML;
+      googleBtn.disabled = true;
+      googleBtn.innerHTML = `<span class="alert-spinner"></span> <span>Connecting to Google...</span>`;
+      
+      try {
+        const client = window.supabaseClient || supabaseClient;
+        if (!client) {
+          throw new Error("Supabase client is not initialized.");
+        }
+        
+        const { error } = await client.auth.signInWithOAuth({
           provider: 'google',
-          options: { redirectTo: window.location.origin + '/dashboard.html' }
+          options: {
+            redirectTo: window.location.origin + '/dashboard.html'
+          }
         });
-      }
-    } catch (e) { showGlobalError('Google sign-up unavailable. Please use email registration.'); }
-  });
-}
 
+        if (error) throw error;
+        
+      } catch (err) {
+        console.error("[Supabase OAuth] Google signup error:", err);
+        googleBtn.disabled = false;
+        googleBtn.innerHTML = originalGoogleContent;
+        showError(err.message || "Could not connect to Google OAuth.");
+      }
+    });
+  }
+
+  function showError(msg) {
+    if (errorAlert && errorTextDisplay) {
+      errorTextDisplay.textContent = msg;
+      errorAlert.classList.remove('d-none');
+      
+      // Alert wiggle animation
+      errorAlert.classList.add('scale-pop');
+      setTimeout(() => errorAlert.classList.remove('scale-pop'), 200);
+    }
+  }
+}
 
 
 function initCoursesController() {
@@ -2534,6 +2443,7 @@ function initLibraryController() {
     const itemsToRender = result.slice(0, visibleCount);
     renderLibraryGrid(itemsToRender);
   }
+  window.applyLibraryFilters = applyLibraryFilters;
 
   function renderLibraryGrid(items) {
     gridContainer.innerHTML = '';
@@ -2682,7 +2592,11 @@ function initResourceDetailController() {
   const urlId = params.get('id');
   if (urlId) {
     const parsedId = parseInt(urlId);
-    resource = libraryData.find(r => r.id === parsedId);
+    if (isNaN(parsedId)) {
+      resource = libraryData.find(r => r.id === urlId);
+    } else {
+      resource = libraryData.find(r => r.id === parsedId);
+    }
   }
   if (!resource) {
     const urlTitle = params.get('title');
