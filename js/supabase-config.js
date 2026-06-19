@@ -213,7 +213,8 @@ const initSupabaseConfig = () => {
           'index.html', 'courses.html', 'course-detail.html', 'login.html', 'signup.html',
           'library.html', 'resource-detail.html', '404.html', 'dashboard.html', 'teach.html',
           'teach-verify.html', 'verify-status.html', 'admin.html', 'admin-dashboard.html',
-          'admin-verify.html', 'admin-library.html', 'admin-upload.html', 'about.html', 'pricing.html', ''
+          'admin-verify.html', 'admin-library.html', 'admin-upload.html', 'admin-courses.html',
+          'about.html', 'pricing.html', 'privacy.html', 'terms.html', 'course-player.html', ''
         ];
         
         if (pageName && !validPages.includes(pageName)) {
