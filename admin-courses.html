@@ -718,8 +718,9 @@
             'data-science': 'Data Science'
           };
 
+          const newId = courses.reduce((max, c) => Math.max(max, c.id), 0) + 1;
           const newCourse = {
-            id: courses.length + 1,
+            id: newId,
             title,
             instructor,
             initials,
