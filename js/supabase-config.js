@@ -68,9 +68,10 @@ const initSupabaseConfig = () => {
     }
 
     if (activeSession) {
-      const authContainer = document.querySelector('.d-flex.align-items-center.gap-2.mt-3.mt-lg-0') || 
-                            document.querySelector('.d-flex.align-items-center.gap-3') ||
-                            document.getElementById('auth-buttons-container');
+      const authContainer = document.getElementById('auth-buttons-container') ||
+                            document.querySelector('.navbar .d-flex.align-items-center.gap-3') ||
+                            document.querySelector('.bb-navbar .d-flex.align-items-center.gap-3') ||
+                            document.querySelector('.d-flex.align-items-center.gap-2.mt-3.mt-lg-0');
       if (authContainer) {
         let dashboardHref = 'dashboard.html';
         if (userRole === 'admin' || userEmail.toLowerCase() === 'admin@brainbyte.in') {
