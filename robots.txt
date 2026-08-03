@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /admin-*.html
+
+Sitemap: https://brainbyte-eight.vercel.app/sitemap.xml
